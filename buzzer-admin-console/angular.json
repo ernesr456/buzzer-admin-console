@@ -8,7 +8,16 @@
   "projects": {
     "buzzer-admin-console": {
       "projectType": "application",
-      "schematics": {},
+      "schematics": {
+        "@schematics/angular:component": {
+          "type": "component",
+          "standalone": true,
+          "changeDetection": "OnPush"
+        },
+        "@schematics/angular:service": {
+          "type": "service"
+        }
+      },
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
