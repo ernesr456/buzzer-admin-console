@@ -1,3 +1,224 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
+
+/* ---- Colors ---- */
+@theme {
+  --color-dark: #131515;
+  --color-dark-lighter: #212121;
+  --color-yellow: #ffb414;
+  --color-red: #ec193c;
+  --color-white: #ffffff;
+  --color-gray: #3e3e3e;
+  --color-green: #2ed368;
+  --color-orange: #ff5b14;
+}
+
+/* ---- Display typography (Poppins) ---- */
+.display-large {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 56px;
+  line-height: 56px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.display-medium {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 54px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.display-medium-light {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;
+  font-size: 48px;
+  line-height: 54px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.display-small {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 36px;
+  line-height: 44px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.display-small-light {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;
+  font-size: 36px;
+  line-height: 44px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+/* ---- Headline typography (Poppins) ---- */
+.headline-large {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 40px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.headline-medium {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.headline-small {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.title-large {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.title-large-bold {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.title-small {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 100%;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.title-small-bold {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 100%;
+  letter-spacing: 0;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+.title-small-caps {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 8px;
+  line-height: 100%;
+  letter-spacing: 0.2em;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+.label-large {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.label-large-bold {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.label-small {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.label-small-bold {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.label-large-medium {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.label-graph {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 6px;
+  line-height: 1;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.body-large {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 22px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.body-large-bold {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 22px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.body-small {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.body-small-bold {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
