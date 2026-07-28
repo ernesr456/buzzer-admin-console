@@ -1,1 +1,75 @@
-<p>sidebar works!</p>
+<!-- Mobile overlay -->
+<div *ngIf="sidebarService.mobileOpen()" class="md:hidden fixed inset-0 z-40 flex">
+  <div class="fixed inset-0 bg-black/50" (click)="sidebarService.closeMobile()"></div>
+  <aside class="relative w-full md:w-64 h-full bg-dark border-r border-white/6">
+    <div class="flex items-center justify-between p-[23.5px] border-b border-white/6 flex-shrink-0">
+      <img src="assets/buzzer-admin-logo.webp" alt="Buzzer Admin Logo" class="h-6 w-auto" />
+      <button class="text-white/30 hover:text-white transition-colors" (click)="sidebarService.closeMobile()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto py-4">
+      <div *ngFor="let group of menuGroups" class="flex flex-col">
+        <div class="px-6 py-2 title-small-caps text-white/20 label-small flex items-center justify-between cursor-pointer hover:text-white/40 transition-colors" (click)="toggleGroup(group)">
+          {{ group.title }}
+          <svg *ngIf="group.isOpen" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          <svg *ngIf="!group.isOpen" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
+        </div>
+        <nav *ngIf="group.isOpen" class="flex flex-col gap-1 px-3">
+          <a *ngFor="let item of group.items" href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors" [ngClass]="item.isActive ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'" (click)="setActive(group, item)">
+            <img [src]="'assets/icons/' + item.icon" alt="" class="w-[20px] h-[20px] flex-shrink-0" [ngClass]="item.isActive ? 'opacity-100' : 'opacity-70'" />
+            <span [ngClass]="item.isActive ? 'body-small-bold' : 'body-small'">{{ item.label }}</span>
+          </a>
+        </nav>
+      </div>
+    </div>
+
+    <div class="border-t border-white/6 p-6 flex-shrink-0 bg-dark flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-yellow flex items-center justify-center text-black font-bold text-base flex-shrink-0">A</div>
+      <div class="flex flex-col">
+        <span class="label-large text-white">admin@buzzerfan.com</span>
+        <a href="#" class="label-small text-yellow hover:underline cursor-pointer">Sign out</a>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- Desktop sidebar -->
+<aside class="hidden md:flex md:flex-col h-full bg-dark border-r border-white/6 flex-shrink-0 md:fixed md:top-0 md:left-0" [ngClass]="sidebarService.collapsed() ? 'md:w-20 collapsed' : 'md:w-[260px]'">
+  <div class="flex items-center justify-between p-[23.5px] border-b border-white/6 flex-shrink-0">
+    <img src="assets/buzzer-admin-logo.webp" alt="Buzzer Admin Logo" class="h-6 w-auto" />
+    <button class="text-white/30 hover:text-white transition-colors" (click)="sidebarService.toggleCollapsed()" aria-label="Toggle collapse">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+  </div>
+
+  <div class="flex-1 overflow-y-auto py-4">
+    <div *ngFor="let group of menuGroups" class="flex flex-col">
+      <div class="px-6 py-2 title-small-caps text-white/20 label-small flex items-center justify-between cursor-pointer hover:text-white/40 transition-colors" (click)="toggleGroup(group)">
+        {{ group.title }}
+        <svg *ngIf="group.isOpen" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        <svg *ngIf="!group.isOpen" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
+      </div>
+      <nav *ngIf="group.isOpen" class="flex flex-col gap-1 px-3">
+        <a *ngFor="let item of group.items" href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors" [ngClass]="item.isActive ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'" (click)="setActive(group, item)">
+          <img [src]="'assets/icons/' + item.icon" alt="" class="w-[20px] h-[20px] flex-shrink-0" [ngClass]="item.isActive ? 'opacity-100' : 'opacity-70'" />
+          <span [ngClass]="item.isActive ? 'body-small-bold' : 'body-small'">{{ item.label }}</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="border-t border-white/6 p-6 flex-shrink-0 bg-dark flex items-center gap-3">
+    <div class="w-10 h-10 rounded-full bg-yellow flex items-center justify-center text-black font-bold text-base flex-shrink-0">A</div>
+    <div class="flex flex-col">
+      <span class="label-large text-white">admin@buzzerfan.com</span>
+      <a href="#" class="label-small text-yellow hover:underline cursor-pointer">Sign out</a>
+    </div>
+  </div>
+</aside>

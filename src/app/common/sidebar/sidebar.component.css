@@ -1,0 +1,30 @@
+/* Sidebar collapse styles for desktop */
+@media (min-width: 768px) {
+  /* Hide textual labels when collapsed */
+  aside.collapsed .label-small,
+  aside.collapsed .body-small,
+  aside.collapsed .body-small-bold,
+  aside.collapsed .label-large,
+  aside.collapsed .title-small-caps {
+    display: none;
+  }
+
+  /* Center the item icons when collapsed */
+  aside.collapsed nav a {
+    justify-content: center;
+    padding-left: 0.5rem; /* smaller padding when collapsed */
+    padding-right: 0.5rem;
+  }
+
+  /* Reduce header padding in collapsed state */
+  aside.collapsed > div:first-child {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  /* Footer compacting */
+  aside.collapsed .border-t {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
