@@ -1,7 +1,7 @@
 <!-- Mobile overlay -->
 <div *ngIf="sidebarService.mobileOpen()" class="md:hidden fixed inset-0 z-40 flex">
   <div class="fixed inset-0 bg-black/50" (click)="sidebarService.closeMobile()"></div>
-  <aside class="relative w-full md:w-64 h-full bg-dark border-r border-white/6">
+  <aside class="relative w-full md:w-64 h-full bg-dark border-r border-white/6 flex flex-col">
     <div class="flex items-center justify-between p-[23.5px] border-b border-white/6 flex-shrink-0">
       <img src="assets/buzzer-admin-logo.webp" alt="Buzzer Admin Logo" class="h-6 w-auto" />
       <button class="text-white/30 hover:text-white transition-colors" (click)="sidebarService.closeMobile()">
@@ -12,7 +12,7 @@
       </button>
     </div>
 
-    <div class="flex-1 overflow-y-auto py-4">
+    <div class="flex-1 overflow-y-auto py-4 min-h-0">
       <div *ngFor="let group of menuGroups" class="flex flex-col">
         <div class="px-6 py-2 title-small-caps text-white/20 label-small flex items-center justify-between cursor-pointer hover:text-white/40 transition-colors" (click)="toggleGroup(group)">
           {{ group.title }}
@@ -39,7 +39,7 @@
 </div>
 
 <!-- Desktop sidebar -->
-<aside class="hidden md:flex md:flex-col h-full bg-dark border-r border-white/6 flex-shrink-0 md:fixed md:top-0 md:left-0" [ngClass]="sidebarService.collapsed() ? 'md:w-20 collapsed' : 'md:w-[260px]'">
+<aside class="hidden md:flex md:flex-col h-full bg-dark border-r border-white/6 flex-shrink-0 md:fixed md:top-0 md:bottom-0 md:left-0" [ngClass]="sidebarService.collapsed() ? 'md:w-20 collapsed' : 'md:w-[260px]'">
   <div class="flex items-center justify-between p-[23.5px] border-b border-white/6 flex-shrink-0">
     <img src="assets/buzzer-admin-logo.webp" alt="Buzzer Admin Logo" class="h-6 w-auto" />
     <button class="text-white/30 hover:text-white transition-colors" (click)="sidebarService.toggleCollapsed()" aria-label="Toggle collapse">
@@ -49,7 +49,7 @@
     </button>
   </div>
 
-  <div class="flex-1 overflow-y-auto py-4">
+  <div class="flex-1 overflow-y-auto py-4 min-h-0">
     <div *ngFor="let group of menuGroups" class="flex flex-col">
       <div class="px-6 py-2 title-small-caps text-white/20 label-small flex items-center justify-between cursor-pointer hover:text-white/40 transition-colors" (click)="toggleGroup(group)">
         {{ group.title }}
