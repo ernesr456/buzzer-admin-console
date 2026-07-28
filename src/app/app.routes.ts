@@ -5,5 +5,6 @@ export const routes: Routes = [
     {
         path: '',
         component: MainLayoutComponent,
-    }
+    },
+    { path: '**', redirectTo: '' }
 ];
