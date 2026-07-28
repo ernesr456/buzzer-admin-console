@@ -1,7 +1,14 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist/buzzer-admin-console",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+  "functions": {
+    "dist/buzzer-admin-console/server/server.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "routes": [
+    { "src": "/_next/static/(.*)", "dest": "/_next/static/$1" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/(.*)", "dest": "dist/buzzer-admin-console/server/server.js" }
   ]
 }
