@@ -1,0 +1,80 @@
+<div class="space-y-4">
+  <h2 class="text-xl font-semibold text-white">{{ isEdit ? 'Edit Sport' : 'Add New Sport' }}</h2>
+
+  <div class="space-y-3">
+    <div>
+      <label for="sportName" class="block text-sm font-medium text-white/80">Sport Name</label>
+      <input
+        id="sportName"
+        type="text"
+        [(ngModel)]="name"
+        placeholder="e.g. Football"
+        class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+      />
+    </div>
+    <div>
+      <label for="sportEmoji" class="block text-sm font-medium text-white/80">Emoji</label>
+      <input
+        id="sportEmoji"
+        type="text"
+        [(ngModel)]="emoji"
+        placeholder="e.g. ⚽"
+        class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+      />
+    </div>
+    <div>
+      <label for="sportColor" class="block text-sm font-medium text-white/80">Color</label>
+      <input
+        id="sportColor"
+        type="color"
+        [(ngModel)]="color"
+        class="mt-1 w-20 h-10 p-0 border-0 cursor-pointer bg-transparent"
+      />
+    </div>
+    <div>
+      <label for="governingBodies" class="block text-sm font-medium text-white/80">Governing Bodies</label>
+      <input
+        id="governingBodies"
+        type="number"
+        [(ngModel)]="governingBodies"
+        min="0"
+        class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+      />
+    </div>
+    <div>
+      <label for="organisations" class="block text-sm font-medium text-white/80">Organisations</label>
+      <input
+        id="organisations"
+        type="number"
+        [(ngModel)]="organisations"
+        min="0"
+        class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+      />
+    </div>
+    <div>
+      <label for="participants" class="block text-sm font-medium text-white/80">Participants</label>
+      <input
+        id="participants"
+        type="number"
+        [(ngModel)]="participants"
+        min="0"
+        class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+      />
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-3 pt-4 border-t border-white/10">
+    <button
+      (click)="cancel()"
+      class="px-4 py-2 text-sm font-medium text-white/70 hover:text-white transition"
+    >
+      Cancel
+    </button>
+    <button
+      (click)="submit()"
+      class="px-4 py-2 text-sm font-semibold bg-[#FFB414] text-[#131515] rounded-md hover:opacity-90 transition"
+    >
+      {{ isEdit ? 'Update' : 'Create' }}
+    </button>
+  </div>
+</div>
