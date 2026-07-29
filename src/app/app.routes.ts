@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './common/components/main-layout/main-layout.component';
 import { MatchListComponent } from './matches/match-list/match-list.component';
+import { LoginComponent } from './auth/login/login.component';
+import { RegisterComponent } from './auth/register/register.component';
 
 export const routes: Routes = [
   {
@@ -19,6 +21,16 @@ export const routes: Routes = [
         title: 'Matches | Sport Management',
       },
     ],
+  },
+  {
+    path: 'login',
+    component: LoginComponent,
+    title: 'Buzzer Admin Console | Login',
+  },
+  {
+    path: 'register',
+    component: RegisterComponent,
+    title: 'Buzzer Admin Console | Register',
   },
   { path: '**', redirectTo: '' },
 ];
