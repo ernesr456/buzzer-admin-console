@@ -351,3 +351,43 @@ aside {
   letter-spacing: 0;
   vertical-align: middle;
 }
+
+/* Material dialog overlay theming */
+.cdk-overlay-container .mat-dialog-container {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
+  border-radius: 8px;
+}
+
+/* Backdrop */
+.cdk-overlay-backdrop {
+  background-color: rgba(15,23,42,0.32) !important;
+}
+.dark .cdk-overlay-backdrop {
+  background-color: rgba(0,0,0,0.6) !important;
+}
+
+/* Ensure dialog contents inherit text color */
+.cdk-overlay-container .mat-dialog-container,
+.cdk-overlay-container .mat-dialog-content,
+.cdk-overlay-container .mat-dialog-actions {
+  color: var(--color-text) !important;
+  background-color: var(--color-surface) !important;
+}
+
+/* Optional: style mat form fields inside dialogs to match surface */
+.cdk-overlay-container .mat-form-field-appearance-outline .mat-form-field-outline {
+  color: var(--color-border) !important;
+}
+.mat-mdc-dialog-surface {
+  background-color: #1e2121 !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+}
+
+body.light-mode .mat-mdc-dialog-surface {
+  background-color: #ffffff !important;
+  color: #131515 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+}
