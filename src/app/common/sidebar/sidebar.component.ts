@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { SidebarStateService } from '../services/sidebar-state.service';
+import { AuthService } from '../../core/services/auth/auth.service';
 
 interface MenuItem {
   label: string;
@@ -24,13 +25,28 @@ interface MenuGroup {
 })
 export class SidebarComponent {
   public sidebarService = inject(SidebarStateService);
+  private authService= inject(AuthService);
+  
+  readonly user = this.authService.currentUser;
+  readonly userEmail = computed(() => this.user()?.email ?? '');
+  readonly isCollapsed = this.sidebarService.collapsed;
 
   menuGroups: MenuGroup[] = [
+    {
+      title: 'Sports',
+      isOpen: true,
+      items: [
+        { label: 'Sports Catalogue', icon: 'Icons=ic_sports.svg', isActive: true },
+        { label: 'Governing Bodies', icon: 'Icons=ic_governing_body.svg' },
+        { label: 'Organisations', icon: 'Icons=ic_organisation.svg' },
+        { label: 'Participants', icon: 'Icons=ic_participants.svg' },
+      ],
+    },
     {
       title: 'Competitions',
       isOpen: true,
       items: [
-        { label: 'Games', icon: 'Icons=ic_soccer_ball.svg', isActive: true },
+        { label: 'Games', icon: 'Icons=ic_soccer_ball.svg' },
         { label: 'Tournaments', icon: 'Icons=ic_trophy.svg' },
         { label: 'Scheduling', icon: 'Icons=ic_date.svg' },
       ],
@@ -73,10 +89,15 @@ export class SidebarComponent {
         { label: 'OAuth', icon: 'Icons=ic_locked.svg' },
         { label: 'Translations', icon: 'Icons=ic_language.svg' },
         { label: 'Feature Access', icon: 'Icons=ic_verification.svg' },
-        { label: 'Organizations', icon: 'Icons=ic_home.svg' },
       ],
     },
   ];
+
+  readonly userInitials = computed(() => {
+    const email = this.user()?.email;
+    if (!email) return '?';
+    return email.charAt(0).toUpperCase();
+  });
 
   toggleGroup(group: MenuGroup): void {
     group.isOpen = !group.isOpen;
@@ -86,5 +107,9 @@ export class SidebarComponent {
     this.menuGroups.forEach(g => g.items.forEach(item => item.isActive = false));
     clickedItem.isActive = true;
     this.sidebarService.closeMobile();
+  }
+
+  signOut(): void {
+    this.authService.logout();
   }
 }
