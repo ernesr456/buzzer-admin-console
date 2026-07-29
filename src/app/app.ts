@@ -6,7 +6,7 @@ import { ThemeService } from './common/services/theme/theme.service';
   selector: 'app-root',
   imports: [RouterOutlet],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.scss'
 })
 export class App {
   constructor(private themeService: ThemeService) {}
