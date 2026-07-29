@@ -5,6 +5,8 @@ import { Title } from '@angular/platform-browser';
 import { Router,NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { ThemeService } from '../../services/theme/theme.service';
+
 @Component({
   selector: 'app-header',
   standalone: true,
@@ -18,7 +20,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private routerSubscription?: Subscription;
   public sidebarService = inject(SidebarStateService);
-public mobileSearchOpen = signal(false);
+  public themeService = inject(ThemeService);
+  private themeSubscription?: Subscription;
+  public mobileSearchOpen = signal(false);
+  public isDark = signal(false);
 
   ngOnInit(): void {
     this.updateTitle();
@@ -30,6 +35,9 @@ public mobileSearchOpen = signal(false);
       .subscribe(() => {
         this.updateTitle();
       });
+
+    // subscribe to theme changes to update toggle state
+    this.themeSubscription = this.themeService.darkMode$.subscribe((v) => this.isDark.set(v));
   }
 
   pageTitle = signal('Sport Management');
@@ -42,8 +50,13 @@ public mobileSearchOpen = signal(false);
     this.mobileSearchOpen.set(false);
   }
 
-    ngOnDestroy(): void {
+  toggleTheme(): void {
+    this.themeService.toggleDarkMode();
+  }
+
+  ngOnDestroy(): void {
     this.routerSubscription?.unsubscribe();
+    this.themeSubscription?.unsubscribe();
   }
 
   private updateTitle(): void {
