@@ -1,13 +1,6 @@
 {
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist/buzzer-admin-console/browser"
-      }
-    }
-  ],
+  "buildCommand": "ng build --configuration=production",
+  "outputDirectory": "dist/buzzer-admin-console",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
