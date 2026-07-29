@@ -46,6 +46,20 @@ export class SportListComponent {
       }
     });
   }
+  openEditDialog(sport: Sport): void {
+    const dialogRef = this.dialog.open(SportAddDialogComponent, {
+      width: '450px',
+      panelClass: 'dark-dialog',
+      data: sport, // pass the existing sport for editing
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // result contains updated fields
+        this.sportsService.updateSport(sport.id, result);
+      }
+    });
+  }
 
   navigateToDetail(sportId: string): void {
     this.router.navigate(['/sports', sportId]);
@@ -54,6 +68,11 @@ export class SportListComponent {
   resetToSeed(): void {
     if (confirm('Reset all sports to seed data? This will discard changes.')) {
       this.sportsService.resetToSeed();
+    }
+  }
+  deleteSport(sport: Sport): void {
+    if (confirm(`Are you sure you want to delete "${sport.name}"?`)) {
+      this.sportsService.deleteSport(sport.id);
     }
   }
 }
