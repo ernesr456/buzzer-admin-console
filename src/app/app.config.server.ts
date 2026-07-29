@@ -1,12 +1,5 @@
-import { mergeApplicationConfig, ApplicationConfig } from '@angular/core';
-import { provideServerRendering, withRoutes } from '@angular/ssr';
+import { ApplicationConfig } from '@angular/core';
 import { appConfig } from './app.config';
-import { serverRoutes } from './app.routes.server';
 
-const serverConfig: ApplicationConfig = {
-  providers: [
-    provideServerRendering(withRoutes(serverRoutes))
-  ]
-};
-
-export const config = mergeApplicationConfig(appConfig, serverConfig);
+// Fallback server config for Angular 19 environment (SSR APIs differ between v21 and v19)
+export const config: ApplicationConfig = appConfig;
