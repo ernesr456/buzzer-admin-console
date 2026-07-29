@@ -30,11 +30,111 @@ html, body {
   color: var(--color-text);
 }
 
+/* Semantic backgrounds */
+.header-bg { background-color: var(--color-surface) !important; }
+.sidebar-bg { background-color: color-mix(in srgb, var(--color-surface) 88%, var(--color-bg)) !important; }
+.content-bg { background-color: var(--color-bg) !important; }
+
 .bg-dark { background-color: var(--color-bg) !important; }
 .bg-surface { background-color: var(--color-surface) !important; }
 .text-white { color: var(--color-text) !important; }
 .text-muted { color: var(--color-muted) !important; }
 .border-theme { border-color: var(--color-border) !important; }
+
+
+/* Yellow utility mappings (works with ThemeService variables) */
+.bg-yellow { background-color: var(--color-yellow) !important; }
+.text-yellow { color: var(--color-yellow) !important; }
+
+/* Map common Tailwind "white with opacity" utilities to theme-aware colors
+   These class names include characters like ':' and '/' so selectors are escaped.
+*/
+.text-white\/20 { color: rgba(15,23,42,0.2) !important; }
+.text-white\/30 { color: rgba(15,23,42,0.3) !important; }
+.text-white\/40 { color: rgba(15,23,42,0.4) !important; }
+.text-white\/60 { color: rgba(15,23,42,0.6) !important; }
+.text-white\/70 { color: rgba(15,23,42,0.7) !important; }
+.text-white\/80 { color: rgba(15,23,42,0.8) !important; }
+.text-white\/90 { color: rgba(15,23,42,0.9) !important; }
+
+.dark .text-white\/20 { color: rgba(255,255,255,0.2) !important; }
+.dark .text-white\/30 { color: rgba(255,255,255,0.3) !important; }
+.dark .text-white\/40 { color: rgba(255,255,255,0.4) !important; }
+.dark .text-white\/60 { color: rgba(255,255,255,0.6) !important; }
+.dark .text-white\/70 { color: rgba(255,255,255,0.7) !important; }
+.dark .text-white\/80 { color: rgba(255,255,255,0.8) !important; }
+.dark .text-white\/90 { color: rgba(255,255,255,0.9) !important; }
+
+/* Hover variants (classes with colon) */
+.hover\:text-white:hover { color: var(--color-text) !important; }
+.hover\:text-white\/40:hover { color: rgba(15,23,42,0.4) !important; }
+.dark .hover\:text-white:hover { color: var(--color-text) !important; }
+.dark .hover\:text-white\/40:hover { color: rgba(255,255,255,0.4) !important; }
+
+/* Background utilities mapping */
+.bg-white\/10 { background-color: rgba(15,23,42,0.06) !important; }
+.hover\:bg-white\/5:hover { background-color: rgba(15,23,42,0.04) !important; }
+.dark .bg-white\/10 { background-color: rgba(255,255,255,0.10) !important; }
+.dark .hover\:bg-white\/5:hover { background-color: rgba(255,255,255,0.05) !important; }
+
+/* Border utilities mapping */
+.border-white\/6 { border-color: rgba(15,23,42,0.06) !important; }
+.border-white\/10 { border-color: rgba(15,23,42,0.10) !important; }
+.dark .border-white\/6 { border-color: rgba(255,255,255,0.06) !important; }
+.dark .border-white\/10 { border-color: rgba(255,255,255,0.10) !important; }
+
+/* Placeholder mapping */
+.placeholder\:text-white\/40::placeholder { color: rgba(15,23,42,0.4) !important; }
+.dark .placeholder\:text-white\/40::placeholder { color: rgba(255,255,255,0.4) !important; }
+
+/* Sidebar scrollbar styling (WebKit + Firefox) */
+
+/* Sidebar icon color fix for light/dark modes.
+   Icons are image files (SVG/PNG). In light mode we invert monochrome white icons so they
+   become dark and visible on light background. In dark mode, no filter is applied.
+   We scope to images inside .sidebar-bg and to those with class .icon for safety.
+*/
+.sidebar-bg img.icon {
+  transition: filter .15s ease;
+  /* Invert white -> black for light mode; grayscale to reduce color inversion artifacts */
+  filter: invert(1) grayscale(1) brightness(0.9);
+}
+.dark .sidebar-bg img.icon {
+  filter: none;
+}
+
+/* Default (light) */
+aside::-webkit-scrollbar {
+  width: 10px;
+}
+aside::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.04);
+  border-radius: 9999px;
+}
+aside::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.12);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Firefox */
+aside {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.12) rgba(0,0,0,0.04);
+}
+
+/* Dark mode scrollbar overrides */
+.dark aside::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.02);
+}
+.dark aside::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+}
+
+.dark aside {
+  scrollbar-color: rgba(255,255,255,0.12) rgba(255,255,255,0.02);
+}
 
 .surface-overlay { background-color: rgba(255,255,255,0.04); }
 
