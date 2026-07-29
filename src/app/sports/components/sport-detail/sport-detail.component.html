@@ -1,0 +1,106 @@
+@if (sport()) {
+  <form [formGroup]="sportForm"><div class="bg-[#1e2121] rounded-lg p-6">
+    <!-- Header -->
+    <div class="flex items-start justify-between">
+      <div class="flex items-center gap-4">
+        <span class="text-5xl" [style.color]="sport()!.color">{{ sport()!.emoji }}</span>
+        <div>
+          @if (!isEditing()) {
+            <h1 class="text-3xl font-bold">{{ sport()!.name }}</h1>
+          } @else {
+            <div>
+              <input
+                type="text"
+                formControlName="name"
+                placeholder="Sport name"
+                class="text-3xl font-bold bg-transparent border-b border-[#FFB414] outline-none"
+              />
+              @if (f['name'].invalid && f['name'].touched) {
+                <p class="text-sm text-[#EC193C] mt-1">
+                  @if (f['name'].errors?.['required']) { Name is required. }
+                  @if (f['name'].errors?.['minlength']) { Minimum 2 characters. }
+                </p>
+              }
+            </div>
+          }
+        </div>
+      </div>
+      <!-- Action buttons -->
+      <div class="flex gap-2">
+        @if (!isEditing()) {
+          <button (click)="toggleEdit()" class="...">Edit</button>
+          <button (click)="deleteSport()" class="...">Delete</button>
+        } @else {
+          <button (click)="saveChanges()" class="...">Save</button>
+          <button (click)="toggleEdit()" class="...">Cancel</button>
+        }
+      </div>
+    </div>
+
+    <!-- Stat cards with form controls -->
+    <div class="grid grid-cols-3 gap-4 mt-6">
+      <div class="bg-[#131515] p-3 rounded-lg text-center">
+        <p class="text-sm uppercase text-white/60">Governing Bodies</p>
+        @if (!isEditing()) {
+          <p class="text-2xl font-bold">{{ sport()!.governingBodies }}</p>
+        } @else {
+          <div>
+            <input
+              type="number"
+              formControlName="governingBodies"
+              min="0"
+              class="w-full text-center bg-transparent border-b border-[#FFB414] outline-none"
+            />
+            @if (f['governingBodies'].invalid && f['governingBodies'].touched) {
+              <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
+            }
+          </div>
+        }
+      </div>
+      <!-- Similarly for organisations -->
+      <div class="bg-[#131515] p-3 rounded-lg text-center">
+        <p class="text-sm uppercase text-white/60">Organisations</p>
+        @if (!isEditing()) {
+          <p class="text-2xl font-bold">{{ sport()!.organisations }}</p>
+        } @else {
+          <div>
+            <input
+              type="number"
+              formControlName="organisations"
+              min="0"
+              class="w-full text-center bg-transparent border-b border-[#FFB414] outline-none"
+            />
+            @if (f['organisations'].invalid && f['organisations'].touched) {
+              <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
+            }
+          </div>
+        }
+      </div>
+      <!-- Similarly for participants -->
+      <div class="bg-[#131515] p-3 rounded-lg text-center">
+        <p class="text-sm uppercase text-white/60">Participants</p>
+        @if (!isEditing()) {
+          <p class="text-2xl font-bold">{{ sport()!.participants }}</p>
+        } @else {
+          <div>
+            <input
+              type="number"
+              formControlName="participants"
+              min="0"
+              class="w-full text-center bg-transparent border-b border-[#FFB414] outline-none"
+            />
+            @if (f['participants'].invalid && f['participants'].touched) {
+              <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Placeholder for future drill-down -->
+    <div class="mt-6 text-white/50 text-sm">
+      <p>Governing Bodies, Organisations, and Participants will be listed here in the next tasks.</p>
+    </div>
+  </div>
+</form>
+}

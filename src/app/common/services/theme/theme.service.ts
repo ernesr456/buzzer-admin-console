@@ -2,6 +2,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser, DOCUMENT } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
+import { OverlayContainer } from '@angular/cdk/overlay';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
@@ -10,7 +11,8 @@ export class ThemeService {
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
-    @Inject(DOCUMENT) private document: Document   // <-- inject document
+    @Inject(DOCUMENT) private document: Document,   // <-- inject document
+    private overlayContainer: OverlayContainer
   ) {
     if (isPlatformBrowser(this.platformId)) {
       // Read stored preference or fallback to system preference
@@ -47,6 +49,19 @@ export class ThemeService {
       } else {
         htmlElement.classList.remove('dark');
       }
+
+      // Also ensure the CDK overlay container (mat dialogs, menus, tooltips) gets the same class
+      try {
+        const containerEl = this.overlayContainer.getContainerElement();
+        if (isDark) {
+          containerEl.classList.add('dark');
+        } else {
+          containerEl.classList.remove('dark');
+        }
+      } catch (e) {
+        // overlay container may not be created yet; ignore silently
+      }
+
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
     }
   }

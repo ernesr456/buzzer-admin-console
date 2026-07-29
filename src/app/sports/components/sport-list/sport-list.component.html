@@ -1,0 +1,113 @@
+<div class="md:p-6 text-white">
+    <!-- Header -->
+    <div class="md:flex justify-between items-center mb-6 space-y-3 md:space-y-0">
+        <h1 class="text-2xl font-semibold">Sport Management</h1>
+        <button
+        (click)="resetToSeed()"
+        class="px-4 py-2 text-sm font-medium border border-[#FFB414]  rounded-md hover:bg-[#FFB414]/10 transition w-full md:w-fit"
+        >
+        Reset to Seed
+        </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="p-4 rounded-lg text-center border border-white/10">
+            <p class="!text-[24px] font-light font-poppins">{{ totalSports() }}</p>
+            <p class="uppercase text-[10px] tracking-wider text-white/60">Sports</p>
+        </div>
+        <div class="p-4 rounded-lg text-center border border-white/10">
+            <p class="!text-[24px] font-light font-poppins">{{ totalGoverningBodies() }}</p>
+            <p class="uppercase text-[10px] tracking-wider text-white/60">Main Entities</p>
+        </div>
+        <div class="p-4 rounded-lg text-center border border-white/10">
+            <p class="!text-[24px] font-light font-poppins">{{ totalOrganisations() }}</p>
+            <p class="uppercase text-[10px] tracking-wider text-white/60">Competitions</p>
+        </div>
+        <div class="p-4 rounded-lg text-center border border-white/10">
+            <p class="!text-[24px] font-light font-poppins">{{ totalParticipants() }}</p>
+            <p class="uppercase text-[10px] tracking-wider text-white/60">Participants</p>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+        <div class="relative w-full sm:w-72">
+        <span class="material-symbols-outlined text-xl absolute left-3 top-4 -translate-y-1/2 w-4 h-4 opacity-60">Search</span>
+        <input
+            type="text"
+            placeholder="Search sports..."
+            [(ngModel)]="searchQuery"
+            class="w-full pl-9 pr-10 py-2 bg-[#1e2121] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+        />
+        @if (searchQuery()) {
+            <button
+            (click)="searchQuery.set('')"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
+            >
+            <span class="material-symbols-outlined text-xl">Close</span>
+            </button>
+        }
+        </div>
+        <button
+        (click)="openAddDialog()"
+        class="flex items-center border border-white/10 gap-2 px-4 py-2 font-medium font-[10px] rounded-md hover:opacity-90 transition w-full md:w-fit"
+        >
+        <span class="material-symbols-outlined text-xl">Add</span>
+            Add Sports
+        </button>
+    </div>
+
+    <div class="bg-[#1e2121] rounded-lg overflow-x-auto">
+        <table class="w-full text-sm [&_td:nth-child(even)]:bg-white/5 [&_th:nth-child(even)]:bg-white/5">
+        <thead class="bg-white/10">
+            <tr class="border-b border-white/5">
+            <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Sport</th>
+            <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Governing Bodies</th>
+            <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Organisations</th>
+            <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Participants</th>
+            <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (sport of filteredSports(); track sport.id) {
+            <tr
+                class="border-b border-white/5 last:border-0 hover:bg-white/10 transition"
+            >
+                <td class="py-3 px-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl" [style.color]="sport.color">{{ sport.emoji }}</span>
+                    {{ sport.name }}
+                </div>
+                </td>
+                <td class="py-3 px-4">{{ sport.governingBodies }}</td>
+                <td class="py-3 px-4">{{ sport.organisations }}</td>
+                <td class="py-3 px-4">{{ sport.participants }}</td>
+                <td class="py-3 px-4">
+                <div class="flex items-center gap-2">
+                    <button
+                    (click)="openEditDialog(sport); $event.stopPropagation()"
+                    class="p-1 rounded hover:bg-white/10 transition"
+                    aria-label="Edit sport"
+                    >
+                    <span class="material-symbols-outlined text-xl">edit</span>
+                    </button>
+                    <button
+                    (click)="deleteSport(sport); $event.stopPropagation()"
+                    class="p-1 rounded hover:bg-red-500/20 transition"
+                    aria-label="Delete sport"
+                    >
+                    <span class="material-symbols-outlined text-xl">delete</span>
+                    </button>
+                </div>
+                </td>
+            </tr>
+            } @empty {
+            <tr>
+                <td colspan="5" class="py-6 text-center text-white/50">No sports found. Add one!</td>
+            </tr>
+            }
+        </tbody>
+        </table>
+    </div>
+</div>
