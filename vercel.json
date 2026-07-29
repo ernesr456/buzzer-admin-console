@@ -1,7 +1,12 @@
 {
-  "buildCommand": "ng build --configuration=production",
+  "buildCommand": "npx ng build --configuration=production",
   "outputDirectory": "dist/buzzer-admin-console/browser",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "build": {
+    "env": {
+      "NODE_VERSION": "18"
+    }
+  }
 }
