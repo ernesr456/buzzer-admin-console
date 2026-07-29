@@ -1,1 +1,28 @@
-<p>sport-confirm-dialog works!</p>
+<h2 mat-dialog-title class="text-xl font-semibold text-white px-6 pt-6 pb-2">
+  {{ data.title }}
+</h2>
+<mat-dialog-content class="!p-6">
+  <p class="text-white/80" [innerHTML]="data.message"></p>
+</mat-dialog-content>
+<mat-dialog-actions align="end" class="!px-6 !pb-6 !pt-2 gap-2">
+  <button
+    mat-button
+    (click)="cancel()"
+    class="!bg-transparent text-white/70 hover:text-white transition"
+  >
+    {{ data.cancelText || 'Cancel' }}
+  </button>
+  <button
+    mat-raised-button
+    [color]="data.confirmColor || 'warn'"
+    (click)="confirm()"
+    class="font-semibold px-4 py-2 rounded-md hover:opacity-90 transition"
+    [ngClass]="{
+      '!bg-[#EC193C] !text-white': data.confirmColor === 'warn' || !data.confirmColor,
+      '!bg-[#FFB414] !text-[#131515]': data.confirmColor === 'accent',
+      '!bg-[#2ED368] !text-[#131515]': data.confirmColor === 'primary'
+    }"
+  >
+    {{ data.confirmText || 'Confirm' }}
+  </button>
+</mat-dialog-actions>
