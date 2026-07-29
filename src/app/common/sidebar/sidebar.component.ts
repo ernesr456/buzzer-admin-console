@@ -25,7 +25,7 @@ interface MenuGroup {
 })
 export class SidebarComponent {
   public sidebarService = inject(SidebarStateService);
-  private authService= inject(AuthService);
+  private authService = inject(AuthService);
   
   readonly user = this.authService.currentUser;
   readonly userEmail = computed(() => this.user()?.email ?? '');
@@ -36,59 +36,59 @@ export class SidebarComponent {
       title: 'Sports',
       isOpen: true,
       items: [
-        { label: 'Sports Catalogue', icon: 'Icons=ic_sports.svg', isActive: true },
-        { label: 'Governing Bodies', icon: 'Icons=ic_governing_body.svg' },
-        { label: 'Organisations', icon: 'Icons=ic_organisation.svg' },
-        { label: 'Participants', icon: 'Icons=ic_participants.svg' },
+        { label: 'Sports Catalogue', icon: 'sports', isActive: true },
+        { label: 'Governing Bodies', icon: 'groups' },
+        { label: 'Organisations', icon: 'business' },
+        { label: 'Participants', icon: 'people' },
       ],
     },
     {
       title: 'Competitions',
       isOpen: true,
       items: [
-        { label: 'Games', icon: 'Icons=ic_soccer_ball.svg' },
-        { label: 'Tournaments', icon: 'Icons=ic_trophy.svg' },
-        { label: 'Scheduling', icon: 'Icons=ic_date.svg' },
+        { label: 'Games', icon: 'sports_soccer' },
+        { label: 'Tournaments', icon: 'emoji_events' },
+        { label: 'Scheduling', icon: 'event' },
       ],
     },
     {
       title: 'Teams',
       isOpen: true,
       items: [
-        { label: 'Clubs', icon: 'Icons=ic_follow_user.svg' },
-        { label: 'Athletes', icon: 'Icons=ic_trending.svg' },
-        { label: 'Squad', icon: 'Icons=ic_users.svg' },
-        { label: 'Staff', icon: 'Icons=ic_profile.svg' },
+        { label: 'Clubs', icon: 'person_add' },
+        { label: 'Athletes', icon: 'trending_up' },
+        { label: 'Squad', icon: 'group' },
+        { label: 'Staff', icon: 'person' },
       ],
     },
     {
       title: 'Media',
       isOpen: true,
       items: [
-        { label: 'Events', icon: 'Icons=ic_date.svg' },
-        { label: 'Clips', icon: 'Icons=ic_video.svg' },
+        { label: 'Events', icon: 'event' },
+        { label: 'Clips', icon: 'videocam' },
       ],
     },
     {
       title: 'Finance',
       isOpen: true,
       items: [
-        { label: 'Payments', icon: 'Icons=ic_currency.svg' },
-        { label: 'Payment Settings', icon: 'Icons=ic_settings.svg' },
+        { label: 'Payments', icon: 'payments' },
+        { label: 'Payment Settings', icon: 'settings' },
       ],
     },
     {
       title: 'System',
       isOpen: true,
       items: [
-        { label: 'Users', icon: 'Icons=ic_users.svg' },
-        { label: 'Configurations', icon: 'Icons=ic_settings.svg' },
-        { label: 'Requests', icon: 'Icons=ic_add_clear.svg' },
-        { label: 'History', icon: 'Icons=ic_history.svg' },
-        { label: 'Sessions', icon: 'Icons=ic_login.svg' },
-        { label: 'OAuth', icon: 'Icons=ic_locked.svg' },
-        { label: 'Translations', icon: 'Icons=ic_language.svg' },
-        { label: 'Feature Access', icon: 'Icons=ic_verification.svg' },
+        { label: 'Users', icon: 'group' },
+        { label: 'Configurations', icon: 'settings' },
+        { label: 'Requests', icon: 'clear' },
+        { label: 'History', icon: 'history' },
+        { label: 'Sessions', icon: 'login' },
+        { label: 'OAuth', icon: 'lock' },
+        { label: 'Translations', icon: 'language' },
+        { label: 'Feature Access', icon: 'verified' },
       ],
     },
   ];

@@ -1,4 +1,4 @@
-<!-- Mobile overlay (unchanged) -->
+<!-- Mobile overlay -->
 <div *ngIf="sidebarService.mobileOpen()" class="md:hidden fixed inset-0 z-40 flex">
   <div class="fixed inset-0 bg-black/50" (click)="sidebarService.closeMobile()"></div>
   <aside class="relative w-full md:w-64 h-full sidebar-bg border-r border-theme flex flex-col">
@@ -21,7 +21,11 @@
         </div>
         <nav *ngIf="group.isOpen" class="flex flex-col gap-1 px-3">
           <a *ngFor="let item of group.items" href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors" [ngClass]="item.isActive ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'" (click)="setActive(group, item)">
-            <img [src]="'assets/icons/' + item.icon" alt="" class="w-[20px] h-[20px] flex-shrink-0 icon" [ngClass]="item.isActive ? 'opacity-100' : 'opacity-70'" />
+            <!-- Material Symbol icon -->
+            <span class="material-symbols-outlined icon"
+                  [ngClass]="item.isActive ? 'opacity-100' : 'opacity-70'">
+              {{ item.icon }}
+            </span>
             <span [ngClass]="item.isActive ? 'body-small-bold' : 'body-small'">{{ item.label }}</span>
           </a>
         </nav>
@@ -62,7 +66,11 @@
       </div>
       <nav *ngIf="group.isOpen" class="flex flex-col gap-1 px-3" [ngClass]="sidebarService.collapsed() ? 'px-1' : 'px-3'">
         <a *ngFor="let item of group.items" href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors" [ngClass]="item.isActive ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'" (click)="setActive(group, item)">
-          <img [src]="'assets/icons/' + item.icon" alt="" class="w-[20px] h-[20px] flex-shrink-0 icon" [ngClass]="item.isActive ? 'opacity-100' : 'opacity-70'" />
+          <!-- Material Symbol icon -->
+          <span class="material-symbols-outlined icon"
+                [ngClass]="item.isActive ? 'opacity-100' : 'opacity-70'">
+            {{ item.icon }}
+          </span>
           <span *ngIf="!sidebarService.collapsed()" [ngClass]="item.isActive ? 'body-small-bold' : 'body-small'">{{ item.label }}</span>
         </a>
       </nav>
