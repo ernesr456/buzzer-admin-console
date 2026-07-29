@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { SportsService } from '../../services/sports.service';
 import { Sport } from '../../models/sport.model';
-import { SportAddDialogComponent } from '../sport-dialog/sport-dialog.component';
+import { SportAddDialogComponent } from '../sport-add-dialog/sport-add-dialog.component';
 import { SportConfirmDialogComponent, SportConfirmDialogData } from '../sport-confirm-dialog/sport-confirm-dialog.component';
 
 @Component({
