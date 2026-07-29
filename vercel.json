@@ -1,6 +1,6 @@
 {
   "buildCommand": "ng build --configuration=production",
-  "outputDirectory": "dist/buzzer-admin-console",
+  "outputDirectory": "dist/buzzer-admin-console/browser",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
