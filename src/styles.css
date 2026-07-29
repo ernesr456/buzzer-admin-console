@@ -1,18 +1,44 @@
-@import 'tailwindcss';
+﻿@import 'tailwindcss';
 
-/* ---- Colors ---- */
-@theme {
-  --color-dark: #131515;
-  --color-dark-lighter: #212121;
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-text: #0f172a; 
+  --color-muted: #64748b;
+  --color-border: rgba(15,23,42,0.06);
   --color-yellow: #ffb414;
   --color-red: #ec193c;
-  --color-white: #ffffff;
-  --color-gray: #3e3e3e;
   --color-green: #2ed368;
   --color-orange: #ff5b14;
 }
 
-/* ---- Display typography (Poppins) ---- */
+/* Dark mode overrides */
+.dark {
+  --color-bg: #131515;
+  --color-surface: #161818;
+  --color-text: #ffffff;
+  --color-muted: rgba(255,255,255,0.7);
+  --color-border: rgba(255,255,255,0.06);
+  --color-yellow: #ffb414;
+  --color-red: #ec193c;
+  --color-green: #2ed368;
+  --color-orange: #ff5b14;
+}
+
+html, body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.bg-dark { background-color: var(--color-bg) !important; }
+.bg-surface { background-color: var(--color-surface) !important; }
+.text-white { color: var(--color-text) !important; }
+.text-muted { color: var(--color-muted) !important; }
+.border-theme { border-color: var(--color-border) !important; }
+
+.surface-overlay { background-color: rgba(255,255,255,0.04); }
+
+/* ---- Typography (Poppins) ---- */
 .display-large {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
