@@ -6,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { SportsService } from '../../services/sports.service';
 import { Sport } from '../../models/sport.model';
 import { SportAddDialogComponent } from '../sport-dialog/sport-dialog.component';
+import { SportConfirmDialogComponent, SportConfirmDialogData } from '../sport-confirm-dialog/sport-confirm-dialog.component';
 
 @Component({
   selector: 'app-sport-list',
@@ -66,13 +67,40 @@ export class SportListComponent {
   }
 
   resetToSeed(): void {
-    if (confirm('Reset all sports to seed data? This will discard changes.')) {
-      this.sportsService.resetToSeed();
-    }
+    const dialogRef = this.dialog.open(SportConfirmDialogComponent, {
+      width: '400px',
+      panelClass: 'dark-dialog',
+      data: {
+        title: 'Reset to Seed',
+        message: 'This will discard all changes and restore the default sports catalogue. Are you sure?',
+        confirmText: 'Reset',
+        confirmColor: 'accent', // yellow
+      } as SportConfirmDialogData,
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.sportsService.resetToSeed();
+      }
+    });
   }
+
   deleteSport(sport: Sport): void {
-    if (confirm(`Are you sure you want to delete "${sport.name}"?`)) {
-      this.sportsService.deleteSport(sport.id);
-    }
+    const dialogRef = this.dialog.open(SportConfirmDialogComponent, {
+      width: '400px',
+      panelClass: 'dark-dialog',
+      data: {
+        title: 'Delete Sport',
+        message: `Are you sure you want to delete <strong>${sport.name}</strong>? This action cannot be undone.`,
+        confirmText: 'Delete',
+        confirmColor: 'warn', // red
+      } as SportConfirmDialogData,
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.sportsService.deleteSport(sport.id);
+      }
+    });
   }
 }
