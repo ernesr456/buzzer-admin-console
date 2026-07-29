@@ -1,5 +1,13 @@
 {
-  "outputDirectory": "dist/buzzer-admin-console/browser",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/buzzer-admin-console/browser"
+      }
+    }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
