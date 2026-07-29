@@ -8,8 +8,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-sport-add-dialog',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatDialogModule],
-  templateUrl: './sport-dialog.component.html',
-  styleUrls: ['./sport-dialog.component.scss'],
+  templateUrl: './sport-add-dialog.component.html',
+  styleUrls: ['./sport-add-dialog.component.scss'],
 })
 export class SportAddDialogComponent {
   private dialogRef = inject(MatDialogRef<SportAddDialogComponent>);

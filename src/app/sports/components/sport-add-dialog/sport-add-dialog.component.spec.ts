@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SportDialogComponent } from './sport-dialog.component';
+import { SportAddDialogComponent } from './sport-add-dialog.component';
 
-describe('SportDialogComponent', () => {
-  let component: SportDialogComponent;
-  let fixture: ComponentFixture<SportDialogComponent>;
+describe('SportAddDialogComponent', () => {
+  let component: SportAddDialogComponent;
+  let fixture: ComponentFixture<SportAddDialogComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SportDialogComponent]
+      imports: [SportAddDialogComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SportDialogComponent);
+    fixture = TestBed.createComponent(SportAddDialogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
