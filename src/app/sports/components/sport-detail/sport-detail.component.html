@@ -1,80 +1,106 @@
-<div class="space-y-4">
-  <h2 class="text-xl font-semibold text-white">{{ isEdit ? 'Edit Sport' : 'Add New Sport' }}</h2>
+@if (sport()) {
+  <form [formGroup]="sportForm"><div class="bg-[#1e2121] rounded-lg p-6">
+    <!-- Header -->
+    <div class="flex items-start justify-between">
+      <div class="flex items-center gap-4">
+        <span class="text-5xl" [style.color]="sport()!.color">{{ sport()!.emoji }}</span>
+        <div>
+          @if (!isEditing()) {
+            <h1 class="text-3xl font-bold">{{ sport()!.name }}</h1>
+          } @else {
+            <div>
+              <input
+                type="text"
+                formControlName="name"
+                placeholder="Sport name"
+                class="text-3xl font-bold bg-transparent border-b border-[#FFB414] outline-none"
+              />
+              @if (f['name'].invalid && f['name'].touched) {
+                <p class="text-sm text-[#EC193C] mt-1">
+                  @if (f['name'].errors?.['required']) { Name is required. }
+                  @if (f['name'].errors?.['minlength']) { Minimum 2 characters. }
+                </p>
+              }
+            </div>
+          }
+        </div>
+      </div>
+      <!-- Action buttons -->
+      <div class="flex gap-2">
+        @if (!isEditing()) {
+          <button (click)="toggleEdit()" class="...">Edit</button>
+          <button (click)="deleteSport()" class="...">Delete</button>
+        } @else {
+          <button (click)="saveChanges()" class="...">Save</button>
+          <button (click)="toggleEdit()" class="...">Cancel</button>
+        }
+      </div>
+    </div>
 
-  <div class="space-y-3">
-    <div>
-      <label for="sportName" class="block text-sm font-medium text-white/80">Sport Name</label>
-      <input
-        id="sportName"
-        type="text"
-        [(ngModel)]="name"
-        placeholder="e.g. Football"
-        class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
-      />
+    <!-- Stat cards with form controls -->
+    <div class="grid grid-cols-3 gap-4 mt-6">
+      <div class="bg-[#131515] p-3 rounded-lg text-center">
+        <p class="text-sm uppercase text-white/60">Governing Bodies</p>
+        @if (!isEditing()) {
+          <p class="text-2xl font-bold">{{ sport()!.governingBodies }}</p>
+        } @else {
+          <div>
+            <input
+              type="number"
+              formControlName="governingBodies"
+              min="0"
+              class="w-full text-center bg-transparent border-b border-[#FFB414] outline-none"
+            />
+            @if (f['governingBodies'].invalid && f['governingBodies'].touched) {
+              <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
+            }
+          </div>
+        }
+      </div>
+      <!-- Similarly for organisations -->
+      <div class="bg-[#131515] p-3 rounded-lg text-center">
+        <p class="text-sm uppercase text-white/60">Organisations</p>
+        @if (!isEditing()) {
+          <p class="text-2xl font-bold">{{ sport()!.organisations }}</p>
+        } @else {
+          <div>
+            <input
+              type="number"
+              formControlName="organisations"
+              min="0"
+              class="w-full text-center bg-transparent border-b border-[#FFB414] outline-none"
+            />
+            @if (f['organisations'].invalid && f['organisations'].touched) {
+              <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
+            }
+          </div>
+        }
+      </div>
+      <!-- Similarly for participants -->
+      <div class="bg-[#131515] p-3 rounded-lg text-center">
+        <p class="text-sm uppercase text-white/60">Participants</p>
+        @if (!isEditing()) {
+          <p class="text-2xl font-bold">{{ sport()!.participants }}</p>
+        } @else {
+          <div>
+            <input
+              type="number"
+              formControlName="participants"
+              min="0"
+              class="w-full text-center bg-transparent border-b border-[#FFB414] outline-none"
+            />
+            @if (f['participants'].invalid && f['participants'].touched) {
+              <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
+            }
+          </div>
+        }
+      </div>
     </div>
-    <div>
-      <label for="sportEmoji" class="block text-sm font-medium text-white/80">Emoji</label>
-      <input
-        id="sportEmoji"
-        type="text"
-        [(ngModel)]="emoji"
-        placeholder="e.g. ⚽"
-        class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
-      />
-    </div>
-    <div>
-      <label for="sportColor" class="block text-sm font-medium text-white/80">Color</label>
-      <input
-        id="sportColor"
-        type="color"
-        [(ngModel)]="color"
-        class="mt-1 w-20 h-10 p-0 border-0 cursor-pointer bg-transparent"
-      />
-    </div>
-    <div>
-      <label for="governingBodies" class="block text-sm font-medium text-white/80">Governing Bodies</label>
-      <input
-        id="governingBodies"
-        type="number"
-        [(ngModel)]="governingBodies"
-        min="0"
-        class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
-      />
-    </div>
-    <div>
-      <label for="organisations" class="block text-sm font-medium text-white/80">Organisations</label>
-      <input
-        id="organisations"
-        type="number"
-        [(ngModel)]="organisations"
-        min="0"
-        class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
-      />
-    </div>
-    <div>
-      <label for="participants" class="block text-sm font-medium text-white/80">Participants</label>
-      <input
-        id="participants"
-        type="number"
-        [(ngModel)]="participants"
-        min="0"
-        class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
-      />
+
+    <!-- Placeholder for future drill-down -->
+    <div class="mt-6 text-white/50 text-sm">
+      <p>Governing Bodies, Organisations, and Participants will be listed here in the next tasks.</p>
     </div>
   </div>
-
-  <div class="flex justify-end gap-3 pt-4 border-t border-white/10">
-    <button
-      (click)="cancel()"
-      class="px-4 py-2 text-sm font-medium text-white/70 hover:text-white transition"
-    >
-      Cancel
-    </button>
-    <button
-      (click)="submit()"
-      class="px-4 py-2 text-sm font-semibold bg-[#FFB414] text-[#131515] rounded-md hover:opacity-90 transition"
-    >
-      {{ isEdit ? 'Update' : 'Create' }}
-    </button>
-  </div>
-</div>
+</form>
+}

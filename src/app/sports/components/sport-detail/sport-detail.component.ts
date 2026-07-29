@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SportsService } from '../../services/sports.service';
 import { Sport } from '../../models/sport.model';
@@ -8,7 +8,7 @@ import { Sport } from '../../models/sport.model';
 @Component({
   selector: 'app-sport-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './sport-detail.component.html',
   styleUrls: ['./sport-detail.component.scss'],
 })
@@ -16,9 +16,12 @@ export class SportDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private sportsService = inject(SportsService);
+  private fb = inject(FormBuilder);
 
   sport = signal<Sport | null>(null);
   isEditing = signal(false);
+
+  sportForm!: FormGroup;
 
   // Editable fields (copy of sport data)
   editName = '';
@@ -34,13 +37,24 @@ export class SportDetailComponent implements OnInit {
       const found = this.sportsService.getSportById(id);
       if (found) {
         this.sport.set(found);
-        this.populateEditFields(found);
+        this.initForm(found); // <-- build the form
       } else {
-        // navigate back if not found
         this.router.navigate(['/sports']);
       }
     }
   }
+
+  private initForm(sport: Sport): void {
+    this.sportForm = this.fb.group({
+      name: [sport.name, [Validators.required, Validators.minLength(2)]],
+      emoji: [sport.emoji, Validators.required],
+      color: [sport.color, Validators.required],
+      governingBodies: [sport.governingBodies, [Validators.required, Validators.min(0)]],
+      organisations: [sport.organisations, [Validators.required, Validators.min(0)]],
+      participants: [sport.participants, [Validators.required, Validators.min(0)]],
+    });
+  }
+
 
   private populateEditFields(sport: Sport): void {
     this.editName = sport.name;
@@ -52,25 +66,38 @@ export class SportDetailComponent implements OnInit {
   }
 
   toggleEdit(): void {
-    this.isEditing.set(!this.isEditing());
     if (this.isEditing()) {
-      // Reset fields to current sport values
+      // Cancelling edit: reset form to original sport data
       const current = this.sport();
-      if (current) this.populateEditFields(current);
+      if (current) {
+        this.sportForm.patchValue({
+          name: current.name,
+          emoji: current.emoji,
+          color: current.color,
+          governingBodies: current.governingBodies,
+          organisations: current.organisations,
+          participants: current.participants,
+        });
+      }
     }
+    this.isEditing.set(!this.isEditing());
+  }
+
+  get f() {
+    return this.sportForm.controls;
   }
 
   saveChanges(): void {
+    if (this.sportForm.invalid) {
+      // Mark all fields as touched to display errors
+      this.sportForm.markAllAsTouched();
+      return;
+    }
+
     const current = this.sport();
     if (!current) return;
-    const updated: Partial<Omit<Sport, 'id'>> = {
-      name: this.editName,
-      emoji: this.editEmoji,
-      color: this.editColor,
-      governingBodies: this.editGoverningBodies,
-      organisations: this.editOrganisations,
-      participants: this.editParticipants,
-    };
+
+    const updated = this.sportForm.value; // all fields are valid
     this.sportsService.updateSport(current.id, updated);
     // Update the local signal with new values
     this.sport.set({

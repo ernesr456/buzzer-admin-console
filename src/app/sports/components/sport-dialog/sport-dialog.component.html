@@ -1,13 +1,14 @@
-<h2 mat-dialog-title class="text-xl font-semibold text-white px-6 pt-6 pb-2">Add New Sport</h2>
+<h2 mat-dialog-title class="text-xl font-semibold text-white px-6 pt-6 pb-2">{{ isEdit ? 'Edit Sport' : 'Add New Sport' }}</h2>
 
-<mat-dialog-content class="!p-6">
+<form [formGroup]="sportForm" (ngSubmit)="submit()">
+  <mat-dialog-content class="!p-6">
   <div class="space-y-4">
     <div>
       <label for="name" class="block text-sm font-medium text-white/80">Sport Name</label>
       <input
         id="name"
         type="text"
-        [(ngModel)]="name"
+        formControlName="name"
         placeholder="e.g. Football"
         class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
       />
@@ -17,17 +18,20 @@
       <input
         id="emoji"
         type="text"
-        [(ngModel)]="emoji"
+      formControlName="emoji"
         placeholder="e.g. ⚽"
         class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
       />
+    @if (f['emoji'].invalid && f['emoji'].touched) {
+      <p class="text-sm text-[#EC193C] mt-1">Emoji is required.</p>
+    }
     </div>
     <div>
       <label for="color" class="block text-sm font-medium text-white/80">Color</label>
       <input
         id="color"
         type="color"
-        [(ngModel)]="color"
+        formControlName="color"
         class="mt-1 w-20 h-10 p-0 border-0 cursor-pointer bg-transparent"
       />
     </div>
@@ -36,42 +40,53 @@
       <input
         id="govBodies"
         type="number"
-        [(ngModel)]="governingBodies"
+        formControlName="governingBodies"
         min="0"
         class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
       />
+      @if (f['governingBodies'].invalid && f['governingBodies'].touched) {
+        <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
+      }
     </div>
     <div>
       <label for="orgs" class="block text-sm font-medium text-white/80">Organisations</label>
       <input
         id="orgs"
         type="number"
-        [(ngModel)]="organisations"
+        formControlName="organisations"
         min="0"
         class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
       />
+      @if (f['organisations'].invalid && f['organisations'].touched) {
+        <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
+      }
     </div>
     <div>
       <label for="participants" class="block text-sm font-medium text-white/80">Participants</label>
       <input
         id="participants"
         type="number"
-        [(ngModel)]="participants"
+        formControlName="participants"
         min="0"
         class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
       />
+      @if (f['participants'].invalid && f['participants'].touched) {
+        <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
+      }
     </div>
   </div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="!px-6 !pb-6 !pt-2 gap-2">
-  <button mat-button (click)="cancel()" class="text-white/70 hover:text-white transition">Cancel</button>
+  <button mat-button type="button" (click)="cancel()" class="text-white/70 hover:text-white transition">Cancel</button>
   <button
     mat-raised-button
     color="primary"
-    (click)="submit()"
+    type="submit"
+    [disabled]="sportForm.invalid"
     class="!bg-[#FFB414] !text-[#131515] font-semibold px-4 py-2 rounded-md hover:opacity-90 transition"
   >
-    Create
+    {{ isEdit ? 'Save' : 'Create' }}
   </button>
 </mat-dialog-actions>
+</form>
