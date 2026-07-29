@@ -1,24 +1,29 @@
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Inject, inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { Sport } from '../../models/sport.model';
 import { FormsModule } from '@angular/forms';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-sport-add-dialog',
   standalone: true,
   imports: [CommonModule, FormsModule, MatDialogModule],
   templateUrl: './sport-dialog.component.html',
-  styleUrls: ['./sport-dialog.component.scss'], // can be empty
+  styleUrls: ['./sport-dialog.component.scss'],
 })
 export class SportAddDialogComponent {
   private dialogRef = inject(MatDialogRef<SportAddDialogComponent>);
+  private data = inject<Sport | null>(MAT_DIALOG_DATA); // null for add, Sport for edit
 
-  name = '';
-  emoji = '';
-  color = '#FFB414';
-  governingBodies = 0;
-  organisations = 0;
-  participants = 0;
+  // Pre-fill if editing
+  name = this.data?.name ?? '';
+  emoji = this.data?.emoji ?? '';
+  color = this.data?.color ?? '#FFB414';
+  governingBodies = this.data?.governingBodies ?? 0;
+  organisations = this.data?.organisations ?? 0;
+  participants = this.data?.participants ?? 0;
+
+  isEdit = !!this.data;
 
   submit(): void {
     this.dialogRef.close({
