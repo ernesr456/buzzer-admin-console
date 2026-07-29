@@ -16,9 +16,7 @@
           "changeDetection": "OnPush",
           "style": "scss"
         },
-        "@schematics/angular:service": {
-          "type": "service"
-        }
+        "@schematics/angular:service": {}
       },
       "root": "",
       "sourceRoot": "src",
