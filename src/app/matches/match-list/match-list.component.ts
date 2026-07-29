@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   selector: 'app-match-list',
   imports: [],
   templateUrl: './match-list.component.html',
-  styleUrl: './match-list.component.css',
+  styleUrl: './match-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MatchListComponent {}

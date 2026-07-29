@@ -10,7 +10,7 @@ import { RouterOutlet } from '@angular/router';
   standalone: true,
   imports: [CommonModule, HeaderComponent, SidebarComponent, RouterOutlet],
   templateUrl: './main-layout.component.html',
-  styleUrl: './main-layout.component.css',
+  styleUrl: './main-layout.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MainLayoutComponent {
