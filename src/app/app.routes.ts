@@ -37,7 +37,7 @@ export const routes: Routes = [
         resolve: { sport: sportResolver },  
       },
       {
-        path: 'sports/:sportId/:gbId',
+        path: 'sports/:sportId/:entityId',
         component: EntityDetailComponent,
         title: 'Governing Body Management',
         canActivate: [authGuard],
