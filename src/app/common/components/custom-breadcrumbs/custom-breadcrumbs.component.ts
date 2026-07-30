@@ -1,13 +1,16 @@
 // custom-breadcrumbs.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Router, ActivatedRoute, NavigationEnd, RouterModule } from '@angular/router';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { Breadcrumb } from '../models/breadcrumb.model';
 @Component({
   selector: 'app-custom-breadcrumbs',
+  standalone: true,
+  imports: [RouterModule],
   templateUrl: './custom-breadcrumbs.component.html',
   styleUrls: ['./custom-breadcrumbs.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomBreadcrumbsComponent implements OnInit, OnDestroy {
   breadcrumbs: Breadcrumb[] = [];
