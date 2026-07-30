@@ -6,10 +6,10 @@ import { SportsService } from '../../sports/services/sports/sports.service';
 export const entityResolver: ResolveFn<EntityModel> = (route) => {
   const sportService = inject(SportsService);
   const sportId = route.paramMap.get('sportId');
-  const gbId = route.paramMap.get('gbId');
+  const entityId = route.paramMap.get('entityId');
 
-  if (!sportId || !gbId) {
-    throw new Error('Missing required route parameters: sportId or gbId');
+  if (!sportId || !entityId) {
+    throw new Error('Missing required route parameters: sportId or entityId');
   }
 
   const sport = sportService.getSportById(sportId);
@@ -17,9 +17,9 @@ export const entityResolver: ResolveFn<EntityModel> = (route) => {
     throw new Error(`Sport with id ${sportId} not found`);
   }
 
-  const entity = sport.entities.find(e => e.id === gbId);
+  const entity = sport.entities.find(e => e.id === entityId);
   if (!entity) {
-    throw new Error(`Entity with id ${gbId} not found in sport ${sportId}`);
+    throw new Error(`Entity with id ${entityId} not found in sport ${sportId}`);
   }
 
   return entity;
