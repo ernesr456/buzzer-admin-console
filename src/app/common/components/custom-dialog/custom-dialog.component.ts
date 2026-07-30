@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 
-export interface SportConfirmDialogData {
+export interface CustomDialogData {
   title: string;
   message: string;
   confirmText?: string;
@@ -13,15 +13,15 @@ export interface SportConfirmDialogData {
 
 
 @Component({
-  selector: 'app-sport-confirm-dialog',
+  selector: 'app-custom-dialog',
   standalone: true,
   imports: [CommonModule, MatDialogModule,MatButtonModule],
-  templateUrl: './sport-confirm-dialog.component.html',
-  styleUrls: ['./sport-confirm-dialog.component.scss'],
+  templateUrl: './custom-dialog.component.html',
+  styleUrls: ['./custom-dialog.component.scss'],
 })
-export class SportConfirmDialogComponent {
-  private dialogRef = inject(MatDialogRef<SportConfirmDialogData>);
-  data = inject<SportConfirmDialogData>(MAT_DIALOG_DATA);
+export class CustomDialogComponent {
+  private dialogRef = inject(MatDialogRef<CustomDialogData>);
+  data = inject<CustomDialogData>(MAT_DIALOG_DATA);
 
   confirm(): void {
     this.dialogRef.close(true);

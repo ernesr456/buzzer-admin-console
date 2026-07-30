@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SportConfirmDialogComponent } from './sport-confirm-dialog.component';
+import { SportConfirmDialogComponent } from './custom-dialog.component';
 
 describe('SportConfirmDialogComponent', () => {
   let component: SportConfirmDialogComponent;
