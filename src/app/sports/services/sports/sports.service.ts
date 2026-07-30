@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 import { SportModel, generateId } from '../../models/sport.model';
-import { SEED_SPORTS } from '../../data/seed-data';
+import { SEED_DATA } from '../../data/seed-data';
 
 const STORAGE_KEY = 'sports_catalogue';
 
@@ -66,7 +66,7 @@ export class SportsService {
   }
 
   resetToSeed(): void {
-    const seedCopy = SEED_SPORTS.map(sport => ({
+    const seedCopy = SEED_DATA.map(sport => ({
       ...sport,
       governingBodies: sport.governingBodies.map(gb => ({ ...gb })),
     }));

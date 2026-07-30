@@ -53,7 +53,7 @@ function generateOrganizations(
   return orgs;
 }
 
-export const SEED_SPORTS: SportModel[] = [
+export const SEED_DATA: SportModel[] = [
   {
     id: generateId('sport', 1),
     name: 'Football',
