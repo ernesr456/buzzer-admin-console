@@ -14,7 +14,7 @@ export const sportResolver: ResolveFn<Sport> = (route) => {
       name: 'Sports',
       emoji: '',
       color: '',
-      organisations: 0,
+      organizations: 0,
       participants: 0,
       governingBodies: [],
       createdAt: new Date().toISOString(),
