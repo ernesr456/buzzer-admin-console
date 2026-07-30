@@ -25,20 +25,18 @@
     </h2>
 
     <div class="flex flex-wrap justify-between w-full items-center gap-x-6 gap-y-2 !text-sm text-[#8b95b0] label-large mt-3">
-      <div class="grid">
+      <div class="flex flex-wrap justify-between w-full">
         <span>
           <span class="text-[#b0b8cc]">Created:</span>
-          {{ entity?.createdAt | date:'MMM d, y, at HH:mm' }}
+          {{ entity?.createdAt | date:'MMM d, y, a, \'at\' HH:mm' }}
         </span>
         <span>
           <span class="text-[#b0b8cc]">Updated:</span>
-          {{ entity?.updatedAt | date:'MMM d, y, at HH:mm' }}
+          {{ entity?.updatedAt | date:'MMM d, y, a, \'at\' HH:mm' }}
         </span>
-      </div>
-      <div>
-        <span class="flex items-center gap-1">
-          <span class="text-[#b0b8cc]">Logo:</span>
-          <span>{{ entity?.logo }}</span>
+        <span>
+          <span class="text-[#b0b8cc]">Onboarded:</span>
+          {{ entity?.onboardedAt | date:'MMM d, y, a, \'at\' HH:mm' }}
         </span>
       </div>
     </div>
