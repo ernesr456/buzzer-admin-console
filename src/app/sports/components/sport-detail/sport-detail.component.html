@@ -24,11 +24,11 @@
             <div class="grid">
             <span>
                 <span class="text-[#b0b8cc]">Created:</span>
-                {{ sport?.createdAt | date:'MMM d, y, at HH:mm' }}
+                {{ sport?.createdAt | date:'MMM d, y, a, \'at\' HH:mm' }}
             </span>
             <span>
                 <span class="text-[#b0b8cc]">Updated:</span>
-                {{ sport?.updatedAt | date:'MMM d, y, at HH:mm' }}
+                {{ sport?.updatedAt | date:'MMM d, y, a, \'at\' HH:mm' }}
             </span>
             </div>
             <div>
@@ -64,12 +64,11 @@
         </div>
     </div>
 
-    <!-- Entity Table Component -->
-<app-entity-table
-  [entities]="entities"
-  [sportId]="sportId"
-  (addEntity)="onEntityAdded($event)"
-  (editEntity)="editEntity($event)"
-  (deleteEntity)="deleteEntity($event)">
-</app-entity-table>
+    <app-entity-table
+        [entities]="entities"
+        [sportId]="sportId"
+        (addEntity)="onEntityAdded($event)"
+        (editEntity)="editEntity($event)"
+        (deleteEntity)="deleteEntity($event)">
+    </app-entity-table>
 </div>
