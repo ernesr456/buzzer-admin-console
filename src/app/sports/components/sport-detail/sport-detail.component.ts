@@ -26,7 +26,6 @@ export class SportDetailComponent implements OnInit {
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
   private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef);
 
   sport?: SportModel;
 
@@ -47,7 +46,6 @@ export class SportDetailComponent implements OnInit {
         this.router.navigate(['/sports']);
       }
     }
-    console.log(this.sport);
   }
 
   get totalCompetitions(): number {
@@ -119,10 +117,8 @@ export class SportDetailComponent implements OnInit {
   }
 
   editEntity(entity: any): void {
-    console.log('Edit entity', entity);
   }
 
   deleteEntity(entity: any): void {
-    console.log('Delete entity', entity);
   }
 }
