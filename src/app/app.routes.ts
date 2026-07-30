@@ -18,18 +18,18 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'sport',
+        redirectTo: 'sports',
         pathMatch: 'full',
       },
       {
-        path: 'sport',
+        path: 'sports',
         component: SportListComponent,
         title: 'Sport Management',
         canActivate: [authGuard],
         data: { breadcrumb: 'Sports' }
       },
       {
-        path: 'sport/:sportId',
+        path: 'sports/:sportId',
         component: SportDetailComponent,
         title: 'Sport Management',
         canActivate: [authGuard],
