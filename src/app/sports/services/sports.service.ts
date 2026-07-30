@@ -1,25 +1,24 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
-import { Sport, generateId } from '../models/sport.model';
+import { GoverningBody, Sport, generateId } from '../models/sport.model';
+import { SEED_SPORTS } from '../data/seed-data';
 
 const STORAGE_KEY = 'sports_catalogue';
-const SEED_DATA: Sport[] = [
-  { id: generateId(), name: 'Football', emoji: '⚽', color: '#FFB414', governingBodies: 5, organisations: 12, participants: 450 },
-  { id: generateId(), name: 'Basketball', emoji: '🏀', color: '#EC193C', governingBodies: 3, organisations: 8, participants: 320 },
-  { id: generateId(), name: 'Tennis', emoji: '🎾', color: '#2ED368', governingBodies: 2, organisations: 6, participants: 180 },
-];
+
+function makeDate(offsetDays: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - offsetDays);
+  return d.toISOString();
+}
 
 @Injectable({ providedIn: 'root' })
 export class SportsService {
-  // Internal signal holding the array
   private sportsSignal = signal<Sport[]>([]);
 
-  // Expose readonly version
   readonly sports = this.sportsSignal.asReadonly();
 
-  // Computed statistics
   readonly totalSports = computed(() => this.sports().length);
   readonly totalGoverningBodies = computed(() =>
-    this.sports().reduce((sum, s) => sum + s.governingBodies, 0)
+    this.sports().reduce((sum, s) => sum + s.governingBodies.length, 0)
   );
   readonly totalOrganisations = computed(() =>
     this.sports().reduce((sum, s) => sum + s.organisations, 0)
@@ -54,7 +53,10 @@ export class SportsService {
   }
 
   resetToSeed(): void {
-    const seedCopy = SEED_DATA.map(s => ({ ...s, id: generateId() }));
+    const seedCopy = SEED_SPORTS.map(sport => ({
+      ...sport,
+      governingBodies: sport.governingBodies.map(gb => ({ ...gb })),
+    }));
     this.sportsSignal.set(seedCopy);
   }
 
@@ -79,5 +81,10 @@ export class SportsService {
 
   private saveToStorage(data: Sport[]): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  getGoverningBodyById(sportId: string, gbId: string): GoverningBody | undefined {
+    const sport = this.getSportById(sportId);
+    return sport?.governingBodies.find(gb => gb.id === gbId);
   }
 }
