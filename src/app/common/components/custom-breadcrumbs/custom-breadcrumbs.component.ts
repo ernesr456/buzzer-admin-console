@@ -20,7 +20,6 @@ export class CustomBreadcrumbsComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -32,7 +31,6 @@ export class CustomBreadcrumbsComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => {
         this.updateBreadcrumbs();
-        this.cdr.detectChanges();
       });
   }
 
