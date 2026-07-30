@@ -5,6 +5,9 @@ import { RegisterComponent } from './auth/register/register.component';
 import { authGuard } from './core/guards/auth/auth.guard';
 import { SportListComponent } from './sports/components/sport-list/sport-list.component';
 import { GoverningBodyDetailComponent } from './sports/components/governing-body-detail/governing-body-detail.component';
+import { OrganizationListComponent } from './sports/components/organization-list/organization-list.component';
+import { SportDetailComponent } from './sports/components/sport-detail/sport-detail.component';
+import { ParticipantListComponent } from './sports/components/participant-list/participant-list.component';
 export const routes: Routes = [
   {
     path: '',
@@ -21,14 +24,32 @@ export const routes: Routes = [
         path: 'sports',
         component: SportListComponent,
         title: 'Sport Management',
-        children: [
-          {
-            path: 'governing-body/:gbId',
-            component: GoverningBodyDetailComponent,
-            title: 'Governing Body Management',
-          }
-        ]
+        canActivate: [authGuard],
       },
+      {
+        path: 'sports/:sportId',
+        component: SportDetailComponent,
+        title: 'Sport Management',
+        canActivate: [authGuard],
+      },
+      {
+        path: 'sport/:sportId/governing-body/:gbId',
+        component: GoverningBodyDetailComponent,
+        title: 'Governing Body Management',
+        canActivate: [authGuard],
+      },
+      {
+        path: 'sport/:sportId/governing-body/:gbId/organisation/:orgId',
+        component: OrganizationListComponent,
+        title: 'Organization Management',
+        canActivate: [authGuard],
+      },
+      {
+        path: 'sport/:sportId/governing-body/:gbId/organisation/:orgId/participant/:participantId',
+        component: ParticipantListComponent,
+        title: 'Participants Management',
+        canActivate: [authGuard],
+      }
     ],
   },
   {
