@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -16,6 +16,7 @@ import { CustomDialogComponent, CustomDialogData } from '../../../common/compone
   imports: [CommonModule, FormsModule, CustomBreadcrumbsComponent],
   templateUrl: './sport-list.component.html',
   styleUrls: ['./sport-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SportListComponent implements OnInit{
   private sportsService = inject(SportsService);

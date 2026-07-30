@@ -1,6 +1,6 @@
 // src/app/entities/components/entity-add-dialog/entity-add-dialog.component.ts
 
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -18,6 +18,7 @@ export interface EntityDialogData {
   imports: [CommonModule, ReactiveFormsModule, MatDialogModule],
   templateUrl: './entity-add-dialog.component.html',
   styleUrls: ['./entity-add-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EntityAddDialogComponent {
   private dialogRef = inject(MatDialogRef<EntityAddDialogComponent>);

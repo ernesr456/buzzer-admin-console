@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CustomBreadcrumbsComponent } from './../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -18,6 +18,7 @@ import { CustomDialogComponent, CustomDialogData } from '../../../common/compone
   imports: [CommonModule, CustomBreadcrumbsComponent, EntityTableComponent],
   templateUrl: './sport-detail.component.html',
   styleUrls: ['./sport-detail.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SportDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -80,7 +81,7 @@ export class SportDetailComponent implements OnInit {
         this.sportsService.updateSport(sport.id, result);
         this.sport = this.sportsService.getSportById(sport.id);
         this.toast.success(`Sport "${sport.name}" updated successfully!`, 'Updated');
-        this.cdr.detectChanges();
+        
       }
     });
   }
@@ -114,7 +115,7 @@ export class SportDetailComponent implements OnInit {
       this.sport.entities = [];
     }
     this.sport.entities = [...this.sport.entities, newEntity];
-    this.cdr.detectChanges();
+    
   }
 
   editEntity(entity: any): void {

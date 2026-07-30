@@ -1,4 +1,4 @@
-import { Component, Inject, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { SportModel } from '../../models/sport.model';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule, ReactiveFormsModule, MatDialogModule],
   templateUrl: './sport-add-dialog.component.html',
   styleUrls: ['./sport-add-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SportAddDialogComponent {
   private dialogRef = inject(MatDialogRef<SportAddDialogComponent>);
