@@ -2,7 +2,7 @@
 
 import { OrganizationModel } from '../../organizations/model/organization.model';
 import { ParticipantModel } from '../../participants/model/participant.model';
-import { SportModel } from '../models/sport.model';
+import { SportModel } from '../../sports/models/sport.model';
 
 function generateId(prefix: string, index: number): string {
   return `${prefix}-${String(index).padStart(3, '0')}`;
@@ -61,7 +61,7 @@ export const SEED_DATA: SportModel[] = [
     color: '#2ED368',
     createdAt: makeDate(472),
     updatedAt: makeDate(79),
-    governingBodies: [
+    entities: [
       {
         id: generateId('gb', 1),
         name: 'FIFA',
@@ -107,7 +107,7 @@ export const SEED_DATA: SportModel[] = [
     color: '#FFB414',
     createdAt: makeDate(450),
     updatedAt: makeDate(80),
-    governingBodies: [
+    entities: [
       {
         id: generateId('gb', 4),
         name: 'FIBA',
@@ -141,7 +141,7 @@ export const SEED_DATA: SportModel[] = [
     color: '#EC193C',
     createdAt: makeDate(440),
     updatedAt: makeDate(75),
-    governingBodies: [
+    entities: [
       {
         id: generateId('gb', 6),
         name: 'WBSC',
@@ -175,7 +175,7 @@ export const SEED_DATA: SportModel[] = [
     color: '#212121',
     createdAt: makeDate(430),
     updatedAt: makeDate(70),
-    governingBodies: [
+    entities: [
       {
         id: generateId('gb', 8),
         name: 'IIHF',
@@ -209,7 +209,7 @@ export const SEED_DATA: SportModel[] = [
     color: '#FFB414',
     createdAt: makeDate(420),
     updatedAt: makeDate(65),
-    governingBodies: [
+    entities: [
       {
         id: generateId('gb', 10),
         name: 'ITF',
@@ -243,7 +243,7 @@ export const SEED_DATA: SportModel[] = [
     color: '#2ED368',
     createdAt: makeDate(410),
     updatedAt: makeDate(60),
-    governingBodies: [
+    entities: [
       {
         id: generateId('gb', 12),
         name: 'World Rugby',
@@ -277,7 +277,7 @@ export const SEED_DATA: SportModel[] = [
     color: '#EC193C',
     createdAt: makeDate(400),
     updatedAt: makeDate(55),
-    governingBodies: [
+    entities: [
       {
         id: generateId('gb', 14),
         name: 'FIVB',
@@ -299,7 +299,7 @@ export const SEED_DATA: SportModel[] = [
     color: '#FFB414',
     createdAt: makeDate(390),
     updatedAt: makeDate(50),
-    governingBodies: [
+    entities: [
       {
         id: generateId('gb', 15),
         name: 'UFC',
@@ -333,7 +333,7 @@ export const SEED_DATA: SportModel[] = [
     color: '#212121',
     createdAt: makeDate(380),
     updatedAt: makeDate(45),
-    governingBodies: [
+    entities: [
       {
         id: generateId('gb', 17),
         name: 'FIS',
@@ -355,7 +355,7 @@ export const SEED_DATA: SportModel[] = [
     color: '#2ED368',
     createdAt: makeDate(370),
     updatedAt: makeDate(40),
-    governingBodies: [
+    entities: [
       {
         id: generateId('gb', 18),
         name: 'WBC',

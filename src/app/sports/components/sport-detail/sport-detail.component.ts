@@ -40,8 +40,8 @@ export class SportDetailComponent implements OnInit{
   }
 
   get tableRows(): { name: string; competitions: number; participants: number }[] {
-    if (!this.sport || !this.sport.governingBodies) return [];
-    return this.sport.governingBodies.map((gb) => ({
+    if (!this.sport || !this.sport.entities) return [];
+    return this.sport.entities.map((gb) => ({
       name: gb.name,
       competitions: gb.organizations?.length ?? 0,
       participants: (gb.organizations ?? []).reduce(
@@ -92,16 +92,16 @@ export class SportDetailComponent implements OnInit{
   }
 
   get totalCompetitions(): number {
-    if (!this.sport?.governingBodies) return 0;
-    return this.sport.governingBodies.reduce(
+    if (!this.sport?.entities) return 0;
+    return this.sport.entities.reduce(
       (sum, gb) => sum + (gb.organizations?.length ?? 0),
       0
     );
   }
 
   get totalParticipants(): number {
-    if (!this.sport?.governingBodies) return 0;
-    return this.sport.governingBodies.reduce((sum, gb) => {
+    if (!this.sport?.entities) return 0;
+    return this.sport.entities.reduce((sum, gb) => {
       const orgs = gb.organizations ?? [];
       return sum + orgs.reduce(
         (s, org) => s + (org.participants?.length ?? 0),

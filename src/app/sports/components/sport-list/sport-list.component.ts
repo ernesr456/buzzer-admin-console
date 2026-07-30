@@ -38,14 +38,14 @@ export class SportListComponent implements OnInit{
   });
 
   totalSports = this.sportsService.totalSports;
-  totalGoverningBodies = this.sportsService.totalGoverningBodies;
+  totalentities = this.sportsService.totalentities;
   totalOrganisations = this.sportsService.totalOrganisations;
   totalParticipants = this.sportsService.totalParticipants;
 
   openAddDialog(): void {
     const dialogRef = this.dialog.open(SportAddDialogComponent, {
       width: '450px',
-      panelClass: 'dark-dialog', // optional for dark theme
+      panelClass: 'dark-dialog',
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -83,7 +83,7 @@ export class SportListComponent implements OnInit{
         title: 'Reset to Seed',
         message: 'This will discard all changes and restore the default sports catalogue. Are you sure?',
         confirmText: 'Reset',
-        confirmColor: 'accent', // yellow
+        confirmColor: 'accent',
       } as SportConfirmDialogData,
     });
 
@@ -110,20 +110,19 @@ export class SportListComponent implements OnInit{
       if (confirmed) {
         this.sportsService.deleteSport(sport.id);
         this.toast.success(`Sport "${sport.name}" deleted successfully.`, 'Deleted');
-        console.log('Toast success called'); // Should appear in console
+        console.log('Toast success called');
       }
     });
   }
-  
-  // Safely compute total organizations for a sport by fetching the latest sport from the service
+
   getOrganizationsCount(sport: SportModel): number {
-    return (sport.governingBodies ?? []).reduce(
+    return (sport.entities ?? []).reduce(
       (sum, gb) => sum + (gb.organizations?.length ?? 0),
       0
     );
   }
   getParticipantsCount(sport: SportModel): number {
-    return (sport.governingBodies ?? []).reduce(
+    return (sport.entities ?? []).reduce(
       (sum, gb) => sum + (gb.organizations ?? []).reduce(
         (orgSum, org) => orgSum + (org.participants ?? []).length,
         0

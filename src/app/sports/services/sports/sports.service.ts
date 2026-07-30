@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 import { SportModel, generateId } from '../../models/sport.model';
-import { SEED_DATA } from '../../data/seed-data';
+import { SEED_DATA } from '../../../common/data/seed-data';
 
 const STORAGE_KEY = 'sports_catalogue';
 
@@ -11,12 +11,12 @@ export class SportsService {
   readonly sports = this.sportsSignal.asReadonly();
 
   readonly totalSports = computed(() => this.sports().length);
-  readonly totalGoverningBodies = computed(() =>
-    this.sports().reduce((sum, s) => sum + (s.governingBodies?.length ?? 0), 0)
+  readonly totalentities = computed(() =>
+    this.sports().reduce((sum, s) => sum + (s.entities?.length ?? 0), 0)
   );
   readonly totalOrganisations = computed(() =>
     this.sports().reduce(
-      (sum, s) => sum + (s.governingBodies ?? []).reduce(
+      (sum, s) => sum + (s.entities ?? []).reduce(
         (gbSum, gb) => gbSum + (gb.organizations ?? []).length,
         0
       ),
@@ -26,7 +26,7 @@ export class SportsService {
 
   readonly totalParticipants = computed(() =>
     this.sports().reduce((sum, sport) =>
-      sum + (sport.governingBodies ?? []).reduce((gbSum, gb) =>
+      sum + (sport.entities ?? []).reduce((gbSum, gb) =>
         gbSum + (gb.organizations ?? []).reduce((orgSum, org) =>
           orgSum + (org.participants ?? []).length,
           0
@@ -68,7 +68,7 @@ export class SportsService {
   resetToSeed(): void {
     const seedCopy = SEED_DATA.map(sport => ({
       ...sport,
-      governingBodies: sport.governingBodies.map(gb => ({ ...gb })),
+      entities: sport.entities.map(gb => ({ ...gb })),
     }));
     this.sportsSignal.set(seedCopy);
   }

@@ -7,7 +7,7 @@ export interface SportModel {
   color: string;
   createdAt: string;
   updatedAt?: string;
-  governingBodies: EntityModel[];
+  entities: EntityModel[];
 }
 
 export function generateId(): string {

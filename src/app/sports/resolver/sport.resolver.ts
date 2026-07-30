@@ -16,7 +16,7 @@ export const sportResolver: ResolveFn<SportModel> = (route) => {
       color: '',
       organizations: 0,
       participants: 0,
-      governingBodies: [],
+      entities: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     } as SportModel;
