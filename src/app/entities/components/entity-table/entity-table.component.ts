@@ -20,6 +20,7 @@ export class EntityTableComponent {
   @Input() sportId!: string;
   @Output() editEntity = new EventEmitter<EntityModel>();
   @Output() addEntity = new EventEmitter<EntityModel>();
+  @Output() deleteEntityEvent = new EventEmitter<string>();  
 
   private dialog = inject(MatDialog);
   private cdr = inject(ChangeDetectorRef);
@@ -72,7 +73,7 @@ export class EntityTableComponent {
         // Find and replace the entity in the local array
         const index = this.entities.findIndex(e => e.id === updatedEntity.id);
         if (index !== -1) {
-          this.entities[index] = updatedEntity;    // mutate in place
+          this.entities[index] = updatedEntity;
         }
         
       }
@@ -92,9 +93,11 @@ export class EntityTableComponent {
 
     dialogRef.afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.entityService.deleteEntity(this.sportId,entity.id);
+        this.entityService.deleteEntity(this.sportId, entity.id);
+        this.deleteEntityEvent.emit(entity.id);        // ✅ now works
+        this.entities = this.entities.filter(e => e.id !== entity.id);
+        this.cdr.markForCheck();
         this.toast.success(`Sport "${entity.name}" deleted successfully.`, 'Deleted');
-        
       }
     });
   }
