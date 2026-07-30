@@ -17,7 +17,7 @@
             <p class="uppercase text-[10px] tracking-wider text-white/60">Sports</p>
         </div>
         <div class="p-4 rounded-lg text-center border border-white/10">
-            <p class="!text-[24px] font-light font-poppins">{{ totalGoverningBodies() }}</p>
+            <p class="!text-[24px] font-light font-poppins">{{ totalentities() }}</p>
             <p class="uppercase text-[10px] tracking-wider text-white/60">Main Entities</p>
         </div>
         <div class="p-4 rounded-lg text-center border border-white/10">
@@ -81,7 +81,7 @@
                                     {{ sport.name }}
                                 </div>
                             </td>
-                            <td class="py-3 px-4">{{ sport.governingBodies?.length ?? 0 }}</td>
+                            <td class="py-3 px-4">{{ sport?.entities?.length ?? 0 }}</td>
                             <td class="py-3 px-4">{{ getOrganizationsCount(sport) }}</td>
                             <td class="py-3 px-4">{{ getParticipantsCount(sport) }}</td>
                             <td class="py-3 px-4">
