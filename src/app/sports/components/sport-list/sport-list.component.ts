@@ -3,15 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { SportsService } from '../../services/sports.service';
+import { SportsService } from '../../services/sports/sports.service';
 import { Sport } from '../../models/sport.model';
 import { SportAddDialogComponent } from '../sport-add-dialog/sport-add-dialog.component';
 import { SportConfirmDialogComponent, SportConfirmDialogData } from '../sport-confirm-dialog/sport-confirm-dialog.component';
+import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 
 @Component({
   selector: 'app-sport-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomBreadcrumbsComponent],
   templateUrl: './sport-list.component.html',
   styleUrls: ['./sport-list.component.scss'],
 })
