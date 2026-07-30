@@ -7,7 +7,6 @@ import { SportModel } from '../../models/sport.model';
 import { SportAddDialogComponent } from '../sport-add-dialog/sport-add-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastService } from './../../../common/services/toast/toast.service';
-import { ChangeDetectorRef } from '@angular/core';
 import { EntityTableComponent } from '../../../entities/components/entity-table/entity-table.component';
 import { EntityModel } from '../../../entities/model/entity.model';
 import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
