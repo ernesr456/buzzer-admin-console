@@ -17,17 +17,17 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'sports',
+        redirectTo: 'sport',
         pathMatch: 'full',
       },
       {
-        path: 'sports',
+        path: 'sport',
         component: SportListComponent,
         title: 'Sport Management',
         canActivate: [authGuard],
       },
       {
-        path: 'sports/:sportId',
+        path: 'sport/:sportId',
         component: SportDetailComponent,
         title: 'Sport Management',
         canActivate: [authGuard],
@@ -39,7 +39,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'sport/:sportId/governing-body/:gbId/organisation/:orgId',
+        path: 'sport/:sportId/governing-body/:gbId/organization/:orgId',
         component: OrganizationListComponent,
         title: 'Organization Management',
         canActivate: [authGuard],
