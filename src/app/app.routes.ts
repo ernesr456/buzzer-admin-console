@@ -4,10 +4,10 @@ import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { authGuard } from './core/guards/auth/auth.guard';
 import { SportListComponent } from './sports/components/sport-list/sport-list.component';
-import { GoverningBodyDetailComponent } from './sports/components/governing-body-detail/governing-body-detail.component';
-import { OrganizationListComponent } from './sports/components/organization-list/organization-list.component';
+import { OrganizationListComponent } from './organizations/components/organization-list/organization-list.component';
 import { SportDetailComponent } from './sports/components/sport-detail/sport-detail.component';
-import { ParticipantListComponent } from './sports/components/participant-list/participant-list.component';
+import { ParticipantListComponent } from './participants/components/participant-list/participant-list.component';
+import { EntityListComponent } from './entities/components/entity-list/entity-list.component'
 import { sportResolver } from './sports/resolver/sport.resolver';
 export const routes: Routes = [
   {
@@ -37,7 +37,7 @@ export const routes: Routes = [
       },
       {
         path: 'sport/:sportId/governing-body/:gbId',
-        component: GoverningBodyDetailComponent,
+        component: EntityListComponent,
         title: 'Governing Body Management',
         canActivate: [authGuard],
       },
