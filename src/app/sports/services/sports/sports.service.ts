@@ -12,13 +12,29 @@ export class SportsService {
 
   readonly totalSports = computed(() => this.sports().length);
   readonly totalGoverningBodies = computed(() =>
-    this.sports().reduce((sum, s) => sum + s.governingBodies.length, 0)
+    this.sports().reduce((sum, s) => sum + (s.governingBodies?.length ?? 0), 0)
   );
   readonly totalOrganisations = computed(() =>
-    this.sports().reduce((sum, s) => sum + s.organisations, 0)
+    this.sports().reduce(
+      (sum, s) => sum + (s.governingBodies ?? []).reduce(
+        (gbSum, gb) => gbSum + (gb.organizations ?? []).length,
+        0
+      ),
+      0
+    )
   );
+
   readonly totalParticipants = computed(() =>
-    this.sports().reduce((sum, s) => sum + s.participants, 0)
+    this.sports().reduce((sum, sport) =>
+      sum + (sport.governingBodies ?? []).reduce((gbSum, gb) =>
+        gbSum + (gb.organizations ?? []).reduce((orgSum, org) =>
+          orgSum + (org.participants ?? []).length,
+          0
+        ),
+        0
+      ),
+      0
+    )
   );
 
   constructor() {
