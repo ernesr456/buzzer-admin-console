@@ -56,7 +56,7 @@ export class SportsService {
   }
 
   updateSport(id: string, updates: Partial<Omit<Sport, 'id'>>): void {
-    this.sportsSignal.update(list =>
+    return this.sportsSignal.update(list =>
       list.map(s => (s.id === id ? { ...s, ...updates } : s))
     );
   }
