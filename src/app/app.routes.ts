@@ -8,6 +8,7 @@ import { GoverningBodyDetailComponent } from './sports/components/governing-body
 import { OrganizationListComponent } from './sports/components/organization-list/organization-list.component';
 import { SportDetailComponent } from './sports/components/sport-detail/sport-detail.component';
 import { ParticipantListComponent } from './sports/components/participant-list/participant-list.component';
+import { sportResolver } from './sports/resolver/sport.resolver';
 export const routes: Routes = [
   {
     path: '',
@@ -25,12 +26,14 @@ export const routes: Routes = [
         component: SportListComponent,
         title: 'Sport Management',
         canActivate: [authGuard],
+        data: { breadcrumb: 'Sports' }
       },
       {
         path: 'sport/:sportId',
         component: SportDetailComponent,
         title: 'Sport Management',
         canActivate: [authGuard],
+        resolve: { sport: sportResolver },  
       },
       {
         path: 'sport/:sportId/governing-body/:gbId',
