@@ -1,14 +1,8 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
-import { GoverningBody, Sport, generateId } from '../models/sport.model';
-import { SEED_SPORTS } from '../data/seed-data';
+import { Sport, generateId } from '../../models/sport.model';
+import { SEED_SPORTS } from '../../data/seed-data';
 
 const STORAGE_KEY = 'sports_catalogue';
-
-function makeDate(offsetDays: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - offsetDays);
-  return d.toISOString();
-}
 
 @Injectable({ providedIn: 'root' })
 export class SportsService {
@@ -29,9 +23,12 @@ export class SportsService {
 
   constructor() {
     this.loadFromStorage();
-    effect(() => {
-      this.saveToStorage(this.sports());
-    });
+    effect(() => this.saveToStorage(this.sports()));
+  }
+
+  // --- Sport CRUD ---
+  getSportById(id: string): Sport | undefined {
+    return this.sports().find(s => s.id === id);
   }
 
   addSport(sport: Omit<Sport, 'id'>): void {
@@ -60,6 +57,7 @@ export class SportsService {
     this.sportsSignal.set(seedCopy);
   }
 
+  // --- Storage ---
   private loadFromStorage(): void {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -70,21 +68,13 @@ export class SportsService {
           return;
         }
       } catch {
-
+        // ignore
       }
     }
     this.resetToSeed();
   }
-  getSportById(id: string): Sport | undefined {
-    return this.sports().find(s => s.id === id);
-  }
 
   private saveToStorage(data: Sport[]): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }
-
-  getGoverningBodyById(sportId: string, gbId: string): GoverningBody | undefined {
-    const sport = this.getSportById(sportId);
-    return sport?.governingBodies.find(gb => gb.id === gbId);
   }
 }
