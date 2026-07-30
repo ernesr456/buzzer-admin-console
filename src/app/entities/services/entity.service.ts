@@ -148,4 +148,14 @@ export class EntityService {
     sport.entities.splice(index, 1);
     this.saveData(data);
   }
+  getSportIdForEntity(entityId: string): string | undefined {
+    const data = this.loadData();
+    for (const sport of data) {
+      const found = sport.entities.find(e => e.id === entityId);
+      if (found) {
+        return sport.id;
+      }
+    }
+    return undefined;
+  }
 }
