@@ -104,4 +104,20 @@ export class SportListComponent {
       }
     });
   }
+  // Safely compute total organizations for a sport by fetching the latest sport from the service
+  getOrganizationsCount(sport: Sport): number {
+    return (sport.governingBodies ?? []).reduce(
+      (sum, gb) => sum + (gb.organizations?.length ?? 0),
+      0
+    );
+  }
+  getParticipantsCount(sport: Sport): number {
+    return (sport.governingBodies ?? []).reduce(
+      (sum, gb) => sum + (gb.organizations ?? []).reduce(
+        (orgSum, org) => orgSum + (org.participants ?? []).length,
+        0
+      ),
+      0
+    );
+  }
 }
