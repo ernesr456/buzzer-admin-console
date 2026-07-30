@@ -6,6 +6,7 @@ import { EntityAddDialogComponent } from '../entity-add-dialog/entity-add-dialog
 import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
 import { EntityService } from '../../services/entity.service';
 import { ToastService } from '../../../common/services/toast/toast.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-entity-table',
@@ -26,6 +27,8 @@ export class EntityTableComponent {
   private cdr = inject(ChangeDetectorRef);
   private entityService = inject(EntityService);
   private toast = inject(ToastService);
+  private router = inject(Router);
+
   
   
 
@@ -100,5 +103,8 @@ export class EntityTableComponent {
         this.toast.success(`Sport "${entity.name}" deleted successfully.`, 'Deleted');
       }
     });
+  }
+  navigateToDetail(sportId:string,entityId:string): void {
+    this.router.navigateByUrl(`/sports/${this.sportId}/${entityId}`);
   }
 }
