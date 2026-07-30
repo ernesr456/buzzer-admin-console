@@ -5,8 +5,6 @@ export interface Sport {
   color: string;
   createdAt: string;
   updatedAt?: string;
-  organisations: number;
-  participants: number;
   governingBodies: GoverningBody[];
 }
 
@@ -17,6 +15,21 @@ export interface GoverningBody {
   createdAt: string;
   updatedAt?: string;
   onboardedAt?: string;
+  organizations: Organization[];
+}
+
+export interface Organization{
+  id: string;
+  name: string;
+  participants: Participant[];
+  createdAt: string;
+  updatedAt: string;
+  onboardedAt?: string;
+}
+
+export interface Participant{
+  id: string;
+  name: string;
 }
 
 export function generateId(): string {
