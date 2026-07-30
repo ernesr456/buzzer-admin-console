@@ -6,5 +6,6 @@ export interface EntityModel {
   logo?: string;
   createdAt: string;
   updatedAt?: string;
+  onboardedAt?: string;
   organizations: OrganizationModel[];
 }
