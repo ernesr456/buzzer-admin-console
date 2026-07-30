@@ -6,11 +6,11 @@ import { SportsService } from '../../services/sports/sports.service';
 import { SportModel } from '../../models/sport.model';
 import { SportAddDialogComponent } from '../sport-add-dialog/sport-add-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { SportConfirmDialogComponent, SportConfirmDialogData } from '../sport-confirm-dialog/sport-confirm-dialog.component';
 import { ToastService } from './../../../common/services/toast/toast.service';
 import { ChangeDetectorRef } from '@angular/core';
 import { EntityTableComponent } from '../../../entities/components/entity-table/entity-table.component';
 import { EntityModel } from '../../../entities/model/entity.model';
+import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
 
 @Component({
   selector: 'app-sport-detail',
@@ -86,7 +86,7 @@ export class SportDetailComponent implements OnInit {
   }
 
   deleteSport(sport: SportModel): void {
-    const dialogRef = this.dialog.open(SportConfirmDialogComponent, {
+    const dialogRef = this.dialog.open(CustomDialogComponent, {
       width: '400px',
       panelClass: 'dark-dialog',
       data: {
@@ -94,7 +94,7 @@ export class SportDetailComponent implements OnInit {
         message: `Are you sure you want to delete <strong>${sport.name}</strong>? This action cannot be undone.`,
         confirmText: 'Delete',
         confirmColor: 'warn',
-      } as SportConfirmDialogData,
+      } as CustomDialogData,
     });
 
     dialogRef.afterClosed().subscribe(confirmed => {

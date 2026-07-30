@@ -6,9 +6,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { SportsService } from '../../services/sports/sports.service';
 import { SportModel } from '../../models/sport.model';
 import { SportAddDialogComponent } from '../sport-add-dialog/sport-add-dialog.component';
-import { SportConfirmDialogComponent, SportConfirmDialogData } from '../sport-confirm-dialog/sport-confirm-dialog.component';
 import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 import { ToastService } from './../../../common/services/toast/toast.service';
+import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
 
 @Component({
   selector: 'app-sport-list',
@@ -76,7 +76,7 @@ export class SportListComponent implements OnInit{
   }
 
   resetToSeed(): void {
-    const dialogRef = this.dialog.open(SportConfirmDialogComponent, {
+    const dialogRef = this.dialog.open(CustomDialogComponent, {
       width: '400px',
       panelClass: 'dark-dialog',
       data: {
@@ -84,7 +84,7 @@ export class SportListComponent implements OnInit{
         message: 'This will discard all changes and restore the default sports catalogue. Are you sure?',
         confirmText: 'Reset',
         confirmColor: 'accent',
-      } as SportConfirmDialogData,
+      } as CustomDialogData,
     });
 
     dialogRef.afterClosed().subscribe(confirmed => {
@@ -95,7 +95,7 @@ export class SportListComponent implements OnInit{
   }
 
   deleteSport(sport: SportModel): void {
-    const dialogRef = this.dialog.open(SportConfirmDialogComponent, {
+    const dialogRef = this.dialog.open(CustomDialogComponent, {
       width: '400px',
       panelClass: 'dark-dialog',
       data: {
@@ -103,7 +103,7 @@ export class SportListComponent implements OnInit{
         message: `Are you sure you want to delete <strong>${sport.name}</strong>? This action cannot be undone.`,
         confirmText: 'Delete',
         confirmColor: 'warn', // red
-      } as SportConfirmDialogData,
+      } as CustomDialogData,
     });
 
     dialogRef.afterClosed().subscribe(confirmed => {
