@@ -7,8 +7,9 @@ import { SportListComponent } from './sports/components/sport-list/sport-list.co
 import { OrganizationListComponent } from './organizations/components/organization-list/organization-list.component';
 import { SportDetailComponent } from './sports/components/sport-detail/sport-detail.component';
 import { ParticipantListComponent } from './participants/components/participant-list/participant-list.component';
-import { EntityListComponent } from './entities/components/entity-list/entity-list.component'
+import { EntityDetailComponent } from './entities/components/entity-detail/entity-detail.component'
 import { sportResolver } from './sports/resolver/sport.resolver';
+import { entityResolver } from './entities/resolver/entity.resolver';
 export const routes: Routes = [
   {
     path: '',
@@ -36,10 +37,11 @@ export const routes: Routes = [
         resolve: { sport: sportResolver },  
       },
       {
-        path: 'sport/:sportId/governing-body/:gbId',
-        component: EntityListComponent,
+        path: 'sports/:sportId/entity/:gbId',
+        component: EntityDetailComponent,
         title: 'Governing Body Management',
         canActivate: [authGuard],
+        resolve: {sport: entityResolver}
       },
       {
         path: 'sport/:sportId/governing-body/:gbId/organization/:orgId',
