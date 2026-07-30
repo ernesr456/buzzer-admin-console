@@ -1,0 +1,61 @@
+<!-- organization-table.component.html -->
+<div class="flex flex-wrap justify-between">
+  <h2 class="text-xl self-center">Organizations</h2>
+  <button
+    (click)="openAddDialog()"
+    class="flex items-center border border-white/10 gap-2 px-4 py-2 font-medium rounded-md hover:opacity-90 transition w-full md:w-fit !font-[10px]"
+  >
+    <span class="material-symbols-outlined">Add</span>
+    Add Organization
+  </button>
+</div>
+
+<!-- Table -->
+<div class="overflow-x-auto">
+  <table class="w-full text-sm [&_td:nth-child(even)]:bg-white/5 [&_th:nth-child(even)]:bg-white/5">
+    <thead class="bg-white/10">
+      <tr class="border-b border-white/5">
+        <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Organization</th>
+        <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Participants</th>
+        <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngIf="tableRows.length > 0; else emptyState">
+        <tr
+          *ngFor="let row of tableRows"
+          class="border-b border-white/5 last:border-0 hover:bg-white/10 transition cursor-pointer"
+        >
+          <td class="py-3 px-4">
+            <span class="text-white font-medium">{{ row.name }}</span>
+          </td>
+          <td class="py-3 px-4">{{ row.participantCount }}</td>
+          <td class="py-3 px-4">
+            <button
+              (click)="openEditDialog(row)"
+              class="rounded-lg hover:bg-[#1e2740] transition text-[#8b95b0] hover:text-white z-10 p-1"
+              aria-label="Edit"
+            >
+              <span class="material-symbols-outlined text-xl">edit</span>
+            </button>
+            <button
+              (click)="deleteOrganization(row)"
+              class="rounded-lg hover:bg-[#1e2740] transition text-[#8b95b0] hover:text-white z-10 p-1"
+              aria-label="Delete"
+            >
+              <span class="material-symbols-outlined text-xl">delete</span>
+            </button>
+          </td>
+        </tr>
+      </ng-container>
+      <ng-template #emptyState>
+        <tr>
+          <td colspan="3" class="py-6 text-center text-[#8b95b0]">
+            <span class="material-symbols-outlined text-2xl block mb-1">inbox</span>
+            No organizations found for this governing body.
+          </td>
+        </tr>
+      </ng-template>
+    </tbody>
+  </table>
+</div>
