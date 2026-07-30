@@ -1,81 +1,80 @@
-// custom-breadcrumbs.component.ts
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, NavigationEnd, RouterModule } from '@angular/router';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { Breadcrumb } from '../models/breadcrumb.model';
+
 @Component({
   selector: 'app-custom-breadcrumbs',
   standalone: true,
-  imports: [RouterModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './custom-breadcrumbs.component.html',
   styleUrls: ['./custom-breadcrumbs.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomBreadcrumbsComponent implements OnInit, OnDestroy {
   breadcrumbs: Breadcrumb[] = [];
-  private subscription = new Subscription;
+  private subscription = new Subscription();
 
-  constructor(private router: Router, private activatedRoute: ActivatedRoute) {}
+  constructor(
+    private router: Router,
+    private activatedRoute: ActivatedRoute,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
+    this.updateBreadcrumbs();
     this.subscription = this.router.events
       .pipe(
-        filter((event) => event instanceof NavigationEnd),
+        filter(event => event instanceof NavigationEnd),
         distinctUntilChanged()
       )
       .subscribe(() => {
-        this.breadcrumbs = this.buildBreadcrumbs(this.activatedRoute.root);
+        this.updateBreadcrumbs();
+        this.cdr.detectChanges();
       });
   }
 
+  private updateBreadcrumbs(): void {
+    this.breadcrumbs = this.buildBreadcrumbs(this.activatedRoute);
+  }
+
   private buildBreadcrumbs(route: ActivatedRoute): Breadcrumb[] {
-    const breadcrumbs: Breadcrumb[] = [];
+    const segments = route.snapshot.url.map(seg => seg.path);
+    const currentData = route.snapshot.data;
+    const labelMap: Record<string, string> = {
+      'sport': 'Sports',
+      'governing-body': 'Governing Bodies',
+      'organisation': 'Organisations',
+      'participant': 'Participants',
+    };
+
+    const crumbs: Breadcrumb[] = [];
     let url = '';
 
-    for (const child of route.pathFromRoot) {
-      // Build the URL segment by segment
-      const routeUrl = child.snapshot.url.map((segment) => segment.path).join('/');
-      if (routeUrl) {
-        url += `/${routeUrl}`;
-      }
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i];
+      url += `/${seg}`;
 
-      // 1️⃣ Try to get a dynamic label from resolved data (e.g., sport.name)
-      const resolvedData = child.snapshot.data;
       let label = '';
-
-      // 👇 Add as many entity types as your app uses
-      if (resolvedData['sport']) {
-        label = resolvedData['sport'].name;
-      } else if (resolvedData['governingBody']) {
-        label = resolvedData['governingBody'].name;
-      } else if (resolvedData['organisation']) {
-        label = resolvedData['organisation'].name;
-      } else if (resolvedData['participant']) {
-        label = resolvedData['participant'].name;
-      } else if (resolvedData['breadcrumb']) {
-        // 2️⃣ Fallback to static breadcrumb label from route data
-        label = resolvedData['breadcrumb'];
+      // Dynamic label for the last segment (if it has a resolved entity)
+      if (i === segments.length - 1) {
+        const entity = currentData['sport'] || currentData['governingBody'] || currentData['organisation'] || currentData['participant'];
+        if (entity) label = entity.name;
       }
-
-      // 3️⃣ Last resort: use the first URL param value (e.g., '123')
+      // Fallback to static map or the segment itself
       if (!label) {
-        const params = child.snapshot.params;
-        const keys = Object.keys(params);
-        if (keys.length > 0) {
-          label = params[keys[0]];
-        }
+        label = labelMap[seg] || seg;
       }
 
-      if (label) {
-        breadcrumbs.push({ label, url });
-      }
+      crumbs.push({ label, url });
     }
 
-    return breadcrumbs;
+    return crumbs;
   }
 
   ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
+    this.subscription.unsubscribe();
   }
 }
