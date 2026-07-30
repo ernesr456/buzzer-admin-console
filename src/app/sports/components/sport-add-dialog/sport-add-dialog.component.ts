@@ -20,10 +20,7 @@ export class SportAddDialogComponent {
   sportForm = this.fb.group({
     name: [this.data?.name ?? '', [Validators.required, Validators.minLength(2)]],
     emoji: [this.data?.emoji ?? '', [Validators.required]],
-    color: [this.data?.color ?? '#FFB414', [Validators.required]],
-    governingBodies: [this.data?.governingBodies ?? 0, [Validators.required, Validators.min(0)]],
-    organisations: [this.data?.organisations ?? 0, [Validators.required, Validators.min(0)]],
-    participants: [this.data?.participants ?? 0, [Validators.required, Validators.min(0)]],
+    color: [this.data?.color ?? '#FFB414', [Validators.required]]
   });
 
   isEdit = !!this.data;

@@ -35,45 +35,6 @@
         class="mt-1 w-20 h-10 p-0 border-0 cursor-pointer bg-transparent"
       />
     </div>
-    <div>
-      <label for="govBodies" class="block text-sm font-medium text-white/80">Governing Bodies</label>
-      <input
-        id="govBodies"
-        type="number"
-        formControlName="governingBodies"
-        min="0"
-        class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
-      />
-      @if (f['governingBodies'].invalid && f['governingBodies'].touched) {
-        <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
-      }
-    </div>
-    <div>
-      <label for="orgs" class="block text-sm font-medium text-white/80">Organisations</label>
-      <input
-        id="orgs"
-        type="number"
-        formControlName="organisations"
-        min="0"
-        class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
-      />
-      @if (f['organisations'].invalid && f['organisations'].touched) {
-        <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
-      }
-    </div>
-    <div>
-      <label for="participants" class="block text-sm font-medium text-white/80">Participants</label>
-      <input
-        id="participants"
-        type="number"
-        formControlName="participants"
-        min="0"
-        class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
-      />
-      @if (f['participants'].invalid && f['participants'].touched) {
-        <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
-      }
-    </div>
   </div>
 </mat-dialog-content>
 
