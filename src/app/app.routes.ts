@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './common/components/main-layout/main-layout.component';
-import { MatchListComponent } from './matches/match-list/match-list.component';
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { authGuard } from './core/guards/auth/auth.guard';
 import { SportListComponent } from './sports/components/sport-list/sport-list.component';
+import { GoverningBodyDetailComponent } from './sports/components/governing-body-detail/governing-body-detail.component';
 export const routes: Routes = [
   {
     path: '',
@@ -21,6 +21,13 @@ export const routes: Routes = [
         path: 'sports',
         component: SportListComponent,
         title: 'Sport Management',
+        children: [
+          {
+            path: 'governing-body/:gbId',
+            component: GoverningBodyDetailComponent,
+            title: 'Governing Body Management',
+          }
+        ]
       },
     ],
   },
