@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,6 +8,7 @@ import { Sport } from '../../models/sport.model';
 import { SportAddDialogComponent } from '../sport-add-dialog/sport-add-dialog.component';
 import { SportConfirmDialogComponent, SportConfirmDialogData } from '../sport-confirm-dialog/sport-confirm-dialog.component';
 import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
+import { ToastService } from './../../../common/services/toast/toast.service';
 
 @Component({
   selector: 'app-sport-list',
@@ -16,10 +17,15 @@ import { CustomBreadcrumbsComponent } from '../../../common/components/custom-br
   templateUrl: './sport-list.component.html',
   styleUrls: ['./sport-list.component.scss'],
 })
-export class SportListComponent {
+export class SportListComponent implements OnInit{
   private sportsService = inject(SportsService);
   private dialog = inject(MatDialog);
   private router = inject(Router);
+  private toast = inject(ToastService);
+
+  ngOnInit() {
+    console.log('ToastComponent instantiated with:', this.toast);
+  }
 
   searchQuery = signal('');
 
@@ -48,6 +54,7 @@ export class SportListComponent {
       }
     });
   }
+
   openEditDialog(sport: Sport): void {
     const dialogRef = this.dialog.open(SportAddDialogComponent, {
       width: '450px',
@@ -59,6 +66,7 @@ export class SportListComponent {
       if (result) {
         // result contains updated fields
         this.sportsService.updateSport(sport.id, result);
+        this.toast.success(`Sport "${sport.name}" updated successfully!`, 'Updated');
       }
     });
   }
@@ -101,9 +109,12 @@ export class SportListComponent {
     dialogRef.afterClosed().subscribe(confirmed => {
       if (confirmed) {
         this.sportsService.deleteSport(sport.id);
+        this.toast.success(`Sport "${sport.name}" deleted successfully.`, 'Deleted');
+        console.log('Toast success called'); // Should appear in console
       }
     });
   }
+  
   // Safely compute total organizations for a sport by fetching the latest sport from the service
   getOrganizationsCount(sport: Sport): number {
     return (sport.governingBodies ?? []).reduce(
