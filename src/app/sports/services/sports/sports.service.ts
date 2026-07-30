@@ -1,12 +1,12 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
-import { Sport, generateId } from '../../models/sport.model';
+import { SportModel, generateId } from '../../models/sport.model';
 import { SEED_SPORTS } from '../../data/seed-data';
 
 const STORAGE_KEY = 'sports_catalogue';
 
 @Injectable({ providedIn: 'root' })
 export class SportsService {
-  private sportsSignal = signal<Sport[]>([]);
+  private sportsSignal = signal<SportModel[]>([]);
 
   readonly sports = this.sportsSignal.asReadonly();
 
@@ -43,19 +43,19 @@ export class SportsService {
   }
 
   // --- Sport CRUD ---
-  getSportById(id: string): Sport | undefined {
+  getSportById(id: string): SportModel | undefined {
     return this.sports().find(s => s.id === id);
   }
 
-  addSport(sport: Omit<Sport, 'id'>): void {
-    const newSport: Sport = {
+  addSport(sport: Omit<SportModel, 'id'>): void {
+    const newSport: SportModel = {
       id: generateId(),
       ...sport,
     };
     this.sportsSignal.update(list => [...list, newSport]);
   }
 
-  updateSport(id: string, updates: Partial<Omit<Sport, 'id'>>): void {
+  updateSport(id: string, updates: Partial<Omit<SportModel, 'id'>>): void {
     return this.sportsSignal.update(list =>
       list.map(s => (s.id === id ? { ...s, ...updates } : s))
     );
@@ -78,7 +78,7 @@ export class SportsService {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        const parsed = JSON.parse(stored) as Sport[];
+        const parsed = JSON.parse(stored) as SportModel[];
         if (Array.isArray(parsed) && parsed.length) {
           this.sportsSignal.set(parsed);
           return;
@@ -90,7 +90,7 @@ export class SportsService {
     this.resetToSeed();
   }
 
-  private saveToStorage(data: Sport[]): void {
+  private saveToStorage(data: SportModel[]): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }
 }

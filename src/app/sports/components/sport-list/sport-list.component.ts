@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { SportsService } from '../../services/sports/sports.service';
-import { Sport } from '../../models/sport.model';
+import { SportModel } from '../../models/sport.model';
 import { SportAddDialogComponent } from '../sport-add-dialog/sport-add-dialog.component';
 import { SportConfirmDialogComponent, SportConfirmDialogData } from '../sport-confirm-dialog/sport-confirm-dialog.component';
 import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
@@ -55,7 +55,7 @@ export class SportListComponent implements OnInit{
     });
   }
 
-  openEditDialog(sport: Sport): void {
+  openEditDialog(sport: SportModel): void {
     const dialogRef = this.dialog.open(SportAddDialogComponent, {
       width: '450px',
       panelClass: 'dark-dialog',
@@ -94,7 +94,7 @@ export class SportListComponent implements OnInit{
     });
   }
 
-  deleteSport(sport: Sport): void {
+  deleteSport(sport: SportModel): void {
     const dialogRef = this.dialog.open(SportConfirmDialogComponent, {
       width: '400px',
       panelClass: 'dark-dialog',
@@ -116,13 +116,13 @@ export class SportListComponent implements OnInit{
   }
   
   // Safely compute total organizations for a sport by fetching the latest sport from the service
-  getOrganizationsCount(sport: Sport): number {
+  getOrganizationsCount(sport: SportModel): number {
     return (sport.governingBodies ?? []).reduce(
       (sum, gb) => sum + (gb.organizations?.length ?? 0),
       0
     );
   }
-  getParticipantsCount(sport: Sport): number {
+  getParticipantsCount(sport: SportModel): number {
     return (sport.governingBodies ?? []).reduce(
       (sum, gb) => sum + (gb.organizations ?? []).reduce(
         (orgSum, org) => orgSum + (org.participants ?? []).length,

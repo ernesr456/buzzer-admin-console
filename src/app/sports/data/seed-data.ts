@@ -1,6 +1,8 @@
 // src/app/sports/data/seed-data.ts
 
-import { Sport, Organization, Participant } from '../models/sport.model';
+import { OrganizationModel } from '../../organizations/model/organization.model';
+import { ParticipantModel } from '../../participants/model/participant.model';
+import { SportModel } from '../models/sport.model';
 
 function generateId(prefix: string, index: number): string {
   return `${prefix}-${String(index).padStart(3, '0')}`;
@@ -13,8 +15,8 @@ function makeDate(offsetDays: number): string {
 }
 
 // Helper to generate a participant list with given count
-function generateParticipants(prefix: string, startIndex: number, count: number): Participant[] {
-  const participants: Participant[] = [];
+function generateParticipants(prefix: string, startIndex: number, count: number): ParticipantModel[] {
+  const participants: ParticipantModel[] = [];
   for (let i = 0; i < count; i++) {
     participants.push({
       id: generateId(prefix, startIndex + i),
@@ -31,8 +33,8 @@ function generateOrganizations(
   partStartIndex: number,
   orgNames: string[],
   participantCounts: number[]
-): Organization[] {
-  const orgs: Organization[] = [];
+): OrganizationModel[] {
+  const orgs: OrganizationModel[] = [];
   let partIndex = partStartIndex;
   for (let i = 0; i < orgNames.length; i++) {
     const orgId = generateId(orgPrefix, orgStartIndex + i);
@@ -51,7 +53,7 @@ function generateOrganizations(
   return orgs;
 }
 
-export const SEED_SPORTS: Sport[] = [
+export const SEED_SPORTS: SportModel[] = [
   {
     id: generateId('sport', 1),
     name: 'Football',

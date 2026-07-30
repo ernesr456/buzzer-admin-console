@@ -1,10 +1,10 @@
 // sport.resolver.ts
 import { inject } from '@angular/core';
 import { ResolveFn } from '@angular/router';
-import { Sport } from '../models/sport.model';
+import { SportModel } from '../models/sport.model';
 import { SportsService } from '../services/sports/sports.service';
 
-export const sportResolver: ResolveFn<Sport> = (route) => {
+export const sportResolver: ResolveFn<SportModel> = (route) => {
   const sportService = inject(SportsService);
   const id = route.paramMap.get('sportId');
 
@@ -19,7 +19,7 @@ export const sportResolver: ResolveFn<Sport> = (route) => {
       governingBodies: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    } as Sport;
+    } as SportModel;
   }
 
   // Detail route: fetch real sport

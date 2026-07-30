@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { CustomBreadcrumbsComponent } from './../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SportsService } from '../../services/sports/sports.service';
-import { Sport } from '../../models/sport.model';
+import { SportModel } from '../../models/sport.model';
 import { SportAddDialogComponent } from '../sport-add-dialog/sport-add-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { SportConfirmDialogComponent, SportConfirmDialogData } from '../sport-confirm-dialog/sport-confirm-dialog.component';
@@ -21,7 +21,7 @@ import { ChangeDetectorRef } from '@angular/core';
 export class SportDetailComponent implements OnInit{
   private route = inject(ActivatedRoute);
   private sportsService = inject(SportsService);
-  sport?: Sport;
+  sport?: SportModel;
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
   private router = inject(Router);
@@ -51,7 +51,7 @@ export class SportDetailComponent implements OnInit{
     }));
   }
 
-  openEditDialog(sport: Sport): void {
+  openEditDialog(sport: SportModel): void {
     const dialogRef = this.dialog.open(SportAddDialogComponent, {
       width: '450px',
       panelClass: 'dark-dialog',
@@ -68,7 +68,7 @@ export class SportDetailComponent implements OnInit{
     });
   }
 
-  deleteSport(sport: Sport): void {
+  deleteSport(sport: SportModel): void {
     const dialogRef = this.dialog.open(SportConfirmDialogComponent, {
       width: '400px',
       panelClass: 'dark-dialog',

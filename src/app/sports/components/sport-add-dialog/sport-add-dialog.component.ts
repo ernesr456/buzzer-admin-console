@@ -1,6 +1,6 @@
 import { Component, Inject, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
-import { Sport } from '../../models/sport.model';
+import { SportModel } from '../../models/sport.model';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
 })
 export class SportAddDialogComponent {
   private dialogRef = inject(MatDialogRef<SportAddDialogComponent>);
-  private data = inject<Sport | null>(MAT_DIALOG_DATA); // null for add, Sport for edit
+  private data = inject<SportModel | null>(MAT_DIALOG_DATA); // null for add, Sport for edit
 
   private fb = inject(FormBuilder);
 
