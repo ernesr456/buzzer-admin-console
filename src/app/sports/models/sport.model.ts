@@ -5,10 +5,10 @@ export interface Sport {
   color: string;
   createdAt: string;
   updatedAt?: string;
-  governingBodies: GoverningBody[];
+  governingBodies: Entity[];
 }
 
-export interface GoverningBody {
+export interface Entity {
   id: string;
   name: string;
   logo?: string;
