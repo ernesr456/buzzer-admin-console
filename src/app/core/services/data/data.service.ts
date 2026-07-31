@@ -11,8 +11,10 @@ export class DataService {
   loadSports(): SportModel[] {
     const raw = localStorage.getItem(SPORTS_STORAGE_KEY);
     if (!raw) {
-      this.saveSports(SEED_DATA);
-      return this.cloneDeep(SEED_DATA);
+      const seedCopy = this.cloneDeep(SEED_DATA);
+      const converted = this.convertDates(seedCopy) as SportModel[];
+      this.saveSports(converted);
+      return converted;
     }
 
     try {
@@ -20,8 +22,10 @@ export class DataService {
       return this.convertDates(parsed) as SportModel[];
     } catch (error) {
       console.error('Failed to parse sports data from localStorage', error);
-      this.saveSports(SEED_DATA);
-      return this.cloneDeep(SEED_DATA);
+      const seedCopy = this.cloneDeep(SEED_DATA);
+      const converted = this.convertDates(seedCopy) as SportModel[];
+      this.saveSports(converted);
+      return converted;
     }
   }
 
@@ -35,8 +39,9 @@ export class DataService {
 
   resetToSeed(): SportModel[] {
     const seedCopy = this.cloneDeep(SEED_DATA);
-    this.saveSports(seedCopy);
-    return seedCopy;
+    const converted = this.convertDates(seedCopy) as SportModel[];
+    this.saveSports(converted);
+    return converted;
   }
 
   getSportById(sportId: string): SportModel | undefined {
