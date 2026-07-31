@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { OrganizationModel } from '../model/organization.model';
 import { SportModel } from '../../sports/models/sport.model';
-import { DataService } from './../../core/services/data/data.service';
+import { DataService } from '../../core/services/data/data.service';
 
 @Injectable({ providedIn: 'root' })
 export class OrganizationService {
@@ -32,7 +32,31 @@ export class OrganizationService {
     );
   }
 
-  saveOrganization(entityId: string, organization: OrganizationModel): void {
+  refreshOrganization(entityId: string, orgId: string): void {
+    const allSports = this.dataService.loadSports();
+    for (const sport of allSports) {
+      for (const entity of sport.entities) {
+        if (entity.id === entityId) {
+          const freshOrg = entity.organizations.find(o => o.id === orgId);
+          if (!freshOrg) return;
+
+          const subject = this.organizationsMap.get(entityId);
+          if (!subject) return;
+
+          const current = subject.value;
+          const index = current.findIndex(o => o.id === orgId);
+          if (index === -1) return;
+
+          const updated = [...current];
+          updated[index] = freshOrg;
+          subject.next(updated);
+          return;
+        }
+      }
+    }
+  }
+
+  private saveOrganization(entityId: string, organization: OrganizationModel): void {
     const subject = this.organizationsMap.get(entityId);
     if (!subject) return;
     const current = subject.value;
