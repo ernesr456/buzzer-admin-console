@@ -1,29 +1,34 @@
 import { inject } from '@angular/core';
-import { ResolveFn } from '@angular/router';
+import { ResolveFn, ActivatedRouteSnapshot, Router } from '@angular/router';
+import { Observable, of } from 'rxjs';
+import { map, catchError, take } from 'rxjs/operators';
 import { SportModel } from '../models/sport.model';
 import { SportsService } from '../services/sports/sports.service';
 
-export const sportResolver: ResolveFn<SportModel> = (route) => {
+export const sportResolver: ResolveFn<SportModel | undefined> = (
+  route: ActivatedRouteSnapshot
+): Observable<SportModel | undefined> => {
   const sportService = inject(SportsService);
+  const router = inject(Router);
   const id = route.paramMap.get('sportId');
 
   if (!id) {
-    return {
-      id: 'sports-list',
-      name: 'Sports',
-      emoji: '',
-      color: '',
-      organizations: 0,
-      participants: 0,
-      entities: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    } as SportModel;
+    router.navigate(['/sports']);
+    return of(undefined);
   }
 
-  const sport = sportService.getSportById(id);
-  if (!sport) {
-    throw new Error(`Sport with id ${id} not found`);
-  }
-  return sport;
+  return sportService.getSportById(id).pipe(
+    take(1),
+    map(sport => {
+      if (!sport) {
+        router.navigate(['/sports']);
+        return undefined;
+      }
+      return sport;
+    }),
+    catchError(() => {
+      router.navigate(['/sports']);
+      return of(undefined);
+    })
+  );
 };
