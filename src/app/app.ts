@@ -5,6 +5,7 @@ import { ThemeService } from './common/services/theme/theme.service';
 import { ToastContainerComponent } from './common/components/custom-toast/toast-container.component';
 import { OrganizationService } from './organizations/services/organization.service';
 import { DataService } from './core/services/data/data.service'; // or SportDataService
+import { EntityService } from './entities/services/entity.service';
 
 @Component({
   selector: 'app-root',
@@ -18,13 +19,15 @@ export class App implements OnInit {
   constructor(
     private themeService: ThemeService,
     private orgService: OrganizationService,
-    private dataService: DataService
+    private dataService: DataService,
+    private entityService: EntityService
   ) {}
 
   ngOnInit(): void {
     // Load sports data from localStorage and initialize the organization service
     const sports = this.dataService.loadSports();
     this.orgService.initialize(sports);
+    this.entityService.initialize(sports);
   }
 
   toggleTheme(): void {
