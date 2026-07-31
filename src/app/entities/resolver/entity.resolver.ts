@@ -1,26 +1,41 @@
+// src/app/entities/resolver/entity.resolver.ts
 import { inject } from '@angular/core';
-import { ResolveFn } from '@angular/router';
+import { ResolveFn, ActivatedRouteSnapshot, Router } from '@angular/router';
+import { Observable, of } from 'rxjs';
+import { map, catchError, take } from 'rxjs/operators';
 import { EntityModel } from '../model/entity.model';
 import { SportsService } from '../../sports/services/sports/sports.service';
 
-export const entityResolver: ResolveFn<EntityModel> = (route) => {
-  const sportService = inject(SportsService);
+export const entityResolver: ResolveFn<EntityModel | undefined> = (
+  route: ActivatedRouteSnapshot
+): Observable<EntityModel | undefined> => {
+  const sportsService = inject(SportsService);
+  const router = inject(Router);
   const sportId = route.paramMap.get('sportId');
   const entityId = route.paramMap.get('entityId');
 
   if (!sportId || !entityId) {
-    throw new Error('Missing required route parameters: sportId or entityId');
+    router.navigate(['/sports']);
+    return of(undefined);
   }
 
-  const sport = sportService.getSportById(sportId);
-  if (!sport) {
-    throw new Error(`Sport with id ${sportId} not found`);
-  }
-
-  const entity = sport.entities.find(e => e.id === entityId);
-  if (!entity) {
-    throw new Error(`Entity with id ${entityId} not found in sport ${sportId}`);
-  }
-
-  return entity;
+  return sportsService.getSportById(sportId).pipe(
+    take(1),
+    map(sport => {
+      if (!sport) {
+        router.navigate(['/sports']);
+        return undefined;
+      }
+      const entity = sport.entities.find(e => e.id === entityId);
+      if (!entity) {
+        router.navigate(['/sports', sportId]);
+        return undefined;
+      }
+      return entity;
+    }),
+    catchError(() => {
+      router.navigate(['/sports']);
+      return of(undefined);
+    })
+  );
 };
