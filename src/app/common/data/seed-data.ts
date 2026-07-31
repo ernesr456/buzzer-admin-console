@@ -14,10 +14,6 @@ function makeDate(offsetDays: number): Date {
   return d;
 }
 
-function makeDateString(offsetDays: number): string {
-  return makeDate(offsetDays).toISOString();
-}
-
 function generateParticipants(
   prefix: string,
   startIndex: number,
@@ -69,8 +65,8 @@ export const SEED_DATA: SportModel[] = [
     name: 'Football',
     emoji: '⚽',
     color: '#2ED368',
-    createdAt: makeDateString(472),
-    updatedAt: makeDateString(79),
+    createdAt: makeDate(472),
+    updatedAt: makeDate(79),
     entities: [
       {
         id: generateId('gb', 1),
@@ -118,8 +114,8 @@ export const SEED_DATA: SportModel[] = [
     name: 'Basketball',
     emoji: '🏀',
     color: '#FFB414',
-    createdAt: makeDateString(450),
-    updatedAt: makeDateString(80),
+    createdAt: makeDate(450),
+    updatedAt: makeDate(80),
     entities: [
       {
         id: generateId('gb', 4),
@@ -154,8 +150,8 @@ export const SEED_DATA: SportModel[] = [
     name: 'Baseball',
     emoji: '⚾',
     color: '#EC193C',
-    createdAt: makeDateString(440),
-    updatedAt: makeDateString(75),
+    createdAt: makeDate(440),
+    updatedAt: makeDate(75),
     entities: [
       {
         id: generateId('gb', 6),
@@ -190,8 +186,8 @@ export const SEED_DATA: SportModel[] = [
     name: 'Hockey',
     emoji: '🏒',
     color: '#212121',
-    createdAt: makeDateString(430),
-    updatedAt: makeDateString(70),
+    createdAt: makeDate(430),
+    updatedAt: makeDate(70),
     entities: [
       {
         id: generateId('gb', 8),
@@ -226,8 +222,8 @@ export const SEED_DATA: SportModel[] = [
     name: 'Tennis',
     emoji: '🎾',
     color: '#FFB414',
-    createdAt: makeDateString(420),
-    updatedAt: makeDateString(65),
+    createdAt: makeDate(420),
+    updatedAt: makeDate(65),
     entities: [
       {
         id: generateId('gb', 10),
@@ -262,8 +258,8 @@ export const SEED_DATA: SportModel[] = [
     name: 'Rugby',
     emoji: '🏉',
     color: '#2ED368',
-    createdAt: makeDateString(410),
-    updatedAt: makeDateString(60),
+    createdAt: makeDate(410),
+    updatedAt: makeDate(60),
     entities: [
       {
         id: generateId('gb', 12),
@@ -298,8 +294,8 @@ export const SEED_DATA: SportModel[] = [
     name: 'Volleyball',
     emoji: '🏐',
     color: '#EC193C',
-    createdAt: makeDateString(400),
-    updatedAt: makeDateString(55),
+    createdAt: makeDate(400),
+    updatedAt: makeDate(55),
     entities: [
       {
         id: generateId('gb', 14),
@@ -321,8 +317,8 @@ export const SEED_DATA: SportModel[] = [
     name: 'MMA',
     emoji: '🥊',
     color: '#FFB414',
-    createdAt: makeDateString(390),
-    updatedAt: makeDateString(50),
+    createdAt: makeDate(390),
+    updatedAt: makeDate(50),
     entities: [
       {
         id: generateId('gb', 15),
@@ -357,8 +353,8 @@ export const SEED_DATA: SportModel[] = [
     name: 'Snowboarding',
     emoji: '🏂',
     color: '#212121',
-    createdAt: makeDateString(380),
-    updatedAt: makeDateString(45),
+    createdAt: makeDate(380),
+    updatedAt: makeDate(45),
     entities: [
       {
         id: generateId('gb', 17),
@@ -380,8 +376,8 @@ export const SEED_DATA: SportModel[] = [
     name: 'Boxing',
     emoji: '🥊',
     color: '#2ED368',
-    createdAt: makeDateString(370),
-    updatedAt: makeDateString(40),
+    createdAt: makeDate(370),
+    updatedAt: makeDate(40),
     entities: [
       {
         id: generateId('gb', 18),
