@@ -30,6 +30,26 @@ export class EntityService {
     );
   }
 
+  refreshEntity(sportId: string, entityId: string): void {
+    const allSports = this.dataService.loadSports();
+    const sport = allSports.find(s => s.id === sportId);
+    if (!sport) return;
+
+    const freshEntity = sport.entities.find(e => e.id === entityId);
+    if (!freshEntity) return;
+
+    const subject = this.entitiesMap.get(sportId);
+    if (!subject) return;
+
+    const current = subject.value;
+    const index = current.findIndex(e => e.id === entityId);
+    if (index === -1) return;
+
+    const updated = [...current];
+    updated[index] = freshEntity;
+    subject.next(updated);
+  }
+
   private saveEntity(sportId: string, entity: EntityModel): void {
     const subject = this.entitiesMap.get(sportId);
     if (!subject) return;

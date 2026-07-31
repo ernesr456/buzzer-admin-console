@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { Observable, map, take } from 'rxjs';
+import { Observable, map, takeUntil, Subject } from 'rxjs';
 
 import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 import { EntityModel } from '../../model/entity.model';
@@ -21,7 +21,7 @@ import { ToastService } from '../../../common/services/toast/toast.service';
   styleUrls: ['./entity-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EntityDetailComponent implements OnInit {
+export class EntityDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private entityService = inject(EntityService);
@@ -30,14 +30,16 @@ export class EntityDetailComponent implements OnInit {
 
   entity$!: Observable<EntityModel | undefined>;
   sportId!: string;
+  entityId!: string;
+  private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.sportId = params['sportId'];
-      const entityId = params['entityId'];
+      this.entityId = params['entityId'];
 
-      if (this.sportId && entityId) {
-        this.entity$ = this.entityService.getEntityById(this.sportId, entityId).pipe(
+      if (this.sportId && this.entityId) {
+        this.entity$ = this.entityService.getEntityById(this.sportId, this.entityId).pipe(
           map(entity => {
             if (!entity) {
               this.toast.error('Governing body not found', 'Error');
@@ -53,47 +55,30 @@ export class EntityDetailComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   getTotalParticipants(organizations: OrganizationModel[]): number {
     if (!organizations) return 0;
     return organizations.reduce((sum, org) => sum + (org.participants?.length || 0), 0);
   }
 
-  private getCurrentEntity(): EntityModel | undefined {
-    let entity: EntityModel | undefined;
-    this.entity$.pipe(take(1)).subscribe(e => entity = e);
-    return entity;
-  }
-
   openEditDialog(entity: EntityModel): void {
-    const sportId = this.sportId;
-    if (!sportId) {
-      this.toast.error('Could not determine the sport for this entity', 'Error');
-      return;
-    }
-
     const dialogRef = this.dialog.open(EntityAddDialogComponent, {
       width: '400px',
-      data: {
-        sportId: sportId,
-        entity: entity,
-      },
+      data: { sportId: this.sportId, entity },
     });
 
-    dialogRef.afterClosed().subscribe((updatedEntity: EntityModel | undefined) => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((updatedEntity) => {
       if (updatedEntity) {
-        this.refreshEntity();
         this.toast.success(`Entity "${updatedEntity.name}" updated successfully.`, 'Updated');
       }
     });
   }
 
   deleteEntity(entity: EntityModel): void {
-    const sportId = this.sportId;
-    if (!sportId) {
-      this.toast.error('Could not determine the sport for this entity', 'Error');
-      return;
-    }
-
     const dialogRef = this.dialog.open(CustomDialogComponent, {
       width: '400px',
       panelClass: 'dark-dialog',
@@ -105,31 +90,27 @@ export class EntityDetailComponent implements OnInit {
       } as CustomDialogData,
     });
 
-    dialogRef.afterClosed().subscribe((confirmed) => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((confirmed) => {
       if (confirmed) {
-        this.entityService.deleteEntity(sportId, entity.id);
+        this.entityService.deleteEntity(this.sportId, entity.id);
         this.toast.success(`Entity "${entity.name}" deleted successfully.`, 'Deleted');
-        this.router.navigate(['/sports', sportId]);
+        this.router.navigate(['/sports', this.sportId]);
       }
     });
   }
 
-  private refreshEntity(): void {
-    this.ngOnInit();
-  }
-
   onOrganizationAdded(newOrg: OrganizationModel): void {
     this.toast.success(`Organization "${newOrg.name}" added successfully.`, 'Added');
-    this.refreshEntity();
+    this.entityService.refreshEntity(this.sportId, this.entityId);
   }
 
   onOrganizationEdited(updatedOrg: OrganizationModel): void {
     this.toast.success(`Organization "${updatedOrg.name}" updated successfully.`, 'Updated');
-    this.refreshEntity();
+    this.entityService.refreshEntity(this.sportId, this.entityId);
   }
 
   onOrganizationDeleted(orgId: string): void {
     this.toast.success('Organization deleted successfully.', 'Deleted');
-    this.refreshEntity();
+    this.entityService.refreshEntity(this.sportId, this.entityId);
   }
 }
