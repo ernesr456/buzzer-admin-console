@@ -62,7 +62,7 @@ export class DataService {
     const sports = this.loadSports();
     for (const sport of sports) {
       for (const entity of sport.entities) {
-        const found = entity.organizations.find(org => org.id === orgId);
+       const found = entity.organizations?.find(org => org.id === orgId);
         if (found) return found;
       }
     }

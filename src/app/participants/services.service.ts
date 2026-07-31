@@ -16,7 +16,7 @@ export class ParticipantService {
     this.participantsMap.clear();
     for (const sport of sports) {
       for (const entity of sport.entities) {
-        for (const org of entity.organizations) {
+        for (const org of entity?.organizations ?? []) {
           this.participantsMap.set(org.id, new BehaviorSubject<ParticipantModel[]>(org.participants || []));
         }
       }
@@ -87,7 +87,7 @@ export class ParticipantService {
     const allSports = this.dataService.loadSports();
     for (const sport of allSports) {
       for (const entity of sport.entities) {
-        const org = entity.organizations.find(o => o.id === orgId);
+        const org = entity.organizations!.find(o => o.id === orgId);
         if (org) {
           org.participants = updatedParticipants;
           this.dataService.saveSports(allSports);
@@ -102,7 +102,7 @@ export class ParticipantService {
     const allIds: string[] = [];
     for (const sport of allSports) {
       for (const entity of sport.entities) {
-        for (const org of entity.organizations) {
+        for (const org of (entity?.organizations ?? [])) {
           for (const p of org.participants) {
             allIds.push(p.id);
           }
@@ -126,7 +126,7 @@ export class ParticipantService {
     const allSports = this.dataService.loadSports();
     for (const sport of allSports) {
       for (const entity of sport.entities) {
-        for (const org of entity.organizations) {
+        for (const org of entity?.organizations ?? []) {
           const found = org.participants.find(p => p.id === participantId);
           if (found) return org.id;
         }

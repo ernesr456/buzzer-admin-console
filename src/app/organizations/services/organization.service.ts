@@ -37,7 +37,8 @@ export class OrganizationService {
     for (const sport of allSports) {
       for (const entity of sport.entities) {
         if (entity.id === entityId) {
-          const freshOrg = entity.organizations.find(o => o.id === orgId);
+          const freshOrg = entity.organizations?.find(o => o.id === orgId);
+
           if (!freshOrg) return;
 
           const subject = this.organizationsMap.get(entityId);
