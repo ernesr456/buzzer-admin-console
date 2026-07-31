@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { SportModel } from '../../models/sport.model';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -14,8 +14,7 @@ import { CommonModule } from '@angular/common';
 })
 export class SportAddDialogComponent {
   private dialogRef = inject(MatDialogRef<SportAddDialogComponent>);
-  private data = inject<SportModel | null>(MAT_DIALOG_DATA); // null for add, Sport for edit
-
+  private data = inject<SportModel | null>(MAT_DIALOG_DATA);
   private fb = inject(FormBuilder);
 
   sportForm = this.fb.group({
@@ -35,7 +34,6 @@ export class SportAddDialogComponent {
       this.sportForm.markAllAsTouched();
       return;
     }
-
     this.dialogRef.close(this.sportForm.value);
   }
 
