@@ -68,7 +68,7 @@ export class SportListComponent implements OnInit {
   }
 
   private refreshData(): void {
-    this.loadingSubject.next(true);
+    this.loadingSubject.next(false);
     this.sportsService.loadSports().pipe(
       finalize(() => this.loadingSubject.next(false))
     ).subscribe({
@@ -87,7 +87,6 @@ export class SportListComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.sportsService.addSport(result);
-        this.toast.success('Sport added successfully!', 'Added');
         this.refreshData();
       }
     });
