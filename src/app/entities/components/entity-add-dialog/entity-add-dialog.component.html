@@ -5,6 +5,7 @@
 <form [formGroup]="entityForm" (ngSubmit)="submit()">
   <mat-dialog-content class="!p-6">
     <div class="space-y-4">
+      <!-- Name field (unchanged) -->
       <div>
         <label for="name" class="block text-sm font-medium text-white/80">Name</label>
         <input
@@ -19,17 +20,18 @@
         }
       </div>
 
+      <!-- Country field (replaces logo) -->
       <div>
-        <label for="logo" class="block text-sm font-medium text-white/80">Logo / Emoji</label>
+        <label for="country" class="block text-sm font-medium text-white/80">Country</label>
         <input
-          id="logo"
+          id="country"
           type="text"
-          formControlName="logo"
-          placeholder="e.g. ⚽ or FIFA"
+          formControlName="country"
+          placeholder="e.g. USA"
           class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
         />
-        @if (f['logo'].invalid && f['logo'].touched) {
-          <p class="text-sm text-[#EC193C] mt-1">Logo is required.</p>
+        @if (f['country'].invalid && f['country'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Country is required.</p>
         }
       </div>
     </div>
