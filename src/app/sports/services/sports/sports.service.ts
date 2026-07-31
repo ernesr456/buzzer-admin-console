@@ -17,7 +17,6 @@ export class SportsService {
     map(sports =>
       sports.map(sport => ({
         ...sport,
-        entities: [] // API does not provide entities
       }))
     )
   );
