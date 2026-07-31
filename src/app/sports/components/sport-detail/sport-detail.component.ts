@@ -66,7 +66,7 @@ export class SportDetailComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.sportsService.updateSport(sport.id, result);
+        this.sportsService.updateSport(sport.id+"", result);
         this.toast.success(`Sport "${sport.name}" updated successfully!`, 'Updated');
       }
     });
@@ -85,7 +85,7 @@ export class SportDetailComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.sportsService.deleteSport(sport.id);
+        this.sportsService.deleteSport(sport.id+"");
         this.toast.success(`Sport "${sport.name}" deleted successfully.`, 'Deleted');
         this.router.navigate(['/sports']);
       }
@@ -95,7 +95,7 @@ export class SportDetailComponent implements OnInit {
   // Entity CRUD handlers
   onEntityAdded(newEntity: EntityModel): void {
     if (!this.sportId) return;
-    this.sportsService.addEntity(this.sportId, newEntity);
+    // this.sportsService.addEntity(this.sportId, newEntity);
     this.toast.success(`Entity "${newEntity.name}" added successfully.`, 'Added');
   }
 
@@ -120,7 +120,7 @@ export class SportDetailComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.sportsService.deleteEntity(this.sportId, entity.id);
+        // this.sportsService.deleteEntity(this.sportId, entity.id);
         this.toast.success(`Entity "${entity.name}" deleted successfully.`, 'Deleted');
       }
     });

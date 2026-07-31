@@ -1,4 +1,6 @@
-<h2 mat-dialog-title class="text-xl font-semibold text-white px-6 pt-6 pb-2">{{ isEdit ? 'Edit Sport' : 'Add New Sport' }}</h2>
+<h2 mat-dialog-title class="text-xl font-semibold text-white px-6 pt-6 pb-2">
+  {{ isEdit ? 'Edit Sport' : 'Add New Sport' }}
+</h2>
 
 <form [formGroup]="sportForm" (ngSubmit)="submit()">
   <mat-dialog-content class="!p-6">
@@ -12,42 +14,25 @@
           placeholder="e.g. Football"
           class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
         />
-      </div>
-      <div>
-        <label for="emoji" class="block text-sm font-medium text-white/80">Emoji</label>
-        <input
-          id="emoji"
-          type="text"
-          formControlName="emoji"
-          placeholder="e.g. ⚽"
-          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
-        />
-        @if (f['emoji'].invalid && f['emoji'].touched) {
-          <p class="text-sm text-[#EC193C] mt-1">Emoji is required.</p>
+        @if (f['name'].invalid && f['name'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Name is required (min 2 characters).</p>
         }
-      </div>
-      <div>
-        <label for="color" class="block text-sm font-medium text-white/80">Color</label>
-        <input
-          id="color"
-          type="color"
-          formControlName="color"
-          class="mt-1 w-20 h-10 p-0 border-0 cursor-pointer bg-transparent"
-        />
       </div>
     </div>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end" class="!px-6 !pb-6 !pt-2 gap-2">
-    <button mat-button type="button" (click)="cancel()" class="text-white/70 hover:text-white transition">Cancel</button>
+    <button mat-button type="button" (click)="cancel()" class="text-white/70 hover:text-white transition">
+      Cancel
+    </button>
     <button
       mat-raised-button
       color="primary"
       type="submit"
-      [disabled]="sportForm.invalid"
+      [disabled]="sportForm.invalid || loading"
       class="!bg-[#FFB414] !text-[#131515] font-semibold px-4 py-2 rounded-md hover:opacity-90 transition"
     >
-      {{ isEdit ? 'Save' : 'Create' }}
+      {{ loading ? 'Saving...' : (isEdit ? 'Save' : 'Create') }}
     </button>
   </mat-dialog-actions>
 </form>
