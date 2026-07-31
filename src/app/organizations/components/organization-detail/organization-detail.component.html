@@ -1,21 +1,16 @@
 <div class="min-h-screen flex-col space-y-3">
   <app-custom-breadcrumbs />
 
-  <!-- Loading state -->
   <div *ngIf="!(organization$ | async)" class="flex justify-center items-center h-64">
     <div class="text-gray-400">Loading organization…</div>
   </div>
 
-  <!-- Organization loaded -->
   <ng-container *ngIf="organization$ | async as organization">
-    <!-- If organization is undefined, show not found -->
     <div *ngIf="!organization" class="flex justify-center items-center h-64">
       <div class="text-gray-400">Organization not found.</div>
     </div>
 
-    <!-- If organization exists, show details -->
     <div *ngIf="organization" class="rounded-xl border border-[#3E3E3E] shadow-sm overflow-hidden relative">
-      <!-- Header -->
       <div class="px-5 py-4 border-b border-[#3E3E3E] sm:px-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
@@ -51,15 +46,13 @@
           </span>
         </div>
         <div class="absolute top-[1px] right-3 p-2 space-x-2">
-          <!-- Edit button -->
           <button
             class="rounded-lg hover:bg-[#1e2740] transition text-[#8b95b0] hover:text-white z-10 p-1"
             aria-label="Edit"
-            (click)="openEditDialog()"
+            (click)="openEditDialog(organization)"
           >
             <span class="material-symbols-outlined text-xl">edit</span>
           </button>
-          <!-- Delete button -->
           <button
             class="rounded-lg hover:bg-[#1e2740] transition text-[#8b95b0] hover:text-white z-10 p-1"
             aria-label="Delete"
@@ -70,42 +63,16 @@
         </div>
       </div>
 
-      <!-- Body -->
       <div class="px-5 py-5 sm:px-6">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">
-            Participants
-          </h2>
-          <span class="text-xs text-gray-400 bg-[#3E3E3E] px-2 py-0.5 rounded-full">
-            {{ organization.participants.length }} teams
-          </span>
-        </div>
-
-        <div class="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
-          <div
-            *ngFor="let participant of organization.participants"
-            class="flex items-center justify-between px-4 py-2.5 rounded-lg bg-[#131515] hover:bg-[#2a2a2a] transition-colors border border-[#3E3E3E] border-opacity-30"
-          >
-            <div class="flex items-center justify-between gap-3">
-              <span class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-700 font-bold text-xs">
-                {{ participant.name.charAt(0) }}
-              </span>
-              <span class="text-sm font-medium text-white">{{ participant.name }}</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <button class="rounded-lg hover:bg-[#3E3E3E] transition text-[#8b95b0] hover:text-white p-1" aria-label="Edit">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </button>
-              <button class="rounded-lg hover:bg-[#3E3E3E] transition text-[#8b95b0] hover:text-white p-1" aria-label="Delete">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+        <app-participant-table
+          [participants]="(participants$ | async) || []"
+          [organizationId]="organization.id"
+          [sportId]="sportId"
+          [entityId]="entityId"
+          (addParticipant)="onParticipantAdded($event)"
+          (editParticipant)="onParticipantEdited($event)"
+          (deleteParticipantEvent)="onParticipantDeleted($event)"
+        />
       </div>
     </div>
   </ng-container>
