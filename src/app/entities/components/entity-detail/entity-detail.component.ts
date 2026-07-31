@@ -42,7 +42,6 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
         this.entity$ = this.entityService.getEntityById(this.sportId, this.entityId).pipe(
           map(entity => {
             if (!entity) {
-              this.toast.error('Governing body not found', 'Error');
               this.router.navigate(['/sports', this.sportId]);
               return undefined;
             }
