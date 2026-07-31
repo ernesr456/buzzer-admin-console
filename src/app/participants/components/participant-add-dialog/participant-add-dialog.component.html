@@ -1,0 +1,50 @@
+<!-- participant-add-dialog.component.html -->
+<h2 mat-dialog-title class="text-xl font-semibold text-white px-6 pt-6 pb-2">
+  {{ isEdit ? 'Edit Participant' : 'Add Participant' }}
+</h2>
+
+<form [formGroup]="participantForm" (ngSubmit)="submit()">
+  <mat-dialog-content class="!p-6">
+    <div class="space-y-4">
+      <div>
+        <label for="name" class="block text-sm font-medium text-white/80">Name</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="e.g. Team A"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+        />
+        @if (f['name'].invalid && f['name'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Name is required (min 2 characters).</p>
+        }
+      </div>
+
+      <div>
+        <label for="logo" class="block text-sm font-medium text-white/80">Logo URL (optional)</label>
+        <input
+          id="logo"
+          type="text"
+          formControlName="logo"
+          placeholder="https://example.com/logo.png"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+        />
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="!px-6 !pb-6 !pt-2 gap-2">
+    <button mat-button type="button" (click)="cancel()" class="text-white/70 hover:text-white transition">
+      Cancel
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="participantForm.invalid"
+      class="!bg-[#FFB414] !text-[#131515] font-semibold px-4 py-2 rounded-md hover:opacity-90 transition"
+    >
+      {{ isEdit ? 'Save' : 'Create' }}
+    </button>
+  </mat-dialog-actions>
+</form>
