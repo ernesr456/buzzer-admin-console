@@ -5,11 +5,7 @@ export interface SportModel {
   name: string;
   emoji: string;
   color: string;
-  createdAt: string;
-  updatedAt?: string;
+  createdAt: Date;
+  updatedAt?: Date;
   entities: EntityModel[];
-}
-
-export function generateId(): string {
-  return Math.random().toString(36).substring(2, 9);
 }
