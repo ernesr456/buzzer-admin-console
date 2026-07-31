@@ -8,19 +8,16 @@ function generateId(prefix: string, index: number): string {
   return `${prefix}-${String(index).padStart(3, '0')}`;
 }
 
-// Returns a Date object – used for OrganizationModel timestamps
 function makeDate(offsetDays: number): Date {
   const d = new Date();
   d.setDate(d.getDate() - offsetDays);
   return d;
 }
 
-// Returns an ISO string – used for SportModel & EntityModel timestamps
 function makeDateString(offsetDays: number): string {
   return makeDate(offsetDays).toISOString();
 }
 
-// Helper to generate a participant list with given count
 function generateParticipants(
   prefix: string,
   startIndex: number,
@@ -79,9 +76,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 1),
         name: 'FIFA',
         logo: '🟦',
-        createdAt: makeDateString(447),
-        updatedAt: makeDateString(73),
-        onboardedAt: makeDateString(73),
+        createdAt: makeDate(447),
+        updatedAt: makeDate(73),
+        onboardedAt: makeDate(73),
         organizations: generateOrganizations(
           'org', 1, 'part', 1,
           ['FIFA Club World Cup', 'FIFA World Cup Organizing Committee', 'FIFA Development'],
@@ -92,9 +89,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 2),
         name: 'UEFA',
         logo: '🟧',
-        createdAt: makeDateString(400),
-        updatedAt: makeDateString(60),
-        onboardedAt: makeDateString(60),
+        createdAt: makeDate(400),
+        updatedAt: makeDate(60),
+        onboardedAt: makeDate(60),
         organizations: generateOrganizations(
           'org', 4, 'part', 201,
           ['UEFA Champions League', 'UEFA Europa League', 'UEFA Nations League'],
@@ -105,9 +102,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 3),
         name: 'CONMEBOL',
         logo: '🟩',
-        createdAt: makeDateString(380),
-        updatedAt: makeDateString(55),
-        onboardedAt: makeDateString(55),
+        createdAt: makeDate(380),
+        updatedAt: makeDate(55),
+        onboardedAt: makeDate(55),
         organizations: generateOrganizations(
           'org', 7, 'part', 351,
           ['Copa Libertadores', 'Copa Sudamericana'],
@@ -128,9 +125,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 4),
         name: 'FIBA',
         logo: '🏀',
-        createdAt: makeDateString(420),
-        updatedAt: makeDateString(70),
-        onboardedAt: makeDateString(70),
+        createdAt: makeDate(420),
+        updatedAt: makeDate(70),
+        onboardedAt: makeDate(70),
         organizations: generateOrganizations(
           'org', 9, 'part', 401,
           ['FIBA World Cup', 'FIBA Americas', 'FIBA Europe'],
@@ -141,9 +138,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 5),
         name: 'EuroLeague',
         logo: '🇪🇺',
-        createdAt: makeDateString(400),
-        updatedAt: makeDateString(60),
-        onboardedAt: makeDateString(60),
+        createdAt: makeDate(400),
+        updatedAt: makeDate(60),
+        onboardedAt: makeDate(60),
         organizations: generateOrganizations(
           'org', 12, 'part', 591,
           ['EuroLeague Basketball', 'EuroCup'],
@@ -164,9 +161,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 6),
         name: 'WBSC',
         logo: '⚾',
-        createdAt: makeDateString(410),
-        updatedAt: makeDateString(66),
-        onboardedAt: makeDateString(66),
+        createdAt: makeDate(410),
+        updatedAt: makeDate(66),
+        onboardedAt: makeDate(66),
         organizations: generateOrganizations(
           'org', 14, 'part', 701,
           ['WBSC Premier12', 'WBSC U-23 World Cup'],
@@ -177,9 +174,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 7),
         name: 'MLB',
         logo: '🇺🇸',
-        createdAt: makeDateString(390),
-        updatedAt: makeDateString(55),
-        onboardedAt: makeDateString(55),
+        createdAt: makeDate(390),
+        updatedAt: makeDate(55),
+        onboardedAt: makeDate(55),
         organizations: generateOrganizations(
           'org', 16, 'part', 801,
           ['Major League Baseball', 'Minor League Baseball'],
@@ -200,9 +197,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 8),
         name: 'IIHF',
         logo: '🏒',
-        createdAt: makeDateString(400),
-        updatedAt: makeDateString(58),
-        onboardedAt: makeDateString(58),
+        createdAt: makeDate(400),
+        updatedAt: makeDate(58),
+        onboardedAt: makeDate(58),
         organizations: generateOrganizations(
           'org', 18, 'part', 901,
           ['IIHF World Championship', 'IIHF World Junior Championship'],
@@ -213,9 +210,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 9),
         name: 'NHL',
         logo: '🇨🇦',
-        createdAt: makeDateString(380),
-        updatedAt: makeDateString(50),
-        onboardedAt: makeDateString(50),
+        createdAt: makeDate(380),
+        updatedAt: makeDate(50),
+        onboardedAt: makeDate(50),
         organizations: generateOrganizations(
           'org', 20, 'part', 991,
           ['National Hockey League', 'AHL'],
@@ -236,9 +233,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 10),
         name: 'ITF',
         logo: '🎾',
-        createdAt: makeDateString(390),
-        updatedAt: makeDateString(55),
-        onboardedAt: makeDateString(55),
+        createdAt: makeDate(390),
+        updatedAt: makeDate(55),
+        onboardedAt: makeDate(55),
         organizations: generateOrganizations(
           'org', 22, 'part', 1051,
           ['ITF World Tennis Tour', 'Davis Cup'],
@@ -249,9 +246,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 11),
         name: 'ATP',
         logo: '🏆',
-        createdAt: makeDateString(370),
-        updatedAt: makeDateString(48),
-        onboardedAt: makeDateString(48),
+        createdAt: makeDate(370),
+        updatedAt: makeDate(48),
+        onboardedAt: makeDate(48),
         organizations: generateOrganizations(
           'org', 24, 'part', 1121,
           ['ATP Tour', 'ATP Challenger Tour'],
@@ -272,9 +269,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 12),
         name: 'World Rugby',
         logo: '🏉',
-        createdAt: makeDateString(380),
-        updatedAt: makeDateString(50),
-        onboardedAt: makeDateString(50),
+        createdAt: makeDate(380),
+        updatedAt: makeDate(50),
+        onboardedAt: makeDate(50),
         organizations: generateOrganizations(
           'org', 26, 'part', 1171,
           ['Rugby World Cup', 'World Rugby Sevens Series'],
@@ -285,9 +282,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 13),
         name: 'Six Nations',
         logo: '🏆',
-        createdAt: makeDateString(360),
-        updatedAt: makeDateString(42),
-        onboardedAt: makeDateString(42),
+        createdAt: makeDate(360),
+        updatedAt: makeDate(42),
+        onboardedAt: makeDate(42),
         organizations: generateOrganizations(
           'org', 28, 'part', 1241,
           ['Six Nations Championship'],
@@ -308,9 +305,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 14),
         name: 'FIVB',
         logo: '🏐',
-        createdAt: makeDateString(370),
-        updatedAt: makeDateString(48),
-        onboardedAt: makeDateString(48),
+        createdAt: makeDate(370),
+        updatedAt: makeDate(48),
+        onboardedAt: makeDate(48),
         organizations: generateOrganizations(
           'org', 29, 'part', 1261,
           ['FIVB Volleyball Nations League', 'FIVB World Championship'],
@@ -331,9 +328,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 15),
         name: 'UFC',
         logo: '🥊',
-        createdAt: makeDateString(360),
-        updatedAt: makeDateString(42),
-        onboardedAt: makeDateString(42),
+        createdAt: makeDate(360),
+        updatedAt: makeDate(42),
+        onboardedAt: makeDate(42),
         organizations: generateOrganizations(
           'org', 31, 'part', 1321,
           ['UFC Fight Night', 'UFC PPV Events'],
@@ -344,9 +341,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 16),
         name: 'Bellator',
         logo: '🔔',
-        createdAt: makeDateString(340),
-        updatedAt: makeDateString(35),
-        onboardedAt: makeDateString(35),
+        createdAt: makeDate(340),
+        updatedAt: makeDate(35),
+        onboardedAt: makeDate(35),
         organizations: generateOrganizations(
           'org', 33, 'part', 1376,
           ['Bellator MMA', 'Bellator Champions Series'],
@@ -367,9 +364,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 17),
         name: 'FIS',
         logo: '🏂',
-        createdAt: makeDateString(350),
-        updatedAt: makeDateString(38),
-        onboardedAt: makeDateString(38),
+        createdAt: makeDate(350),
+        updatedAt: makeDate(38),
+        onboardedAt: makeDate(38),
         organizations: generateOrganizations(
           'org', 35, 'part', 1421,
           ['FIS Snowboard World Cup'],
@@ -390,9 +387,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 18),
         name: 'WBC',
         logo: '🥊',
-        createdAt: makeDateString(340),
-        updatedAt: makeDateString(32),
-        onboardedAt: makeDateString(32),
+        createdAt: makeDate(340),
+        updatedAt: makeDate(32),
+        onboardedAt: makeDate(32),
         organizations: generateOrganizations(
           'org', 36, 'part', 1451,
           ['WBC World Title', 'WBC Silver'],
@@ -403,9 +400,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 19),
         name: 'WBA',
         logo: '🥊',
-        createdAt: makeDateString(330),
-        updatedAt: makeDateString(28),
-        onboardedAt: makeDateString(28),
+        createdAt: makeDate(330),
+        updatedAt: makeDate(28),
+        onboardedAt: makeDate(28),
         organizations: generateOrganizations(
           'org', 38, 'part', 1486,
           ['WBA World Championship', 'WBA International'],
@@ -416,9 +413,9 @@ export const SEED_DATA: SportModel[] = [
         id: generateId('gb', 20),
         name: 'IBF',
         logo: '🥊',
-        createdAt: makeDateString(320),
-        updatedAt: makeDateString(25),
-        onboardedAt: makeDateString(25),
+        createdAt: makeDate(320),
+        updatedAt: makeDate(25),
+        onboardedAt: makeDate(25),
         organizations: generateOrganizations(
           'org', 40, 'part', 1516,
           ['IBF World Title'],
