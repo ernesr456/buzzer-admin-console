@@ -1,9 +1,8 @@
-// src/app/entities/components/entity-detail/entity-detail.component.ts
-
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { Observable, map, take } from 'rxjs';
 
 import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 import { EntityModel } from '../../model/entity.model';
@@ -29,42 +28,44 @@ export class EntityDetailComponent implements OnInit {
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
 
-  entity?: EntityModel;
-
-  get entityId(): string {
-    return this.entity?.id ?? '';
-  }
-
-  get organizations(): OrganizationModel[] {
-    return this.entity?.organizations ?? [];
-  }
-
-  get totalOrganizations(): number {
-    return this.entity?.organizations?.length ?? 0;
-  }
-
-  // Total participants across all organizations
-  get totalParticipants(): number {
-    if (!this.entity?.organizations) return 0;
-    return this.entity.organizations.reduce(
-      (sum, org) => sum + (org.participants?.length ?? 0),
-      0
-    );
-  }
+  entity$!: Observable<EntityModel | undefined>;
+  sportId!: string;
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('entityId');
-    if (id) {
-      this.entity = this.entityService.getEntityById(id);
-      if (!this.entity) {
-        this.toast.error('Governing body not found', 'Error');
-        this.router.navigate(['/sports']);
+    this.route.params.subscribe(params => {
+      this.sportId = params['sportId'];
+      const entityId = params['entityId'];
+
+      if (this.sportId && entityId) {
+        this.entity$ = this.entityService.getEntityById(this.sportId, entityId).pipe(
+          map(entity => {
+            if (!entity) {
+              this.toast.error('Governing body not found', 'Error');
+              this.router.navigate(['/sports', this.sportId]);
+              return undefined;
+            }
+            return entity;
+          })
+        );
+      } else {
+        this.entity$ = new Observable(observer => observer.next(undefined));
       }
-    }
+    });
+  }
+
+  getTotalParticipants(organizations: OrganizationModel[]): number {
+    if (!organizations) return 0;
+    return organizations.reduce((sum, org) => sum + (org.participants?.length || 0), 0);
+  }
+
+  private getCurrentEntity(): EntityModel | undefined {
+    let entity: EntityModel | undefined;
+    this.entity$.pipe(take(1)).subscribe(e => entity = e);
+    return entity;
   }
 
   openEditDialog(entity: EntityModel): void {
-    const sportId = this.entityService.getSportIdForEntity(entity.id);
+    const sportId = this.sportId;
     if (!sportId) {
       this.toast.error('Could not determine the sport for this entity', 'Error');
       return;
@@ -80,14 +81,14 @@ export class EntityDetailComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((updatedEntity: EntityModel | undefined) => {
       if (updatedEntity) {
-        this.entity = updatedEntity;
+        this.refreshEntity();
         this.toast.success(`Entity "${updatedEntity.name}" updated successfully.`, 'Updated');
       }
     });
   }
 
   deleteEntity(entity: EntityModel): void {
-    const sportId = this.entityService.getSportIdForEntity(entity.id);
+    const sportId = this.sportId;
     if (!sportId) {
       this.toast.error('Could not determine the sport for this entity', 'Error');
       return;
@@ -113,27 +114,22 @@ export class EntityDetailComponent implements OnInit {
     });
   }
 
+  private refreshEntity(): void {
+    this.ngOnInit();
+  }
+
   onOrganizationAdded(newOrg: OrganizationModel): void {
-    if (!this.entity) return;
-    // Add to local list
-    this.entity.organizations = [...(this.entity.organizations || []), newOrg];
     this.toast.success(`Organization "${newOrg.name}" added successfully.`, 'Added');
+    this.refreshEntity();
   }
 
   onOrganizationEdited(updatedOrg: OrganizationModel): void {
-    if (!this.entity) return;
-    const index = this.entity.organizations.findIndex((o) => o.id === updatedOrg.id);
-    if (index !== -1) {
-      const newOrgs = [...this.entity.organizations];
-      newOrgs[index] = updatedOrg;
-      this.entity.organizations = newOrgs;
-      this.toast.success(`Organization "${updatedOrg.name}" updated successfully.`, 'Updated');
-    }
+    this.toast.success(`Organization "${updatedOrg.name}" updated successfully.`, 'Updated');
+    this.refreshEntity();
   }
 
   onOrganizationDeleted(orgId: string): void {
-    if (!this.entity) return;
-    this.entity.organizations = this.entity.organizations.filter((o) => o.id !== orgId);
     this.toast.success('Organization deleted successfully.', 'Deleted');
+    this.refreshEntity();
   }
 }

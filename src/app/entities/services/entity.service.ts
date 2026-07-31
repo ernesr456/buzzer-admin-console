@@ -1,53 +1,117 @@
 import { Injectable } from '@angular/core';
-import { SportModel } from '../../sports/models/sport.model';
-import { OrganizationModel } from '../../organizations/model/organization.model';
-import { SEED_DATA } from '../../common/data/seed-data';
+import { BehaviorSubject, Observable, map } from 'rxjs';
 import { EntityModel } from '../model/entity.model';
+import { SportModel } from '../../sports/models/sport.model';
+import { DataService } from '../../core/services/data/data.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class EntityService {
+  private entitiesMap = new Map<string, BehaviorSubject<EntityModel[]>>();
 
-  private readonly STORAGE_KEY = 'sports_catalogue';
+  constructor(private dataService: DataService) {}
 
-  constructor() {
-    this.initializeStorage();
-  }
-
-  private loadData(): SportModel[] {
-    const stored = localStorage.getItem(this.STORAGE_KEY);
-    if (stored) {
-      try {
-        return JSON.parse(stored) as SportModel[];
-      } catch {
-        return this.seedData();
-      }
-    }
-    return this.seedData();
-  }
-
-  private saveData(data: SportModel[]): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
-  }
-
-  private initializeStorage(): void {
-    if (!localStorage.getItem(this.STORAGE_KEY)) {
-      this.saveData(SEED_DATA);
+  initialize(sports: SportModel[]): void {
+    this.entitiesMap.clear();
+    for (const sport of sports) {
+      this.entitiesMap.set(sport.id, new BehaviorSubject<EntityModel[]>(sport.entities || []));
     }
   }
 
-  private seedData(): SportModel[] {
-    return JSON.parse(JSON.stringify(SEED_DATA));
+  getEntitiesForSport(sportId: string): Observable<EntityModel[]> {
+    if (!this.entitiesMap.has(sportId)) {
+      this.entitiesMap.set(sportId, new BehaviorSubject<EntityModel[]>([]));
+    }
+    return this.entitiesMap.get(sportId)!.asObservable();
+  }
+
+  getEntityById(sportId: string, entityId: string): Observable<EntityModel | undefined> {
+    return this.getEntitiesForSport(sportId).pipe(
+      map(entities => entities.find(e => e.id === entityId))
+    );
+  }
+
+  private saveEntity(sportId: string, entity: EntityModel): void {
+    const subject = this.entitiesMap.get(sportId);
+    if (!subject) return;
+    const current = subject.value;
+    const index = current.findIndex(e => e.id === entity.id);
+    const updated = index >= 0
+      ? [...current.slice(0, index), entity, ...current.slice(index + 1)]
+      : [...current, entity];
+    subject.next(updated);
+    this.persistToStorage(sportId);
+  }
+
+  createEntity(sportId: string, entityData: Omit<EntityModel, 'id' | 'createdAt' | 'updatedAt' | 'onboardedAt'>): EntityModel {
+    const now = new Date();
+    const newEntity: EntityModel = {
+      ...entityData,
+      id: this.generateId('gb'),
+      createdAt: now,
+      updatedAt: now,
+      onboardedAt: now,
+      organizations: entityData.organizations || [],
+    };
+    this.saveEntity(sportId, newEntity);
+    return newEntity;
+  }
+
+  updateEntity(sportId: string, entityId: string, updates: Partial<EntityModel>): EntityModel {
+    const subject = this.entitiesMap.get(sportId);
+    if (!subject) {
+      throw new Error(`Sport with id ${sportId} not found in entity service`);
+    }
+
+    const current = subject.value;
+    const index = current.findIndex(e => e.id === entityId);
+    if (index === -1) {
+      throw new Error(`Entity with id ${entityId} not found in sport ${sportId}`);
+    }
+
+    const existing = current[index];
+    const updated: EntityModel = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date(),
+      id: existing.id,
+      createdAt: existing.createdAt,
+      onboardedAt: updates.onboardedAt ?? existing.onboardedAt,
+      organizations: updates.organizations ?? existing.organizations,
+    };
+
+    this.saveEntity(sportId, updated);
+    return updated;
+  }
+
+  deleteEntity(sportId: string, entityId: string): void {
+    const subject = this.entitiesMap.get(sportId);
+    if (!subject) return;
+    const current = subject.value;
+    const updated = current.filter(e => e.id !== entityId);
+    subject.next(updated);
+    this.persistToStorage(sportId);
+  }
+
+  private persistToStorage(sportId: string): void {
+    const subject = this.entitiesMap.get(sportId);
+    if (!subject) return;
+    const updatedEntities = subject.value;
+
+    const allSports = this.dataService.loadSports();
+    const sport = allSports.find(s => s.id === sportId);
+    if (!sport) {
+      console.warn(`Sport ${sportId} not found in data service during persistence`);
+      return;
+    }
+    sport.entities = updatedEntities;
+    this.dataService.saveSports(allSports);
   }
 
   private generateId(prefix: string): string {
-    const data = this.loadData();
+    const allSports = this.dataService.loadSports();
     const allIds: string[] = [];
-    data.forEach(sport => {
-      sport.entities.forEach(entity => {
-        allIds.push(entity.id);
-      });
+    allSports.forEach(sport => {
+      sport.entities.forEach(entity => allIds.push(entity.id));
     });
     let max = 0;
     const regex = new RegExp(`^${prefix}-(\\d+)$`);
@@ -62,99 +126,11 @@ export class EntityService {
     return `${prefix}-${String(next).padStart(3, '0')}`;
   }
 
-  getAllEntities(): EntityModel[] {
-    const data = this.loadData();
-    const entities: EntityModel[] = [];
-    data.forEach(sport => {
-      entities.push(...sport.entities);
-    });
-    return entities;
-  }
-
-  getEntitiesBySport(sportId: string): EntityModel[] {
-    const data = this.loadData();
-    const sport = data.find(s => s.id === sportId);
-    return sport ? sport.entities : [];
-  }
-
-  getEntityById(entityId: string): EntityModel | undefined {
-    const data = this.loadData();
-    for (const sport of data) {
-      const found = sport.entities.find(e => e.id === entityId);
-      if (found) return found;
-    }
-    return undefined;
-  }
-
-  createEntity(sportId: string, entityData: Omit<EntityModel, 'id' | 'createdAt' | 'updatedAt'>): EntityModel {
-    const data = this.loadData();
-    const sport = data.find(s => s.id === sportId);
-    if (!sport) {
-      throw new Error(`Sport with id ${sportId} not found`);
-    }
-
-    const now = new Date().toISOString();
-    const newEntity: EntityModel = {
-      ...entityData,
-      id: this.generateId('gb'),
-      createdAt: now,
-      updatedAt: now,
-      organizations: entityData.organizations || []
-    };
-
-    sport.entities.push(newEntity);
-    this.saveData(data);
-    return newEntity;
-  }
-
-  updateEntity(sportId: string, entityId: string, updates: Partial<EntityModel>): EntityModel {
-    const data = this.loadData();
-    const sport = data.find(s => s.id === sportId);
-    if (!sport) {
-      throw new Error(`Sport with id ${sportId} not found`);
-    }
-
-    const index = sport.entities.findIndex(e => e.id === entityId);
-    if (index === -1) {
-      throw new Error(`Entity with id ${entityId} not found in sport ${sportId}`);
-    }
-
-    const existing = sport.entities[index];
-    const updated: EntityModel = {
-      ...existing,
-      ...updates,
-      updatedAt: new Date().toISOString(),
-      id: existing.id,
-      createdAt: existing.createdAt,
-    };
-
-    sport.entities[index] = updated;
-    this.saveData(data);
-    return updated;
-  }
-
-  deleteEntity(sportId: string, entityId: string): void {
-    const data = this.loadData();
-    const sport = data.find(s => s.id === sportId);
-    if (!sport) {
-      throw new Error(`Sport with id ${sportId} not found`);
-    }
-
-    const index = sport.entities.findIndex(e => e.id === entityId);
-    if (index === -1) {
-      throw new Error(`Entity with id ${entityId} not found in sport ${sportId}`);
-    }
-
-    sport.entities.splice(index, 1);
-    this.saveData(data);
-  }
   getSportIdForEntity(entityId: string): string | undefined {
-    const data = this.loadData();
-    for (const sport of data) {
+    const allSports = this.dataService.loadSports();
+    for (const sport of allSports) {
       const found = sport.entities.find(e => e.id === entityId);
-      if (found) {
-        return sport.id;
-      }
+      if (found) return sport.id;
     }
     return undefined;
   }
