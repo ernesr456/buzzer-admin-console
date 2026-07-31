@@ -1,53 +1,48 @@
-// src/app/sports/services/sports/sports.service.ts
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable, map } from 'rxjs';
 import { SportModel, generateId } from '../../models/sport.model';
 import { EntityModel } from '../../../entities/model/entity.model';
-import { OrganizationModel } from '../../../organizations/model/organization.model';
+import { DataService } from '../../../core/services/data/data.service';
 import { SEED_DATA } from '../../../common/data/seed-data';
-
-const STORAGE_KEY = 'sports_catalogue';
 
 @Injectable({ providedIn: 'root' })
 export class SportsService {
-  private sportsSignal = signal<SportModel[]>([]);
-  readonly sports = this.sportsSignal.asReadonly();
-  readonly loading = signal(false); // for future async operations
+  private sportsSubject = new BehaviorSubject<SportModel[]>([]);
+  sports$ = this.sportsSubject.asObservable();
 
-  // Computed stats
-  readonly totalSports = computed(() => this.sports().length);
-  readonly totalEntities = computed(() =>
-    this.sports().reduce((sum, s) => sum + (s.entities?.length ?? 0), 0)
+  totalSports$ = this.sports$.pipe(map(list => list.length));
+  totalEntities$ = this.sports$.pipe(
+    map(list => list.reduce((sum, s) => sum + (s.entities?.length ?? 0), 0))
   );
-  readonly totalOrganisations = computed(() =>
-    this.sports().reduce(
-      (sum, s) => sum + (s.entities ?? []).reduce(
-        (gbSum, gb) => gbSum + (gb.organizations ?? []).length,
-        0
-      ),
-      0
-    )
+  totalOrganisations$ = this.sports$.pipe(
+    map(list => list.reduce((sum, s) => sum + (s.entities ?? []).reduce(
+      (gbSum, gb) => gbSum + (gb.organizations ?? []).length, 0
+    ), 0))
   );
-  readonly totalParticipants = computed(() =>
-    this.sports().reduce((sum, sport) =>
+  totalParticipants$ = this.sports$.pipe(
+    map(list => list.reduce((sum, sport) =>
       sum + (sport.entities ?? []).reduce((gbSum, gb) =>
         gbSum + (gb.organizations ?? []).reduce((orgSum, org) =>
-          orgSum + (org.participants ?? []).length,
-          0
-        ),
-        0
-      ),
-      0
-    )
+          orgSum + (org.participants ?? []).length, 0
+        ), 0
+      ), 0
+    ))
   );
 
-  constructor() {
-    this.loadFromStorage();
-    effect(() => this.saveToStorage(this.sports()));
+  constructor(private dataService: DataService) {}
+
+  initialize(sports: SportModel[]): void {
+    this.sportsSubject.next(sports);
   }
 
-  // --- Sport CRUD ---
-  getSportById(id: string): SportModel | undefined {
-    return this.sports().find(s => s.id === id);
+  private persist(): void {
+    this.dataService.saveSports(this.sportsSubject.value);
+  }
+
+  getSportById(id: string): Observable<SportModel | undefined> {
+    return this.sports$.pipe(
+      map(list => list.find(s => s.id === id))
+    );
   }
 
   addSport(sport: Omit<SportModel, 'id' | 'entities'>): void {
@@ -55,22 +50,30 @@ export class SportsService {
       id: generateId(),
       ...sport,
       entities: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
-    this.sportsSignal.update(list => [...list, newSport]);
+    const current = this.sportsSubject.value;
+    this.sportsSubject.next([...current, newSport]);
+    this.persist();
   }
 
   updateSport(id: string, updates: Partial<Omit<SportModel, 'id'>>): void {
-    this.sportsSignal.update(list =>
-      list.map(s => (s.id === id ? { ...s, ...updates } : s))
+    const current = this.sportsSubject.value;
+    const updated = current.map(s =>
+      s.id === id ? { ...s, ...updates, updatedAt: new Date().toISOString() } : s
     );
+    this.sportsSubject.next(updated);
+    this.persist();
   }
 
   deleteSport(id: string): void {
-    this.sportsSignal.update(list => list.filter(s => s.id !== id));
+    const current = this.sportsSubject.value;
+    this.sportsSubject.next(current.filter(s => s.id !== id));
+    this.persist();
   }
 
   resetToSeed(): void {
-    // Deep copy the seed data to avoid mutation
     const seedCopy = SEED_DATA.map(sport => ({
       ...sport,
       entities: sport.entities.map(gb => ({
@@ -81,72 +84,53 @@ export class SportsService {
         }))
       }))
     }));
-    this.sportsSignal.set(seedCopy);
+    this.sportsSubject.next(seedCopy);
+    this.persist();
   }
 
-  // --- Entity (Governing Body) CRUD ---
   addEntity(sportId: string, entity: Omit<EntityModel, 'id'>): void {
-    this.sportsSignal.update(list =>
-      list.map(sport => {
-        if (sport.id !== sportId) return sport;
-        const newEntity: EntityModel = {
-          id: generateId(),
-          ...entity,
-          organizations: [],
-        };
-        return {
-          ...sport,
-          entities: [...(sport.entities || []), newEntity],
-        };
-      })
-    );
+    const current = this.sportsSubject.value;
+    const newEntity: EntityModel = {
+      id: generateId(),
+      ...entity,
+      organizations: [],
+    };
+    const updated = current.map(sport => {
+      if (sport.id !== sportId) return sport;
+      return {
+        ...sport,
+        entities: [...(sport.entities || []), newEntity],
+        updatedAt: new Date().toISOString(),
+      };
+    });
+    this.sportsSubject.next(updated);
+    this.persist();
   }
 
   updateEntity(sportId: string, entityId: string, updates: Partial<Omit<EntityModel, 'id'>>): void {
-    this.sportsSignal.update(list =>
-      list.map(sport => {
-        if (sport.id !== sportId) return sport;
-        const updatedEntities = (sport.entities || []).map(e =>
-          e.id === entityId ? { ...e, ...updates } : e
-        );
-        return { ...sport, entities: updatedEntities };
-      })
-    );
+    const current = this.sportsSubject.value;
+    const updated = current.map(sport => {
+      if (sport.id !== sportId) return sport;
+      const entities = (sport.entities || []).map(e =>
+        e.id === entityId ? { ...e, ...updates } : e
+      );
+      return { ...sport, entities, updatedAt: new Date().toISOString() };
+    });
+    this.sportsSubject.next(updated);
+    this.persist();
   }
 
   deleteEntity(sportId: string, entityId: string): void {
-    this.sportsSignal.update(list =>
-      list.map(sport => {
-        if (sport.id !== sportId) return sport;
-        return {
-          ...sport,
-          entities: (sport.entities || []).filter(e => e.id !== entityId),
-        };
-      })
-    );
-  }
-
-  // --- Organisation & Participant CRUD will follow similar pattern ---
-  // (Add when needed)
-
-  // --- Storage ---
-  private loadFromStorage(): void {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as SportModel[];
-        if (Array.isArray(parsed) && parsed.length) {
-          this.sportsSignal.set(parsed);
-          return;
-        }
-      } catch {
-        // ignore
-      }
-    }
-    this.resetToSeed();
-  }
-
-  private saveToStorage(data: SportModel[]): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const current = this.sportsSubject.value;
+    const updated = current.map(sport => {
+      if (sport.id !== sportId) return sport;
+      return {
+        ...sport,
+        entities: (sport.entities || []).filter(e => e.id !== entityId),
+        updatedAt: new Date().toISOString(),
+      };
+    });
+    this.sportsSubject.next(updated);
+    this.persist();
   }
 }
