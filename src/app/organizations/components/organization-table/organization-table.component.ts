@@ -4,7 +4,6 @@ import {
   Output,
   EventEmitter,
   inject,
-  ChangeDetectorRef,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -28,7 +27,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class OrganizationTableComponent {
   @Input() organizations: OrganizationModel[] = [];
   @Input() entityId!: string;
-  @Input() sportId!: string; // NEW: needed for navigation
+  @Input() sportId!: string; // needed for navigation
 
   @Output() editOrganization = new EventEmitter<OrganizationModel>();
   @Output() addOrganization = new EventEmitter<OrganizationModel>();
@@ -36,12 +35,10 @@ export class OrganizationTableComponent {
   @Output() viewOrganization = new EventEmitter<string>(); // emits orgId
 
   private dialog = inject(MatDialog);
-  private cdr = inject(ChangeDetectorRef);
   private organizationService = inject(OrganizationService);
   private toast = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-
 
   get tableRows() {
     return this.organizations
@@ -50,11 +47,6 @@ export class OrganizationTableComponent {
         ...org,
         participantCount: org.participants?.length ?? 0,
       }));
-  }
-
-  // Row click → emit viewOrganization event
-  onRowClick(organization: OrganizationModel): void {
-    this.viewOrganization.emit(organization.id);
   }
 
   openAddDialog(): void {
@@ -66,8 +58,6 @@ export class OrganizationTableComponent {
     dialogRef.afterClosed().subscribe((newOrg: OrganizationModel | undefined) => {
       if (newOrg) {
         this.addOrganization.emit(newOrg);
-        this.organizations = [...this.organizations, newOrg];
-        this.cdr.markForCheck();
         this.toast.success(`Organization "${newOrg.name}" added successfully.`, 'Added');
       }
     });
@@ -85,13 +75,6 @@ export class OrganizationTableComponent {
     dialogRef.afterClosed().subscribe((updatedOrg: OrganizationModel | undefined) => {
       if (updatedOrg) {
         this.editOrganization.emit(updatedOrg);
-        const index = this.organizations.findIndex(o => o.id === updatedOrg.id);
-        if (index !== -1) {
-          const newOrgs = [...this.organizations];
-          newOrgs[index] = updatedOrg;
-          this.organizations = newOrgs;
-          this.cdr.markForCheck();
-        }
         this.toast.success(`Organization "${updatedOrg.name}" updated successfully.`, 'Updated');
       }
     });
@@ -111,19 +94,18 @@ export class OrganizationTableComponent {
 
     dialogRef.afterClosed().subscribe(confirmed => {
       if (confirmed) {
+        // Delete via service, then emit event to parent
         this.organizationService.deleteOrganization(this.entityId, organization.id);
         this.deleteOrganizationEvent.emit(organization.id);
-        this.organizations = this.organizations.filter(o => o.id !== organization.id);
-        this.cdr.markForCheck();
         this.toast.success(`Organization "${organization.name}" deleted successfully.`, 'Deleted');
       }
     });
   }
+
   navigateToDetail(organization: OrganizationModel): void {
     const sportId = this.sportId ?? this.route.snapshot.paramMap.get('sportId');
     const entityId = this.entityId ?? this.route.snapshot.paramMap.get('entityId');
     this.router.navigate(['/sports', sportId, entityId, organization.id]);
     this.viewOrganization.emit(organization.id);
-    
   }
 }
