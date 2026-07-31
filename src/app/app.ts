@@ -7,6 +7,7 @@ import { OrganizationService } from './organizations/services/organization.servi
 import { DataService } from './core/services/data/data.service'; // or SportDataService
 import { EntityService } from './entities/services/entity.service';
 import { ParticipantService } from './participants/services.service';
+import { SportsService } from './sports/services/sports/sports.service';
 
 @Component({
   selector: 'app-root',
@@ -22,7 +23,8 @@ export class App implements OnInit {
     private orgService: OrganizationService,
     private dataService: DataService,
     private entityService: EntityService,
-    private participantService: ParticipantService
+    private participantService: ParticipantService,
+    private sportsService: SportsService
   ) {}
 
   ngOnInit(): void {
