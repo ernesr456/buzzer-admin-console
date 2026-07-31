@@ -1,0 +1,77 @@
+[
+  {
+    "id": "sport-011",
+    "name": "Cricket",
+    "emoji": "🏏",
+    "color": "#FFB414",
+    "createdAt": "2024-02-09T00:00:00.000Z",
+    "updatedAt": "2025-01-14T00:00:00.000Z",
+    "entities": [
+      {
+        "id": "gb-021",
+        "name": "ICC",
+        "logo": "🏏",
+        "createdAt": "2024-03-10T00:00:00.000Z",
+        "updatedAt": "2025-01-24T00:00:00.000Z",
+        "onboardedAt": "2025-01-24T00:00:00.000Z",
+        "organizations": [
+          {
+            "id": "org-041",
+            "name": "ICC World Cup",
+            "logo": "https://example.com/icc-world-cup.png",
+            "createdAt": "2024-05-20T00:00:00.000Z",
+            "updatedAt": "2025-02-03T00:00:00.000Z",
+            "onboardedAt": "2025-02-03T00:00:00.000Z",
+            "participants": [
+              {
+                "id": "part-1531",
+                "name": "India",
+                "logo": "https://example.com/india.png"
+              },
+              {
+                "id": "part-1532",
+                "name": "Australia",
+                "logo": "https://example.com/australia.png"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sport-012",
+    "name": "Volleyball",
+    "emoji": "🏐",
+    "color": "#2ED368",
+    "createdAt": "2024-02-29T00:00:00.000Z",
+    "updatedAt": "2025-01-24T00:00:00.000Z",
+    "entities": [
+      {
+        "id": "gb-022",
+        "name": "FIVB",
+        "logo": "🏐",
+        "createdAt": "2024-03-30T00:00:00.000Z",
+        "updatedAt": "2025-01-29T00:00:00.000Z",
+        "onboardedAt": "2025-01-29T00:00:00.000Z",
+        "organizations": [
+          {
+            "id": "org-042",
+            "name": "Volleyball Nations League",
+            "logo": "https://example.com/vnl.png",
+            "createdAt": "2024-06-09T00:00:00.000Z",
+            "updatedAt": "2025-02-08T00:00:00.000Z",
+            "onboardedAt": "2025-02-08T00:00:00.000Z",
+            "participants": [
+              {
+                "id": "part-1533",
+                "name": "Brazil",
+                "logo": "https://example.com/brazil.png"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
