@@ -26,6 +26,7 @@ export class OrganizationAddDialogComponent {
 
   organizationForm = this.fb.group({
     name: [this.data.organization?.name ?? '', [Validators.required, Validators.minLength(2)]],
+    logo: [this.data.organization?.logo ?? ''],
   });
 
   isEdit = !!this.data.organization;
@@ -41,12 +42,13 @@ export class OrganizationAddDialogComponent {
       return;
     }
 
-    const { name } = this.organizationForm.value;
+    const { name, logo } = this.organizationForm.value;
 
     if (this.isEdit && this.data.organization) {
       const updatedOrg: OrganizationModel = {
         ...this.data.organization,
         name: name!,
+        logo: logo || undefined,
       };
 
       this.organizationService.updateOrganization(this.entityId, updatedOrg);
@@ -54,9 +56,9 @@ export class OrganizationAddDialogComponent {
     } else {
       const newOrg = this.organizationService.createOrganization(this.entityId, {
         name: name!,
+        logo: logo || undefined,
         participants: [],
       });
-
       this.dialogRef.close(newOrg);
     }
   }

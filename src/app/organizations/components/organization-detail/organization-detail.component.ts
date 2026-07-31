@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { Observable, Subject, switchMap, takeUntil, first, of } from 'rxjs';
+import { Observable, Subject, switchMap, takeUntil, of } from 'rxjs';
 import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 import { OrganizationAddDialogComponent, OrganizationDialogData } from '../organization-add-dialog/organization-add-dialog.component';
 import { OrganizationModel } from '../../model/organization.model';
@@ -11,7 +11,6 @@ import { ParticipantTableComponent } from '../../../participants/components/part
 import { ParticipantModel } from '../../../participants/model/participant.model';
 import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
 import { ToastService } from '../../../common/services/toast/toast.service';
-import { EntityService } from '../../../entities/services/entity.service';
 import { ParticipantService } from '../../../participants/services.service';
 
 @Component({
@@ -40,7 +39,6 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
     private router: Router,
     private orgService: OrganizationService,
     private participantService: ParticipantService,
-    private entityService: EntityService,
     private dialog: MatDialog,
     private toast: ToastService
   ) {
@@ -81,6 +79,10 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
 
   private refreshOrganization(): void {
     this.orgService.refreshOrganization(this.entityId, this.orgId);
+  }
+
+  onImageError(organization: OrganizationModel): void {
+    // handle error if needed
   }
 
   openEditDialog(organization: OrganizationModel): void {
