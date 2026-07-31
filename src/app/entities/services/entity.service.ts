@@ -1,14 +1,106 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, map } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
 import { EntityModel } from '../model/entity.model';
 import { SportModel } from '../../sports/models/sport.model';
 import { DataService } from '../../core/services/data/data.service';
+import { environment } from '../../../environment/environment';
+import { AuthService } from '../../core/services/auth/auth.service';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
 export class EntityService {
   private entitiesMap = new Map<string, BehaviorSubject<EntityModel[]>>();
+  private apiUrl = environment.apiBaseUrl + '/governing-bodies?sportId=';
+  entitySubject$ = new BehaviorSubject<EntityModel[]>([]);
+  private rawSportsSubject = new BehaviorSubject<SportModel[]>([]);
 
-  constructor(private dataService: DataService) {}
+  entities$ = this.rawSportsSubject.pipe(
+    map(entities =>
+      entities.map(entity => ({
+        ...entity,
+      }))
+    )
+  );
+  
+  constructor(
+    private dataService: DataService,
+    private authService: AuthService,
+    private http: HttpClient,
+  ) {}
+  
+  addEntity(sportId:string,entity: EntityModel): Observable<EntityModel> {
+    console.log(entity);
+    return this.http.post<EntityModel>(`${this.apiUrl}${sportId}`,entity, { headers: this.authService.getAuthHeaders() }).pipe(
+      tap((newEntity) => {
+        const currentEntity = this.entitySubject$.getValue();
+        this.entitySubject$.next([...currentEntity, newEntity]);
+      }),
+      catchError(this.authService.handleError.bind(this.authService))
+    );
+  }
+
+  getEntityBySportId(sportId: string): Observable<EntityModel[]> {
+    return this.http.get<EntityModel[]>(`${this.apiUrl}${sportId}`, {
+      headers: this.authService.getAuthHeaders()
+    }).pipe(
+      tap((entities) => this.entitySubject$.next(entities)),
+      catchError((err) => {
+        if (err.status === 401) {
+          this.authService.logout();
+        } else {
+          console.error('Error loading entities', err);
+          this.entitySubject$.next([]);
+        }
+        // Re-throw or return empty array to keep the observable alive
+        return of([]);
+      })
+    );
+  }
+
+  updatesEntity(id:string,sportId: string, updateEntity: EntityModel): Observable<EntityModel> {
+    return this.http.patch<EntityModel>(`${this.apiUrl}${sportId}`, updateEntity, {
+      headers: this.authService.getAuthHeaders()
+    }).pipe(
+      tap((modified) => {
+        const current = this.entitySubject$.getValue();
+        const updated = current.map(s => s.id === id ? modified : s);
+        this.entitySubject$.next(updated);
+      }),
+      catchError(this.authService.handleError.bind(this.authService))
+    );
+  }
+
+  deletesEntity(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, {
+      headers: this.authService.getAuthHeaders()
+    }).pipe(
+      tap(() => {
+        const current = this.entitySubject$.getValue();
+        const filtered = current.filter(s => s.id !== id);
+        this.entitySubject$.next(filtered);
+      }),
+      catchError(this.authService.handleError.bind(this.authService))
+    );
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   initialize(sports: SportModel[]): void {
     this.entitiesMap.clear();
