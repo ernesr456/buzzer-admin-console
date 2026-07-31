@@ -32,6 +32,7 @@ export class App implements OnInit {
     this.orgService.initialize(sports);
     this.entityService.initialize(sports);
     this.participantService.initialize(sports);
+    this.sportsService.initialize(sports);
   }
 
   toggleTheme(): void {
