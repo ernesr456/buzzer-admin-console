@@ -39,7 +39,7 @@ export class SportListComponent implements OnInit{
   });
 
   totalSports = this.sportsService.totalSports;
-  totalentities = this.sportsService.totalentities;
+  totalentities = this.sportsService.totalEntities;
   totalOrganisations = this.sportsService.totalOrganisations;
   totalParticipants = this.sportsService.totalParticipants;
 
