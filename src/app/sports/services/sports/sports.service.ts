@@ -3,7 +3,8 @@ import { BehaviorSubject, Observable, map } from 'rxjs';
 import { SportModel } from '../../models/sport.model';
 import { EntityModel } from '../../../entities/model/entity.model';
 import { DataService } from '../../../core/services/data/data.service';
-import {generateId} from './../../../common/utils/id-generator.util'
+import { generateId } from './../../../common/utils/id-generator.util';
+
 @Injectable({ providedIn: 'root' })
 export class SportsService {
   private sportsSubject = new BehaviorSubject<SportModel[]>([]);
@@ -150,6 +151,45 @@ export class SportsService {
       const updatedSport = updatedList.find(s => s.id === sportId)!;
       sportSubject.next(updatedSport);
     }
+    this.persist();
+  }
+
+  addFullSports(newSports: SportModel[]): void {
+    const current = this.sportsSubject.value;
+    const merged: SportModel[] = [...current];
+
+    for (const sport of newSports) {
+      // Use the provided ID, or generate one if missing
+      const newSport: SportModel = {
+        ...sport,
+        id: sport.id || generateId(),
+        createdAt: sport.createdAt || new Date(),
+        updatedAt: sport.updatedAt || new Date(),
+        entities: (sport.entities || []).map(entity => ({
+          ...entity,
+          id: entity.id || generateId(),
+          createdAt: entity.createdAt || new Date(),
+          updatedAt: entity.updatedAt || new Date(),
+          onboardedAt: entity.onboardedAt || undefined,
+          organizations: (entity.organizations || []).map(org => ({
+            ...org,
+            id: org.id || generateId(),
+            createdAt: org.createdAt || new Date(),
+            updatedAt: org.updatedAt || new Date(),
+            onboardedAt: org.onboardedAt || undefined,
+            participants: (org.participants || []).map(part => ({
+              ...part,
+              id: part.id || generateId(),
+            })),
+          })),
+        })),
+      };
+
+      merged.push(newSport);
+      this.sportsMap.set(newSport.id, new BehaviorSubject<SportModel>(newSport));
+    }
+
+    this.sportsSubject.next(merged);
     this.persist();
   }
 }

@@ -46,13 +46,25 @@
         <span class="material-symbols-outlined text-xl">Close</span>
       </button>
     </div>
-    <button
-      (click)="openAddDialog()"
-      class="flex items-center border border-white/10 gap-2 px-4 py-2 font-medium font-[10px] rounded-md hover:opacity-90 transition w-full md:w-fit"
-    >
-      <span class="material-symbols-outlined text-xl">Add</span>
-      Add Sports
-    </button>
+    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-fit">
+      <input #bulkImportInput type="file" accept=".json,.csv" class="hidden" (change)="handleBulkImport($event)" />
+      <button
+        type="button"
+        (click)="bulkImportInput.click()"
+        class="flex items-center border border-[#FFB414]/40 gap-2 px-4 py-2 font-medium font-[10px] rounded-md hover:bg-[#FFB414]/10 transition w-full sm:w-fit"
+      >
+        <span class="material-symbols-outlined text-xl">upload_file</span>
+        Bulk Import
+      </button>
+      <button
+        type="button"
+        (click)="openAddDialog()"
+        class="flex items-center border border-white/10 gap-2 px-4 py-2 font-medium font-[10px] rounded-md hover:opacity-90 transition w-full sm:w-fit"
+      >
+        <span class="material-symbols-outlined text-xl">Add</span>
+        Add Sports
+      </button>
+    </div>
   </div>
 
   <div class="bg-[#1e2121] rounded-lg overflow-x-auto">
