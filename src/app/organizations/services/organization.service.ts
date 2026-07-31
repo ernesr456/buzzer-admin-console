@@ -1,205 +1,98 @@
 import { Injectable } from '@angular/core';
-import { SportModel } from '../../sports/models/sport.model';
+import { BehaviorSubject, Observable, map } from 'rxjs';
 import { OrganizationModel } from '../model/organization.model';
-import { SEED_DATA } from '../../common/data/seed-data';
-import { EntityModel } from '../../entities/model/entity.model';
+import { SportModel } from '../../sports/models/sport.model';
+import { DataService } from './../../core/services/data/data.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class OrganizationService {
+  private organizationsMap = new Map<string, BehaviorSubject<OrganizationModel[]>>();
 
-  private readonly STORAGE_KEY = 'sports_catalogue';
+  constructor(private dataService: DataService) {}
 
-  constructor() {
-    this.initializeStorage();
-  }
-
-  // ---------- Storage Helpers ----------
-  private loadData(): SportModel[] {
-    const stored = localStorage.getItem(this.STORAGE_KEY);
-    if (stored) {
-      try {
-        return JSON.parse(stored) as SportModel[];
-      } catch {
-        return this.seedData();
-      }
-    }
-    return this.seedData();
-  }
-
-  private saveData(data: SportModel[]): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
-  }
-
-  private initializeStorage(): void {
-    if (!localStorage.getItem(this.STORAGE_KEY)) {
-      this.saveData(SEED_DATA);
-    }
-  }
-
-  private seedData(): SportModel[] {
-    return JSON.parse(JSON.stringify(SEED_DATA));
-  }
-
-  // ---------- ID Generation ----------
-  private generateId(prefix: string): string {
-    const data = this.loadData();
-    const allIds: string[] = [];
-    data.forEach(sport => {
-      sport.entities.forEach(entity => {
-        entity.organizations.forEach(org => {
-          allIds.push(org.id);
-        });
-      });
-    });
-
-    let max = 0;
-    const regex = new RegExp(`^${prefix}-(\\d+)$`);
-    allIds.forEach(id => {
-      const match = id.match(regex);
-      if (match) {
-        const num = parseInt(match[1], 10);
-        if (num > max) max = num;
-      }
-    });
-
-    return `${prefix}-${String(max + 1).padStart(3, '0')}`;
-  }
-
-  // ---------- Read Operations ----------
-  getAllOrganizations(): OrganizationModel[] {
-    const data = this.loadData();
-    const orgs: OrganizationModel[] = [];
-    data.forEach(sport => {
-      sport.entities.forEach(entity => {
-        orgs.push(...entity.organizations);
-      });
-    });
-    return orgs;
-  }
-
-  getOrganizationsByEntity(entityId: string): OrganizationModel[] {
-    const data = this.loadData();
-    for (const sport of data) {
-      const entity = sport.entities.find(e => e.id === entityId);
-      if (entity) {
-        return entity.organizations;
-      }
-    }
-    return [];
-  }
-
-  getOrganizationById(orgId: string): OrganizationModel | undefined {
-    const data = this.loadData();
-    for (const sport of data) {
+  initialize(sports: SportModel[]): void {
+    this.organizationsMap.clear();
+    for (const sport of sports) {
       for (const entity of sport.entities) {
-        const found = entity.organizations.find(o => o.id === orgId);
-        if (found) return found;
+        this.organizationsMap.set(entity.id, new BehaviorSubject<OrganizationModel[]>(entity.organizations || []));
       }
     }
-    return undefined;
   }
 
-  // ---------- Create ----------
-  createOrganization(
-    entityId: string,
-    orgData: Omit<OrganizationModel, 'id' | 'createdAt' | 'updatedAt'>
-  ): OrganizationModel {
-    const data = this.loadData();
-
-    let targetEntity: EntityModel | undefined;
-    for (const sport of data) {
-      const entity = sport.entities.find(e => e.id === entityId);
-      if (entity) {
-        targetEntity = entity;
-        break;
-      }
+  getOrganizationsForEntity(entityId: string): Observable<OrganizationModel[]> {
+    if (!this.organizationsMap.has(entityId)) {
+      this.organizationsMap.set(entityId, new BehaviorSubject<OrganizationModel[]>([]));
     }
+    return this.organizationsMap.get(entityId)!.asObservable();
+  }
 
-    if (!targetEntity) {
-      throw new Error(`Entity with id ${entityId} not found`);
-    }
+  getOrganizationById(entityId: string, orgId: string): Observable<OrganizationModel | undefined> {
+    return this.getOrganizationsForEntity(entityId).pipe(
+      map(orgs => orgs.find(o => o.id === orgId))
+    );
+  }
 
-    const now = new Date().toISOString();
+  saveOrganization(entityId: string, organization: OrganizationModel): void {
+    const subject = this.organizationsMap.get(entityId);
+    if (!subject) return;
+    const current = subject.value;
+    const index = current.findIndex(o => o.id === organization.id);
+    const updated = index >= 0
+      ? [...current.slice(0, index), organization, ...current.slice(index + 1)]
+      : [...current, organization];
+    subject.next(updated);
+    this.persistToStorage(entityId);
+  }
+
+  createOrganization(entityId: string, orgData: Partial<OrganizationModel>): OrganizationModel {
     const newOrg: OrganizationModel = {
+      id: this.generateId(),
+      name: orgData.name || '',
+      participants: orgData.participants || [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      onboardedAt: new Date(),
       ...orgData,
-      id: this.generateId('org'),
-      createdAt: now,
-      updatedAt: now,
-      participants: orgData.participants || []
     };
-
-    targetEntity.organizations.push(newOrg);
-    this.saveData(data);
+    this.saveOrganization(entityId, newOrg);
     return newOrg;
   }
 
-  // ---------- Update ----------
-  updateOrganization(
-    entityId: string,
-    orgId: string,
-    updates: Partial<OrganizationModel>
-  ): OrganizationModel {
-    const data = this.loadData();
-
-    let targetEntity: EntityModel | undefined;
-    let orgIndex = -1;
-
-    for (const sport of data) {
-      const entity = sport.entities.find(e => e.id === entityId);
-      if (entity) {
-        const idx = entity.organizations.findIndex(o => o.id === orgId);
-        if (idx !== -1) {
-          targetEntity = entity;
-          orgIndex = idx;
-          break;
-        }
-      }
-    }
-
-    if (!targetEntity || orgIndex === -1) {
-      throw new Error(`Organization with id ${orgId} not found in entity ${entityId}`);
-    }
-
-    const existing = targetEntity.organizations[orgIndex];
-    const updated: OrganizationModel = {
-      ...existing,
-      ...updates,
-      updatedAt: new Date().toISOString(),
-      id: existing.id,
-      createdAt: existing.createdAt,
+  updateOrganization(entityId: string, organization: OrganizationModel): void {
+    const updatedOrg = {
+      ...organization,
+      updatedAt: new Date(),
     };
-
-    targetEntity.organizations[orgIndex] = updated;
-    this.saveData(data);
-    return updated;
+    this.saveOrganization(entityId, updatedOrg);
   }
 
-  // ---------- Delete ----------
   deleteOrganization(entityId: string, orgId: string): void {
-    const data = this.loadData();
+    const subject = this.organizationsMap.get(entityId);
+    if (!subject) return;
+    const current = subject.value;
+    const updated = current.filter(o => o.id !== orgId);
+    subject.next(updated);
+    this.persistToStorage(entityId);
+  }
 
-    let targetEntity: EntityModel | undefined;
-    let orgIndex = -1;
+  private persistToStorage(entityId: string): void {
+    const subject = this.organizationsMap.get(entityId);
+    if (!subject) return;
+    const updatedOrgs = subject.value;
 
-    for (const sport of data) {
-      const entity = sport.entities.find(e => e.id === entityId);
-      if (entity) {
-        const idx = entity.organizations.findIndex(o => o.id === orgId);
-        if (idx !== -1) {
-          targetEntity = entity;
-          orgIndex = idx;
-          break;
+    const allSports = this.dataService.loadSports();
+    for (const sport of allSports) {
+      for (const entity of sport.entities) {
+        if (entity.id === entityId) {
+          entity.organizations = updatedOrgs;
+          this.dataService.saveSports(allSports);
+          return;
         }
       }
     }
+  }
 
-    if (!targetEntity || orgIndex === -1) {
-      throw new Error(`Organization with id ${orgId} not found in entity ${entityId}`);
-    }
-
-    targetEntity.organizations.splice(orgIndex, 1);
-    this.saveData(data);
+  private generateId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
   }
 }
