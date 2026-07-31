@@ -25,7 +25,6 @@ export class SportListComponent implements OnInit{
   private toast = inject(ToastService);
 
   ngOnInit() {
-    console.log('ToastComponent instantiated with:', this.toast);
   }
 
   searchQuery = signal('');
@@ -111,7 +110,6 @@ export class SportListComponent implements OnInit{
       if (confirmed) {
         this.sportsService.deleteSport(sport.id);
         this.toast.success(`Sport "${sport.name}" deleted successfully.`, 'Deleted');
-        console.log('Toast success called');
       }
     });
   }
