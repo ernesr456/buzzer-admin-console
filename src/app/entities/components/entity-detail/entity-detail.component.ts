@@ -56,7 +56,6 @@ export class EntityDetailComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('entityId');
     if (id) {
       this.entity = this.entityService.getEntityById(id);
-      console.log(id);
       if (!this.entity) {
         this.toast.error('Governing body not found', 'Error');
         this.router.navigate(['/sports']);
