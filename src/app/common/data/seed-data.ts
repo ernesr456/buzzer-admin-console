@@ -8,10 +8,16 @@ function generateId(prefix: string, index: number): string {
   return `${prefix}-${String(index).padStart(3, '0')}`;
 }
 
-function makeDate(offsetDays: number): string {
+// Returns a Date object – used for OrganizationModel timestamps
+function makeDate(offsetDays: number): Date {
   const d = new Date();
   d.setDate(d.getDate() - offsetDays);
-  return d.toISOString();
+  return d;
+}
+
+// Returns an ISO string – used for SportModel & EntityModel timestamps
+function makeDateString(offsetDays: number): string {
+  return makeDate(offsetDays).toISOString();
 }
 
 // Helper to generate a participant list with given count
@@ -26,7 +32,7 @@ function generateParticipants(
     participants.push({
       id,
       name: `Participant ${startIndex + i + 1}`,
-      logo: `https://picsum.photos/seed/${id}/50/50`, // added logo URL
+      logo: `https://picsum.photos/seed/${id}/50/50`,
     });
   }
   return participants;
@@ -50,7 +56,7 @@ function generateOrganizations(
     orgs.push({
       id: orgId,
       name: orgNames[i],
-      logo: `https://picsum.photos/seed/${orgId}/100/100`, // added logo URL
+      logo: `https://picsum.photos/seed/${orgId}/100/100`,
       participants,
       createdAt: makeDate(60 + i * 5),
       updatedAt: makeDate(20 + i * 3),
@@ -66,46 +72,46 @@ export const SEED_DATA: SportModel[] = [
     name: 'Football',
     emoji: '⚽',
     color: '#2ED368',
-    createdAt: makeDate(472),
-    updatedAt: makeDate(79),
+    createdAt: makeDateString(472),
+    updatedAt: makeDateString(79),
     entities: [
       {
         id: generateId('gb', 1),
         name: 'FIFA',
         logo: '🟦',
-        createdAt: makeDate(447),
-        updatedAt: makeDate(73),
-        onboardedAt: makeDate(73), // added onboardedAt
+        createdAt: makeDateString(447),
+        updatedAt: makeDateString(73),
+        onboardedAt: makeDateString(73),
         organizations: generateOrganizations(
           'org', 1, 'part', 1,
           ['FIFA Club World Cup', 'FIFA World Cup Organizing Committee', 'FIFA Development'],
-          [80, 70, 50] // participants per org -> total 200
+          [80, 70, 50]
         ),
       },
       {
         id: generateId('gb', 2),
         name: 'UEFA',
         logo: '🟧',
-        createdAt: makeDate(400),
-        updatedAt: makeDate(60),
-        onboardedAt: makeDate(60),
+        createdAt: makeDateString(400),
+        updatedAt: makeDateString(60),
+        onboardedAt: makeDateString(60),
         organizations: generateOrganizations(
           'org', 4, 'part', 201,
           ['UEFA Champions League', 'UEFA Europa League', 'UEFA Nations League'],
-          [60, 50, 40] // total 150
+          [60, 50, 40]
         ),
       },
       {
         id: generateId('gb', 3),
         name: 'CONMEBOL',
         logo: '🟩',
-        createdAt: makeDate(380),
-        updatedAt: makeDate(55),
-        onboardedAt: makeDate(55),
+        createdAt: makeDateString(380),
+        updatedAt: makeDateString(55),
+        onboardedAt: makeDateString(55),
         organizations: generateOrganizations(
           'org', 7, 'part', 351,
           ['Copa Libertadores', 'Copa Sudamericana'],
-          [60, 40] // total 100
+          [60, 40]
         ),
       },
     ],
@@ -115,33 +121,33 @@ export const SEED_DATA: SportModel[] = [
     name: 'Basketball',
     emoji: '🏀',
     color: '#FFB414',
-    createdAt: makeDate(450),
-    updatedAt: makeDate(80),
+    createdAt: makeDateString(450),
+    updatedAt: makeDateString(80),
     entities: [
       {
         id: generateId('gb', 4),
         name: 'FIBA',
         logo: '🏀',
-        createdAt: makeDate(420),
-        updatedAt: makeDate(70),
-        onboardedAt: makeDate(70),
+        createdAt: makeDateString(420),
+        updatedAt: makeDateString(70),
+        onboardedAt: makeDateString(70),
         organizations: generateOrganizations(
           'org', 9, 'part', 401,
           ['FIBA World Cup', 'FIBA Americas', 'FIBA Europe'],
-          [80, 60, 50] // total 190
+          [80, 60, 50]
         ),
       },
       {
         id: generateId('gb', 5),
         name: 'EuroLeague',
         logo: '🇪🇺',
-        createdAt: makeDate(400),
-        updatedAt: makeDate(60),
-        onboardedAt: makeDate(60),
+        createdAt: makeDateString(400),
+        updatedAt: makeDateString(60),
+        onboardedAt: makeDateString(60),
         organizations: generateOrganizations(
           'org', 12, 'part', 591,
           ['EuroLeague Basketball', 'EuroCup'],
-          [80, 50] // total 130
+          [80, 50]
         ),
       },
     ],
@@ -151,33 +157,33 @@ export const SEED_DATA: SportModel[] = [
     name: 'Baseball',
     emoji: '⚾',
     color: '#EC193C',
-    createdAt: makeDate(440),
-    updatedAt: makeDate(75),
+    createdAt: makeDateString(440),
+    updatedAt: makeDateString(75),
     entities: [
       {
         id: generateId('gb', 6),
         name: 'WBSC',
         logo: '⚾',
-        createdAt: makeDate(410),
-        updatedAt: makeDate(66),
-        onboardedAt: makeDate(66),
+        createdAt: makeDateString(410),
+        updatedAt: makeDateString(66),
+        onboardedAt: makeDateString(66),
         organizations: generateOrganizations(
           'org', 14, 'part', 701,
           ['WBSC Premier12', 'WBSC U-23 World Cup'],
-          [60, 40] // total 100
+          [60, 40]
         ),
       },
       {
         id: generateId('gb', 7),
         name: 'MLB',
         logo: '🇺🇸',
-        createdAt: makeDate(390),
-        updatedAt: makeDate(55),
-        onboardedAt: makeDate(55),
+        createdAt: makeDateString(390),
+        updatedAt: makeDateString(55),
+        onboardedAt: makeDateString(55),
         organizations: generateOrganizations(
           'org', 16, 'part', 801,
           ['Major League Baseball', 'Minor League Baseball'],
-          [50, 30] // total 80
+          [50, 30]
         ),
       },
     ],
@@ -187,33 +193,33 @@ export const SEED_DATA: SportModel[] = [
     name: 'Hockey',
     emoji: '🏒',
     color: '#212121',
-    createdAt: makeDate(430),
-    updatedAt: makeDate(70),
+    createdAt: makeDateString(430),
+    updatedAt: makeDateString(70),
     entities: [
       {
         id: generateId('gb', 8),
         name: 'IIHF',
         logo: '🏒',
-        createdAt: makeDate(400),
-        updatedAt: makeDate(58),
-        onboardedAt: makeDate(58),
+        createdAt: makeDateString(400),
+        updatedAt: makeDateString(58),
+        onboardedAt: makeDateString(58),
         organizations: generateOrganizations(
           'org', 18, 'part', 901,
           ['IIHF World Championship', 'IIHF World Junior Championship'],
-          [50, 40] // total 90
+          [50, 40]
         ),
       },
       {
         id: generateId('gb', 9),
         name: 'NHL',
         logo: '🇨🇦',
-        createdAt: makeDate(380),
-        updatedAt: makeDate(50),
-        onboardedAt: makeDate(50),
+        createdAt: makeDateString(380),
+        updatedAt: makeDateString(50),
+        onboardedAt: makeDateString(50),
         organizations: generateOrganizations(
           'org', 20, 'part', 991,
           ['National Hockey League', 'AHL'],
-          [40, 20] // total 60
+          [40, 20]
         ),
       },
     ],
@@ -223,33 +229,33 @@ export const SEED_DATA: SportModel[] = [
     name: 'Tennis',
     emoji: '🎾',
     color: '#FFB414',
-    createdAt: makeDate(420),
-    updatedAt: makeDate(65),
+    createdAt: makeDateString(420),
+    updatedAt: makeDateString(65),
     entities: [
       {
         id: generateId('gb', 10),
         name: 'ITF',
         logo: '🎾',
-        createdAt: makeDate(390),
-        updatedAt: makeDate(55),
-        onboardedAt: makeDate(55),
+        createdAt: makeDateString(390),
+        updatedAt: makeDateString(55),
+        onboardedAt: makeDateString(55),
         organizations: generateOrganizations(
           'org', 22, 'part', 1051,
           ['ITF World Tennis Tour', 'Davis Cup'],
-          [40, 30] // total 70
+          [40, 30]
         ),
       },
       {
         id: generateId('gb', 11),
         name: 'ATP',
         logo: '🏆',
-        createdAt: makeDate(370),
-        updatedAt: makeDate(48),
-        onboardedAt: makeDate(48),
+        createdAt: makeDateString(370),
+        updatedAt: makeDateString(48),
+        onboardedAt: makeDateString(48),
         organizations: generateOrganizations(
           'org', 24, 'part', 1121,
           ['ATP Tour', 'ATP Challenger Tour'],
-          [30, 20] // total 50
+          [30, 20]
         ),
       },
     ],
@@ -259,33 +265,33 @@ export const SEED_DATA: SportModel[] = [
     name: 'Rugby',
     emoji: '🏉',
     color: '#2ED368',
-    createdAt: makeDate(410),
-    updatedAt: makeDate(60),
+    createdAt: makeDateString(410),
+    updatedAt: makeDateString(60),
     entities: [
       {
         id: generateId('gb', 12),
         name: 'World Rugby',
         logo: '🏉',
-        createdAt: makeDate(380),
-        updatedAt: makeDate(50),
-        onboardedAt: makeDate(50),
+        createdAt: makeDateString(380),
+        updatedAt: makeDateString(50),
+        onboardedAt: makeDateString(50),
         organizations: generateOrganizations(
           'org', 26, 'part', 1171,
           ['Rugby World Cup', 'World Rugby Sevens Series'],
-          [40, 30] // total 70
+          [40, 30]
         ),
       },
       {
         id: generateId('gb', 13),
         name: 'Six Nations',
         logo: '🏆',
-        createdAt: makeDate(360),
-        updatedAt: makeDate(42),
-        onboardedAt: makeDate(42),
+        createdAt: makeDateString(360),
+        updatedAt: makeDateString(42),
+        onboardedAt: makeDateString(42),
         organizations: generateOrganizations(
           'org', 28, 'part', 1241,
           ['Six Nations Championship'],
-          [20] // total 20
+          [20]
         ),
       },
     ],
@@ -295,20 +301,20 @@ export const SEED_DATA: SportModel[] = [
     name: 'Volleyball',
     emoji: '🏐',
     color: '#EC193C',
-    createdAt: makeDate(400),
-    updatedAt: makeDate(55),
+    createdAt: makeDateString(400),
+    updatedAt: makeDateString(55),
     entities: [
       {
         id: generateId('gb', 14),
         name: 'FIVB',
         logo: '🏐',
-        createdAt: makeDate(370),
-        updatedAt: makeDate(48),
-        onboardedAt: makeDate(48),
+        createdAt: makeDateString(370),
+        updatedAt: makeDateString(48),
+        onboardedAt: makeDateString(48),
         organizations: generateOrganizations(
           'org', 29, 'part', 1261,
           ['FIVB Volleyball Nations League', 'FIVB World Championship'],
-          [35, 25] // total 60
+          [35, 25]
         ),
       },
     ],
@@ -318,33 +324,33 @@ export const SEED_DATA: SportModel[] = [
     name: 'MMA',
     emoji: '🥊',
     color: '#FFB414',
-    createdAt: makeDate(390),
-    updatedAt: makeDate(50),
+    createdAt: makeDateString(390),
+    updatedAt: makeDateString(50),
     entities: [
       {
         id: generateId('gb', 15),
         name: 'UFC',
         logo: '🥊',
-        createdAt: makeDate(360),
-        updatedAt: makeDate(42),
-        onboardedAt: makeDate(42),
+        createdAt: makeDateString(360),
+        updatedAt: makeDateString(42),
+        onboardedAt: makeDateString(42),
         organizations: generateOrganizations(
           'org', 31, 'part', 1321,
           ['UFC Fight Night', 'UFC PPV Events'],
-          [30, 25] // total 55
+          [30, 25]
         ),
       },
       {
         id: generateId('gb', 16),
         name: 'Bellator',
         logo: '🔔',
-        createdAt: makeDate(340),
-        updatedAt: makeDate(35),
-        onboardedAt: makeDate(35),
+        createdAt: makeDateString(340),
+        updatedAt: makeDateString(35),
+        onboardedAt: makeDateString(35),
         organizations: generateOrganizations(
           'org', 33, 'part', 1376,
           ['Bellator MMA', 'Bellator Champions Series'],
-          [25, 20] // total 45
+          [25, 20]
         ),
       },
     ],
@@ -354,20 +360,20 @@ export const SEED_DATA: SportModel[] = [
     name: 'Snowboarding',
     emoji: '🏂',
     color: '#212121',
-    createdAt: makeDate(380),
-    updatedAt: makeDate(45),
+    createdAt: makeDateString(380),
+    updatedAt: makeDateString(45),
     entities: [
       {
         id: generateId('gb', 17),
         name: 'FIS',
         logo: '🏂',
-        createdAt: makeDate(350),
-        updatedAt: makeDate(38),
-        onboardedAt: makeDate(38),
+        createdAt: makeDateString(350),
+        updatedAt: makeDateString(38),
+        onboardedAt: makeDateString(38),
         organizations: generateOrganizations(
           'org', 35, 'part', 1421,
           ['FIS Snowboard World Cup'],
-          [30] // total 30
+          [30]
         ),
       },
     ],
@@ -377,46 +383,46 @@ export const SEED_DATA: SportModel[] = [
     name: 'Boxing',
     emoji: '🥊',
     color: '#2ED368',
-    createdAt: makeDate(370),
-    updatedAt: makeDate(40),
+    createdAt: makeDateString(370),
+    updatedAt: makeDateString(40),
     entities: [
       {
         id: generateId('gb', 18),
         name: 'WBC',
         logo: '🥊',
-        createdAt: makeDate(340),
-        updatedAt: makeDate(32),
-        onboardedAt: makeDate(32),
+        createdAt: makeDateString(340),
+        updatedAt: makeDateString(32),
+        onboardedAt: makeDateString(32),
         organizations: generateOrganizations(
           'org', 36, 'part', 1451,
           ['WBC World Title', 'WBC Silver'],
-          [20, 15] // total 35
+          [20, 15]
         ),
       },
       {
         id: generateId('gb', 19),
         name: 'WBA',
         logo: '🥊',
-        createdAt: makeDate(330),
-        updatedAt: makeDate(28),
-        onboardedAt: makeDate(28),
+        createdAt: makeDateString(330),
+        updatedAt: makeDateString(28),
+        onboardedAt: makeDateString(28),
         organizations: generateOrganizations(
           'org', 38, 'part', 1486,
           ['WBA World Championship', 'WBA International'],
-          [15, 15] // total 30
+          [15, 15]
         ),
       },
       {
         id: generateId('gb', 20),
         name: 'IBF',
         logo: '🥊',
-        createdAt: makeDate(320),
-        updatedAt: makeDate(25),
-        onboardedAt: makeDate(25),
+        createdAt: makeDateString(320),
+        updatedAt: makeDateString(25),
+        onboardedAt: makeDateString(25),
         organizations: generateOrganizations(
           'org', 40, 'part', 1516,
           ['IBF World Title'],
-          [15] // total 15
+          [15]
         ),
       },
     ],
