@@ -1,4 +1,3 @@
-// sport.resolver.ts
 import { inject } from '@angular/core';
 import { ResolveFn } from '@angular/router';
 import { SportModel } from '../models/sport.model';
@@ -22,7 +21,6 @@ export const sportResolver: ResolveFn<SportModel> = (route) => {
     } as SportModel;
   }
 
-  // Detail route: fetch real sport
   const sport = sportService.getSportById(id);
   if (!sport) {
     throw new Error(`Sport with id ${id} not found`);
