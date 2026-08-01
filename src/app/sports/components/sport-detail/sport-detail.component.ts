@@ -1,8 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, of, switchMap } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, combineLatest, Subject, takeUntil, map } from 'rxjs';
 import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 import { SportsService } from '../../services/sports/sports.service';
 import { SportModel } from '../../models/sport.model';
@@ -21,30 +20,36 @@ import { CustomDialogComponent, CustomDialogData } from '../../../common/compone
   styleUrls: ['./sport-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SportDetailComponent implements OnInit {
+export class SportDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private sportsService = inject(SportsService);
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
   private router = inject(Router);
+  private destroy$ = new Subject<void>();
 
   sport$!: Observable<SportModel | undefined>;
   sportId!: string;
-
   totalCompetitions$!: Observable<number>;
   totalParticipants$!: Observable<number>;
 
   ngOnInit(): void {
-    this.sport$ = this.route.paramMap.pipe(
-      switchMap(params => {
+    this.sportsService.getSport();
+
+    this.sport$ = combineLatest([
+      this.route.paramMap,
+      this.sportsService.sportSubject$
+    ]).pipe(
+      map(([params, sports]) => {
         const id = params.get('sportId');
         if (!id) {
           this.router.navigate(['/sports']);
-          return of(undefined);
+          return undefined;
         }
         this.sportId = id;
-        return this.sportsService.getSportById(id);
-      })
+        return sports.find(sport => sport.id === id);
+      }),
+      takeUntil(this.destroy$)
     );
 
     this.totalCompetitions$ = this.sport$.pipe(
@@ -58,16 +63,24 @@ export class SportDetailComponent implements OnInit {
     );
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  refreshSport(): void {
+    this.sportsService.getSport();
+  }
+
   openEditDialog(sport: SportModel): void {
     const dialogRef = this.dialog.open(SportAddDialogComponent, {
       width: '450px',
       panelClass: 'dark-dialog',
       data: sport,
     });
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
-        this.sportsService.updateSport(sport.id+"", result);
-        this.toast.success(`Sport "${sport.name}" updated successfully!`, 'Updated');
+        this.refreshSport(); // reload updated list from server
       }
     });
   }
@@ -83,45 +96,15 @@ export class SportDetailComponent implements OnInit {
         confirmColor: 'warn',
       } as CustomDialogData,
     });
-    dialogRef.afterClosed().subscribe(confirmed => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(confirmed => {
       if (confirmed) {
-        this.sportsService.deleteSport(sport.id+"");
-        this.toast.success(`Sport "${sport.name}" deleted successfully.`, 'Deleted');
-        this.router.navigate(['/sports']);
-      }
-    });
-  }
-
-  // Entity CRUD handlers
-  onEntityAdded(newEntity: EntityModel): void {
-    if (!this.sportId) return;
-    // this.sportsService.addEntity(this.sportId, newEntity);
-    this.toast.success(`Entity "${newEntity.name}" added successfully.`, 'Added');
-  }
-
-  // Accept 'any' to avoid strict type mismatches; actual value is EntityModel
-  editEntity(entity: any): void {
-    // TODO: implement edit entity dialog (similar to sport edit)
-    this.toast.info('Edit entity feature coming soon.', 'Info');
-  }
-
-  deleteEntity(entity: any): void {
-    if (!this.sportId) return;
-    // entity is the EntityModel
-    const dialogRef = this.dialog.open(CustomDialogComponent, {
-      width: '400px',
-      panelClass: 'dark-dialog',
-      data: {
-        title: 'Delete Entity',
-        message: `Are you sure you want to delete <strong>${entity.name}</strong>? This action cannot be undone.`,
-        confirmText: 'Delete',
-        confirmColor: 'warn',
-      } as CustomDialogData,
-    });
-    dialogRef.afterClosed().subscribe(confirmed => {
-      if (confirmed) {
-        // this.sportsService.deleteEntity(this.sportId, entity.id);
-        this.toast.success(`Entity "${entity.name}" deleted successfully.`, 'Deleted');
+        this.sportsService.deletesSport(sport.id + '').subscribe({
+          next: () => {
+            this.toast.success(`Sport "${sport.name}" deleted successfully.`, 'Deleted');
+            this.router.navigate(['/sports']);
+          },
+          error: () => this.toast.error('Delete failed.', 'Error')
+        });
       }
     });
   }

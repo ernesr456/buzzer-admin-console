@@ -44,7 +44,7 @@ export class SportAddDialogComponent {
     if (this.isEdit && this.data) {
       // Update existing sport
       const updatedSport: SportModel = { ...this.data, name };
-      this.sportsService.updatesSport(this.data.id, updatedSport).subscribe({
+      this.sportsService.updateSport(this.data.id, updatedSport).subscribe({
         next: () => {
           this.loading = false;
           this.toast.success(`Sport "${name}" updated successfully!`, 'Updated');
