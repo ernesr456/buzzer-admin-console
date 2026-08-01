@@ -11,6 +11,10 @@ import { SportAddDialogComponent } from '../sport-add-dialog/sport-add-dialog.co
 import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 import { ToastService } from '../../../common/services/toast/toast.service';
 import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
+import { lastValueFrom } from 'rxjs';
+import { EntityService } from '../../../entities/services/entity.service';
+import { OrganizationService } from '../../../organizations/services/organization.service';
+import { ParticipantService } from '../../../participants/services/participant.service';
 
 @Component({
   selector: 'app-sport-list',
@@ -25,6 +29,9 @@ export class SportListComponent implements OnInit {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   private toast = inject(ToastService);
+  private entityService = inject(EntityService);
+  private organizationService = inject(OrganizationService);
+  private participantService = inject(ParticipantService);
 
   // Search
   private searchSubject = new BehaviorSubject<string>('');
@@ -277,11 +284,19 @@ export class SportListComponent implements OnInit {
           input.value = '';
           return;
         }
-        this.sportsService.addFullSports(sports);
-        this.toast.success(
-          `Imported ${sports.length} sport(s) with all nested entities.`,
-          'Import completed'
-        );
+
+        // Perform hierarchical import: sport -> entity -> organization -> participant
+        try {
+          await this.importHierarchy(sports);
+          this.toast.success(
+            `Imported ${sports.length} sport(s) with nested entities, organizations and participants.`,
+            'Import completed'
+          );
+          this.refreshData();
+        } catch (err) {
+          console.error('Bulk import failed', err);
+          this.toast.error('Bulk import completed with errors. Check console for details.', 'Import finished');
+        }
       } else {
         const flatSports = result.data;
         if (!flatSports.length) {
@@ -305,6 +320,79 @@ export class SportListComponent implements OnInit {
       console.error('Bulk import failed', error);
     } finally {
       input.value = '';
+    }
+  }
+
+  private async importHierarchy(sports: SportModel[]): Promise<void> {
+    for (const sport of sports) {
+      try {
+        const sportPayload: SportModel = {
+          name: sport.name,
+          emoji: sport.emoji,
+          color: sport.color,
+          createdAt: sport.createdAt || new Date(),
+          updatedAt: sport.updatedAt || undefined,
+          id: sport.id
+        } as SportModel;
+
+        const createdSport = await lastValueFrom(this.sportsService.addSport(sportPayload));
+
+        // entities
+        const entities = sport.entities || [];
+        for (const entity of entities) {
+          try {
+            const entityPayload = {
+              name: entity.name,
+              onboardedAt: entity.onboardedAt,
+              createdAt: entity.createdAt || new Date(),
+              updatedAt: entity.updatedAt || undefined,
+              id: entity.id
+            } as any;
+
+            const createdEntity = await lastValueFrom(this.entityService.addEntity(createdSport.id, entityPayload));
+
+            // organizations
+            const orgs = entity.organizations || [];
+            for (const org of orgs) {
+              try {
+                const orgPayload = {
+                  name: org.name,
+                  createdAt: org.createdAt || new Date(),
+                  updatedAt: org.updatedAt || undefined,
+                  id: org.id
+                } as any;
+
+                const createdOrg = await lastValueFrom(this.organizationService.addOrganization(createdEntity.id, orgPayload));
+
+                // participants
+                const parts = org.participants || [];
+                for (const part of parts) {
+                  try {
+                    const partPayload = {
+                      name: part.name,
+                      role: part.role,
+                      organizationId: createdOrg.id,
+                      createdAt: part.createdAt || new Date(),
+                      updatedAt: part.updatedAt || undefined,
+                      id: part.id,
+                    } as any;
+
+                    await lastValueFrom(this.participantService.addParticipant(createdOrg.id, partPayload));
+                  } catch (pErr) {
+                    console.error('Failed to import participant', part, pErr);
+                  }
+                }
+              } catch (oErr) {
+                console.error('Failed to import organization', org, oErr);
+              }
+            }
+          } catch (eErr) {
+            console.error('Failed to import entity', entity, eErr);
+          }
+        }
+      } catch (sErr) {
+        console.error('Failed to import sport', sport, sErr);
+      }
     }
   }
 
