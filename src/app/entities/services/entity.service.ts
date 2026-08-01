@@ -29,7 +29,6 @@ export class EntityService {
   ) {}
   
   addEntity(sportId:string,entity: EntityModel): Observable<EntityModel> {
-    console.log(entity);
     return this.http.post<EntityModel>(`${this.apiUrl}${sportId}`,entity, { headers: this.authService.getAuthHeaders() }).pipe(
       tap((newEntity) => {
         const currentEntity = this.entitySubject$.getValue();

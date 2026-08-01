@@ -151,7 +151,6 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   }
 
   navigateToDetail(entity: EntityModel): void {
-    console.log(entity);
     this.router.navigate(['/sports', entity.sportId, entity.id]);
   }
 }
