@@ -1,8 +1,9 @@
+// entity-detail.component.ts
 import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { Observable, map, takeUntil, Subject } from 'rxjs';
+import { Observable, combineLatest, Subject, takeUntil, map, of } from 'rxjs';
 
 import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 import { EntityModel } from '../../model/entity.model';
@@ -27,11 +28,11 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
   private entityService = inject(EntityService);
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
+  private destroy$ = new Subject<void>();
 
   entity$!: Observable<EntityModel | undefined>;
   sportId!: string;
   entityId!: string;
-  private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -39,24 +40,35 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
       this.entityId = params['entityId'];
 
       if (this.sportId && this.entityId) {
-        // this.entity$ = this.entityService.getEntityById(this.sportId, this.entityId).pipe(
-        //   map(entity => {
-        //     if (!entity) {
-        //       this.router.navigate(['/sports', this.sportId]);
-        //       return undefined;
-        //     }
-        //     return entity;
-        //   })
-        // );
+        this.entityService.getEntityBySportId(this.sportId).subscribe({
+          error: () => this.toast.error('Failed to load entities', 'Error')
+        });
       } else {
-        this.entity$ = new Observable(observer => observer.next(undefined));
+        this.router.navigate(['/sports']);
       }
     });
+
+    this.entity$ = combineLatest([
+      this.route.params,
+      this.entityService.entitySubject$
+    ]).pipe(
+      map(([params, entities]) => {
+        const id = params['entityId'];
+        return entities.find(entity => entity.id === id);
+      }),
+      takeUntil(this.destroy$)
+    );
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  refreshEntity(): void {
+    if (this.sportId) {
+      this.entityService.getEntityBySportId(this.sportId).subscribe();
+    }
   }
 
   getTotalParticipants(organizations: OrganizationModel[]): number {
@@ -73,6 +85,7 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((updatedEntity) => {
       if (updatedEntity) {
         this.toast.success(`Entity "${updatedEntity.name}" updated successfully.`, 'Updated');
+        this.refreshEntity();
       }
     });
   }
@@ -89,29 +102,31 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
       } as CustomDialogData,
     });
 
-    dialogRef.afterClosed().subscribe(confirmed => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(confirmed => {
       if (confirmed) {
         this.entityService.deletesEntity(entity).subscribe({
-          next: () =>  this.toast.success(`Entity "${entity.name}" deleted.`, 'Deleted'),
-          error: (err) => this.toast.error('Failed to delete entity', 'Error')
+          next: () => {
+            this.toast.success(`Entity "${entity.name}" deleted.`, 'Deleted');
+            this.router.navigate(['/sports', this.sportId]);
+          },
+          error: () => this.toast.error('Failed to delete entity', 'Error')
         });
-        // this.loadEntities();
       }
     });
   }
 
   onOrganizationAdded(newOrg: OrganizationModel): void {
     this.toast.success(`Organization "${newOrg.name}" added successfully.`, 'Added');
-    this.entityService.refreshEntity(this.sportId, this.entityId);
+    this.refreshEntity();
   }
 
   onOrganizationEdited(updatedOrg: OrganizationModel): void {
     this.toast.success(`Organization "${updatedOrg.name}" updated successfully.`, 'Updated');
-    this.entityService.refreshEntity(this.sportId, this.entityId);
+    this.refreshEntity();
   }
 
   onOrganizationDeleted(orgId: string): void {
     this.toast.success('Organization deleted successfully.', 'Deleted');
-    this.entityService.refreshEntity(this.sportId, this.entityId);
+    this.refreshEntity();
   }
 }

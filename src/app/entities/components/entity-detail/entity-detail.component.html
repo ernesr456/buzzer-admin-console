@@ -1,6 +1,5 @@
 <div class="flex-col space-y-3">
   <app-custom-breadcrumbs />
-
   <ng-container *ngIf="entity$ | async as entity">
     <div *ngIf="!entity" class="flex justify-center items-center h-64">
       <div class="text-gray-400">Loading entity…</div>
@@ -25,8 +24,9 @@
       </div>
 
       <h2 class="font-bold text-white headline-small !text-xl pr-10 flex items-center gap-2">
-        <span>{{ entity.logo }}</span> {{ entity.name }}
+        {{ entity.name }}
       </h2>
+      <span>{{entity.country}}</span>
 
       <div class="flex flex-wrap justify-between w-full items-center gap-x-6 gap-y-2 !text-sm text-[#8b95b0] label-large mt-3">
         <span>
@@ -36,10 +36,6 @@
         <span>
           <span class="text-[#b0b8cc]">Updated:</span>
           {{ entity.updatedAt | date:'MMM d, y, h:mm a' }}
-        </span>
-        <span>
-          <span class="text-[#b0b8cc]">Onboarded:</span>
-          {{ entity.onboardedAt | date:'MMM d, y, h:mm a' }}
         </span>
       </div>
     </div>
@@ -55,13 +51,6 @@
       </div>
     </div>
 
-    <app-organization-table
-      [organizations]="entity.organizations || []"
-      [entityId]="entity.id"
-      [sportId]="sportId"
-      (addOrganization)="onOrganizationAdded($event)"
-      (editOrganization)="onOrganizationEdited($event)"
-      (deleteOrganizationEvent)="onOrganizationDeleted($event)"
-    />
+    <app-organization-table/>
   </ng-container>
 </div>
