@@ -15,6 +15,9 @@ import { lastValueFrom } from 'rxjs';
 import { EntityService } from '../../../entities/services/entity.service';
 import { OrganizationService } from '../../../organizations/services/organization.service';
 import { ParticipantService } from '../../../participants/services/participant.service';
+import { EntityModel } from '../../../entities/model/entity.model';
+import { OrganizationModel } from '../../../organizations/model/organization.model';
+import { ParticipantModel } from '../../../participants/model/participant.model';
 
 @Component({
   selector: 'app-sport-list',
@@ -331,67 +334,75 @@ export class SportListComponent implements OnInit {
           emoji: sport.emoji,
           color: sport.color,
           createdAt: sport.createdAt || new Date(),
-          updatedAt: sport.updatedAt || undefined,
-          id: sport.id
-        } as SportModel;
-
+          updatedAt: sport.updatedAt,
+          id: sport.id,
+          entities: [],
+        };
         const createdSport = await lastValueFrom(this.sportsService.addSport(sportPayload));
-
-        // entities
         const entities = sport.entities || [];
         for (const entity of entities) {
           try {
-            const entityPayload = {
-              name: entity.name,
-              onboardedAt: entity.onboardedAt,
-              createdAt: entity.createdAt || new Date(),
-              updatedAt: entity.updatedAt || undefined,
-              id: entity.id
-            } as any;
+            const entityPayload: EntityModel = {
+                name: entity.name,
+                country: entity.country,
+                onboardedAt: entity.onboardedAt,
+                createdAt: entity.createdAt || new Date(),
+                updatedAt: entity.updatedAt,
+                id: entity.id,
+                sportId: createdSport.id,
+            };
 
-            const createdEntity = await lastValueFrom(this.entityService.addEntity(createdSport.id, entityPayload));
+            const createdEntity = await lastValueFrom(
+                this.entityService.addEntity(createdSport.id, entityPayload)
+            );
 
-            // organizations
             const orgs = entity.organizations || [];
             for (const org of orgs) {
               try {
-                const orgPayload = {
-                  name: org.name,
-                  createdAt: org.createdAt || new Date(),
-                  updatedAt: org.updatedAt || undefined,
-                  id: org.id
-                } as any;
+                const orgPayload: OrganizationModel = {
+                    name: org.name,
+                    type: org.type || 'Association',
+                    crestUrl: org.crestUrl,
+                    country: org.country,
+                    governingBodyId: org.governingBodyId,
+                    onboardedAt: org.onboardedAt,
+                    createdAt: org.createdAt || new Date(),
+                    updatedAt: org.updatedAt || new Date(),
+                    id: org.id,
+                    participants: [],
+                };
 
-                const createdOrg = await lastValueFrom(this.organizationService.addOrganization(createdEntity.id, orgPayload));
-
-                // participants
+                const createdOrg = await lastValueFrom(
+                    this.organizationService.addOrganization(createdEntity.id, orgPayload)
+                );
                 const parts = org.participants || [];
                 for (const part of parts) {
                   try {
-                    const partPayload = {
-                      name: part.name,
-                      role: part.role,
-                      organizationId: createdOrg.id,
-                      createdAt: part.createdAt || new Date(),
-                      updatedAt: part.updatedAt || undefined,
-                      id: part.id,
-                    } as any;
+                    const partPayload: Partial<ParticipantModel> = {
+                        name: part.name,
+                        role: part.role,
+                        createdAt: part.createdAt || new Date(),
+                        updatedAt: part.updatedAt,
+                        id: part.id,
+                    };
 
-                    await lastValueFrom(this.participantService.addParticipant(createdOrg.id, partPayload));
+                    await lastValueFrom(
+                        this.participantService.addParticipant(createdOrg.id, partPayload)
+                    );
                   } catch (pErr) {
-                    console.error('Failed to import participant', part, pErr);
+                      console.error('Failed to import participant', part, pErr);
                   }
                 }
               } catch (oErr) {
-                console.error('Failed to import organization', org, oErr);
+                  console.error('Failed to import organization', org, oErr);
               }
             }
           } catch (eErr) {
-            console.error('Failed to import entity', entity, eErr);
+              console.error('Failed to import entity', entity, eErr);
           }
         }
       } catch (sErr) {
-        console.error('Failed to import sport', sport, sErr);
+          console.error('Failed to import sport', sport, sErr);
       }
     }
   }
