@@ -56,6 +56,23 @@ export class EntityService {
       })
     );
   }
+  getEntityById(sportId: string): Observable<EntityModel[]> {
+    return this.http.get<EntityModel[]>(`${this.apiUrl}${sportId}`, {
+      headers: this.authService.getAuthHeaders()
+    }).pipe(
+      tap((entities) => this.entitySubject$.next(entities)),
+      catchError((err) => {
+        if (err.status === 401) {
+          this.authService.logout();
+        } else {
+          console.error('Error loading entities', err);
+          this.entitySubject$.next([]);
+        }
+        // Re-throw or return empty array to keep the observable alive
+        return of([]);
+      })
+    );
+  }
 
   updatesEntity(id:string,sportId: string, updateEntity: EntityModel): Observable<EntityModel> {
     return this.http.patch<EntityModel>(`${this.apiUrl}${sportId}`, updateEntity, {
@@ -70,13 +87,13 @@ export class EntityService {
     );
   }
 
-  deletesEntity(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, {
+  deletesEntity(deleteEntity: EntityModel): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${deleteEntity.sportId}`, {
       headers: this.authService.getAuthHeaders()
     }).pipe(
       tap(() => {
         const current = this.entitySubject$.getValue();
-        const filtered = current.filter(s => s.id !== id);
+        const filtered = current.filter(s => s.id !== deleteEntity.id);
         this.entitySubject$.next(filtered);
       }),
       catchError(this.authService.handleError.bind(this.authService))
@@ -114,12 +131,6 @@ export class EntityService {
       this.entitiesMap.set(sportId, new BehaviorSubject<EntityModel[]>([]));
     }
     return this.entitiesMap.get(sportId)!.asObservable();
-  }
-
-  getEntityById(sportId: string, entityId: string): Observable<EntityModel | undefined> {
-    return this.getEntitiesForSport(sportId).pipe(
-      map(entities => entities.find(e => e.id === entityId))
-    );
   }
 
   refreshEntity(sportId: string, entityId: string): void {
