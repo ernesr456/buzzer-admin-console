@@ -6,7 +6,7 @@ import { map, catchError, take } from 'rxjs/operators';
 import { OrganizationModel } from '../model/organization.model';
 import {OrganizationService} from '../services/organization.service'
 
-export const entityResolver: ResolveFn<OrganizationModel | undefined> = (
+export const organizationResolver: ResolveFn<OrganizationModel | undefined> = (
   route: ActivatedRouteSnapshot
 ): Observable<OrganizationModel | undefined> => {
   const organizationService = inject(OrganizationService);
