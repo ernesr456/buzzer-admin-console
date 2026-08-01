@@ -434,37 +434,13 @@ export class SportListComponent implements OnInit {
 
       for (const sport of sports) {
         try {
-          const entitiesResp: any = await lastValueFrom(this.entityService.getEntityBySportId(sport.id));
-          const entities = Array.isArray(entitiesResp) ? entitiesResp : (entitiesResp ? [entitiesResp] : []);
-          let sportOrgCount = 0;
-          let sportParticipantCount = 0;
-
-          for (const ent of entities) {
-            try {
-              const orgsResp: any = await lastValueFrom(this.organizationService.getOrganizationByEntityId(ent.id));
-              const orgs = Array.isArray(orgsResp) ? orgsResp : (orgsResp ? [orgsResp] : []);
-              sportOrgCount += orgs.length;
-
-              for (const org of orgs) {
-                try {
-                  const partsResp: any = await lastValueFrom(this.participantService.getParticipantsByOrganizationId(org.id));
-                  const parts = Array.isArray(partsResp) ? partsResp : (partsResp ? [partsResp] : []);
-                  sportParticipantCount += parts.length;
-                } catch (pErr) {
-                  console.error('Error fetching participants for org', org.id, pErr);
-                }
-              }
-            } catch (oErr) {
-              console.error('Error fetching organizations for entity', ent.id, oErr);
-            }
-          }
-
-          counts[sport.id] = { entities: entities.length, organizations: sportOrgCount, participants: sportParticipantCount };
-          totalEntities += entities.length;
-          totalOrgs += sportOrgCount;
-          totalParticipants += sportParticipantCount;
+          const c = await this.sportsService.computeAndCacheCounts(sport.id);
+          counts[sport.id] = { entities: c.entities, organizations: c.organizations, participants: c.participants };
+          totalEntities += c.entities;
+          totalOrgs += c.organizations;
+          totalParticipants += c.participants;
         } catch (sErr) {
-          console.error('Error fetching entities for sport', sport.id, sErr);
+          console.error('Error computing counts for sport', sport.id, sErr);
           counts[sport.id] = { entities: 0, organizations: 0, participants: 0 };
         }
       }

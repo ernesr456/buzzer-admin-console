@@ -1,10 +1,20 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of, lastValueFrom } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { SportModel } from '../../models/sport.model';
 import { environment } from '../../../../environment/environment';
 import {AuthService} from '../../../core/services/auth/auth.service'
+import { EntityService } from '../../../entities/services/entity.service';
+import { OrganizationService } from '../../../organizations/services/organization.service';
+import { ParticipantService } from '../../../participants/services/participant.service';
+
+interface Counts {
+  entities: number;
+  organizations: number;
+  participants: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SportsService {
   private apiUrl = environment.apiBaseUrl + '/sports';
@@ -22,16 +32,21 @@ export class SportsService {
   );
   
   totalSports$ = this.rawSportsSubject.pipe(map(list => list.length));
-  totalEntities$ = this.rawSportsSubject.pipe(map(() => 0));
-  totalOrganisations$ = this.rawSportsSubject.pipe(map(() => 0));
-  totalParticipants$ = this.rawSportsSubject.pipe(map(() => 0));
+
+  // counts cache
+  private countsCache = new Map<string, Counts>();
+  private countsSubject = new BehaviorSubject<Record<string, Counts>>({});
+  counts$ = this.countsSubject.asObservable();
 
   private sportsMap = new Map<string, BehaviorSubject<SportModel>>();
   sportSubject$ = new BehaviorSubject<SportModel[]>([]);
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private entityService: EntityService,
+    private organizationService: OrganizationService,
+    private participantService: ParticipantService
   ) {
     this.loadSports().subscribe();
   }
@@ -142,6 +157,55 @@ export class SportsService {
       catchError(() => of(undefined))
     );
   }
+
+  /**
+   * Compute counts for a sport and cache the result.
+   */
+  async computeAndCacheCounts(sportId: string): Promise<Counts> {
+    // Return cached if present
+    if (this.countsCache.has(sportId)) return this.countsCache.get(sportId)!;
+
+    const counts: Counts = { entities: 0, organizations: 0, participants: 0 };
+
+    try {
+      const entitiesResp: any = await lastValueFrom(this.entityService.getEntityBySportId(sportId));
+      const entities = Array.isArray(entitiesResp) ? entitiesResp : (entitiesResp ? [entitiesResp] : []);
+      counts.entities = entities.length;
+
+      for (const ent of entities) {
+        try {
+          const orgsResp: any = await lastValueFrom(this.organizationService.getOrganizationByEntityId(ent.id));
+          const orgs = Array.isArray(orgsResp) ? orgsResp : (orgsResp ? [orgsResp] : []);
+          counts.organizations += orgs.length;
+
+          for (const org of orgs) {
+            try {
+              const partsResp: any = await lastValueFrom(this.participantService.getParticipantsByOrganizationId(org.id));
+              const parts = Array.isArray(partsResp) ? partsResp : (partsResp ? [partsResp] : []);
+              counts.participants += parts.length;
+            } catch (pErr) {
+              console.error('Failed to get participants for org', org.id, pErr);
+            }
+          }
+        } catch (oErr) {
+          console.error('Failed to get organizations for entity', ent.id, oErr);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to get entities for sport', sportId, e);
+    }
+
+    // cache and emit
+    this.countsCache.set(sportId, counts);
+    const snapshot = this.countsSubject.value;
+    this.countsSubject.next({ ...snapshot, [sportId]: counts });
+    return counts;
+  }
+
+  getCountsForSport$(sportId: string) {
+    return this.counts$.pipe(map(m => m[sportId]));
+  }
+
   addFullSports(newSports: SportModel[]): void {
     const current = this.rawSportsSubject.value;
     const merged: SportModel[] = [...current];

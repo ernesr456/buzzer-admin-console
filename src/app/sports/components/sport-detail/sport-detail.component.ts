@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, combineLatest, Subject, takeUntil, map } from 'rxjs';
+import { Observable, combineLatest, Subject } from 'rxjs';
+import { map, takeUntil, switchMap } from 'rxjs/operators';
 import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 import { SportsService } from '../../services/sports/sports.service';
 import { SportModel } from '../../models/sport.model';
@@ -51,14 +52,18 @@ export class SportDetailComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     );
 
-    this.totalCompetitions$ = this.sport$.pipe(
-      map(sport => sport?.entities?.reduce((sum, gb) => sum + (gb?.organizations?.length ?? 0), 0) ?? 0)
+    // Prefer cached counts from SportsService when available
+    const counts$ = this.route.paramMap.pipe(
+      map(pm => pm.get('sportId') || ''),
+      switchMap(id => this.sportsService.getCountsForSport$(id))
     );
 
-    this.totalParticipants$ = this.sport$.pipe(
-      map(sport => sport?.entities?.reduce((sum, gb) => 
-        sum + (gb?.organizations ?? []).reduce((s, org) => s + (org?.participants?.length ?? 0), 0), 0) ?? 0
-      )
+    this.totalCompetitions$ = counts$.pipe(
+      map(c => c?.organizations ?? 0)
+    );
+
+    this.totalParticipants$ = counts$.pipe(
+      map(c => c?.participants ?? 0)
     );
   }
 
