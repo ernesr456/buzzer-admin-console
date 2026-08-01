@@ -141,8 +141,10 @@ export class EntityTableComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.entityService.deleteEntity(this.sportId, entity.id);
-        this.toast.success(`Entity "${entity.name}" deleted.`, 'Deleted');
+        this.entityService.deletesEntity(entity).subscribe({
+          next: () =>  this.toast.success(`Entity "${entity.name}" deleted.`, 'Deleted'),
+          error: (err) => this.toast.error('Failed to delete entity', 'Error')
+        });
         this.loadEntities(); // refresh
       }
     });
