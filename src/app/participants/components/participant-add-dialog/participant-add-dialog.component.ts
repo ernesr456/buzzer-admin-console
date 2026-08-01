@@ -62,6 +62,7 @@ export class ParticipantAddDialogComponent {
       this.participantService.addParticipant(this.orgId, {
         name: name!,
         role: role!,
+        organisationId:this.orgId
       }).subscribe({
         next: (res) => this.dialogRef.close(res),
         error: () => this.dialogRef.close(undefined)

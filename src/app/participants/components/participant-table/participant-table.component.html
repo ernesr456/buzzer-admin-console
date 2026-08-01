@@ -1,15 +1,28 @@
-<div class="flex flex-wrap justify-between">
-  <h2 class="text-xl self-center">Participants</h2>
+<!-- Search and Add Bar -->
+<div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+  <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+    <span class="material-symbols-outlined text-white/50">search</span>
+    <input
+      type="text"
+      placeholder="Search participants..."
+      (input)="onSearch($any($event.target).value)"
+      class="w-full bg-[#131515] border border-white/10 rounded-md px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+    />
+  </div>
   <button
     (click)="openAddDialog()"
-    class="flex items-center border border-white/10 gap-2 px-4 py-2 font-medium rounded-md hover:opacity-90 transition w-full md:w-fit !font-[10px]"
+    class="flex items-center border border-white/10 gap-2 px-4 py-2 font-medium rounded-md hover:opacity-90 transition w-full md:w-fit"
   >
-    <span class="material-symbols-outlined">Add</span>
+    <span class="material-symbols-outlined">add</span>
     Add Participant
   </button>
 </div>
 
-<div class="overflow-x-auto">
+<div *ngIf="loading$ | async" class="flex justify-center py-8">
+  <span class="material-symbols-outlined animate-spin text-[#FFB414] text-4xl">progress_activity</span>
+</div>
+
+<div class="overflow-x-auto" *ngIf="!(loading$ | async)">
   <table class="w-full text-sm [&_td:nth-child(even)]:bg-white/5 [&_th:nth-child(even)]:bg-white/5">
     <thead class="bg-white/10">
       <tr class="border-b border-white/5">
@@ -18,30 +31,13 @@
       </tr>
     </thead>
     <tbody>
-      <ng-container *ngIf="participants.length > 0; else emptyState">
+      <ng-container *ngIf="(filteredparticipant$ | async) as participants; else emptyState">
         <tr
           *ngFor="let participant of participants"
           class="border-b border-white/5 last:border-0 hover:bg-white/10 transition"
         >
           <td class="py-3 px-4">
-            <div class="flex items-center gap-3">
-              <!-- Avatar (rounded) -->
-              <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-[#2a2a2a] flex items-center justify-center">
-                <ng-container *ngIf="participant.logo; else initials">
-                  <img
-                    [src]="participant.logo"
-                    alt="{{ participant.name }}"
-                    class="w-full h-full object-cover"
-                  />
-                </ng-container>
-                <ng-template #initials>
-                  <span class="text-xs font-medium text-white/80">
-                    {{ participant.name.charAt(0).toUpperCase() }}
-                  </span>
-                </ng-template>
-              </div>
-              <span class="text-white font-medium">{{ participant.name }}</span>
-            </div>
+            <span class="text-white font-medium">{{ participant.name }}</span>
           </td>
           <td class="py-3 px-4">
             <button

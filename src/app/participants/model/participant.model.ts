@@ -1,9 +1,8 @@
 export interface ParticipantModel {
   id: string;
-  organizationId?: string;
+  organisationId: string;
   name: string;
-  role?: string;
-  logo?: string;
-  createdAt?: Date;
+  role: string;
+  createdAt: Date;
   updatedAt?: Date;
 }
