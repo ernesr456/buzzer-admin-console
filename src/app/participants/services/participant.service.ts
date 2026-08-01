@@ -17,7 +17,7 @@ export class ParticipantService {
   ) {}
 
   createParticipant(organizationId: string, participant: Partial<ParticipantModel>): Observable<ParticipantModel> {
-    return this.http.post<ParticipantModel>(`${this.apiUrl}?organisationId=${organizationId}`, participant, { headers: this.authService.getAuthHeaders() }).pipe(
+    return this.http.post<ParticipantModel>(`${this.apiUrl}?organizationId=${organizationId}`, participant, { headers: this.authService.getAuthHeaders() }).pipe(
       tap((newParticipant) => {
         const current = this.participantSubject$.getValue();
         this.participantSubject$.next([...current, newParticipant]);
@@ -27,7 +27,7 @@ export class ParticipantService {
   }
 
   getParticipantsByOrganizationId(organizationId: string): Observable<ParticipantModel[]> {
-    return this.http.get<ParticipantModel[]>(`${this.apiUrl}?organisationId=${organizationId}`, {
+    return this.http.get<ParticipantModel[]>(`${this.apiUrl}?organizationId=${organizationId}`, {
       headers: this.authService.getAuthHeaders()
     }).pipe(
       tap((participants) => this.participantSubject$.next(participants)),
