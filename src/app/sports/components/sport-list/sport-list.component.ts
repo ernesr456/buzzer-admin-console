@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { BehaviorSubject, combineLatest, of } from 'rxjs';
+import { BehaviorSubject, combineLatest, of, take } from 'rxjs';
 import { map, catchError, finalize } from 'rxjs/operators';
 import { SportsService } from '../../services/sports/sports.service';
 import { SportModel } from '../../models/sport.model';
@@ -69,18 +69,31 @@ export class SportListComponent implements OnInit {
   // Statistics derived from the same data stream
   totalSports$ = this.sportsData$.pipe(map(s => s.length));
 
+  // Counts
+  countsMap$ = new BehaviorSubject<Record<string, { entities: number; organizations: number; participants: number }>>({});
+  totalEntities$ = new BehaviorSubject<number>(0);
+  totalOrganisations$ = new BehaviorSubject<number>(0);
+  totalParticipants$ = new BehaviorSubject<number>(0);
+
   ngOnInit(): void {
     this.loadingSubject.next(true);
 
     this.sportsService.loadSports().pipe(
-      finalize(() => this.loadingSubject.next(false))
+      finalize(() => {
+        // compute counts after sports loaded
+        this.computeAllCounts().catch(() => {});
+        this.loadingSubject.next(false);
+      })
     ).subscribe();
   }
 
   private refreshData(): void {
     this.loadingSubject.next(false);
     this.sportsService.loadSports().pipe(
-      finalize(() => this.loadingSubject.next(false))
+      finalize(() => {
+        this.computeAllCounts().catch(() => {});
+        this.loadingSubject.next(false);
+      })
     ).subscribe({
       error: (err) => {
         console.error('Refresh failed', err);
@@ -409,5 +422,59 @@ export class SportListComponent implements OnInit {
 
   trackByFn(index: number, sport: SportModel): string {
     return sport.id;
+  }
+
+  private async computeAllCounts(): Promise<void> {
+    try {
+      const sports = await lastValueFrom(this.sportsService.sports$.pipe(take(1)));
+      const counts: Record<string, { entities: number; organizations: number; participants: number }> = {};
+      let totalEntities = 0;
+      let totalOrgs = 0;
+      let totalParticipants = 0;
+
+      for (const sport of sports) {
+        try {
+          const entitiesResp: any = await lastValueFrom(this.entityService.getEntityBySportId(sport.id));
+          const entities = Array.isArray(entitiesResp) ? entitiesResp : (entitiesResp ? [entitiesResp] : []);
+          let sportOrgCount = 0;
+          let sportParticipantCount = 0;
+
+          for (const ent of entities) {
+            try {
+              const orgsResp: any = await lastValueFrom(this.organizationService.getOrganizationByEntityId(ent.id));
+              const orgs = Array.isArray(orgsResp) ? orgsResp : (orgsResp ? [orgsResp] : []);
+              sportOrgCount += orgs.length;
+
+              for (const org of orgs) {
+                try {
+                  const partsResp: any = await lastValueFrom(this.participantService.getParticipantsByOrganizationId(org.id));
+                  const parts = Array.isArray(partsResp) ? partsResp : (partsResp ? [partsResp] : []);
+                  sportParticipantCount += parts.length;
+                } catch (pErr) {
+                  console.error('Error fetching participants for org', org.id, pErr);
+                }
+              }
+            } catch (oErr) {
+              console.error('Error fetching organizations for entity', ent.id, oErr);
+            }
+          }
+
+          counts[sport.id] = { entities: entities.length, organizations: sportOrgCount, participants: sportParticipantCount };
+          totalEntities += entities.length;
+          totalOrgs += sportOrgCount;
+          totalParticipants += sportParticipantCount;
+        } catch (sErr) {
+          console.error('Error fetching entities for sport', sport.id, sErr);
+          counts[sport.id] = { entities: 0, organizations: 0, participants: 0 };
+        }
+      }
+
+      this.countsMap$.next(counts);
+      this.totalEntities$.next(totalEntities);
+      this.totalOrganisations$.next(totalOrgs);
+      this.totalParticipants$.next(totalParticipants);
+    } catch (err) {
+      console.error('Failed to compute counts', err);
+    }
   }
 }

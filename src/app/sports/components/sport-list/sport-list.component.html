@@ -7,19 +7,19 @@
   <!-- Statistics Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div class="p-4 rounded-lg text-center border border-white/10">
-      <p class="!text-[24px] font-light font-poppins">0</p>
+      <p class="!text-[24px] font-light font-poppins">{{ totalSports$ | async }}</p>
       <p class="uppercase text-[10px] tracking-wider text-white/60">Sports</p>
     </div>
     <div class="p-4 rounded-lg text-center border border-white/10">
-      <p class="!text-[24px] font-light font-poppins">0</p>
+      <p class="!text-[24px] font-light font-poppins">{{ totalEntities$ | async }}</p>
       <p class="uppercase text-[10px] tracking-wider text-white/60">Main Entities</p>
     </div>
     <div class="p-4 rounded-lg text-center border border-white/10">
-      <p class="!text-[24px] font-light font-poppins">0</p>
+      <p class="!text-[24px] font-light font-poppins">{{ totalOrganisations$ | async }}</p>
       <p class="uppercase text-[10px] tracking-wider text-white/60">Organizations</p>
     </div>
     <div class="p-4 rounded-lg text-center border border-white/10">
-      <p class="!text-[24px] font-light font-poppins">0</p>
+      <p class="!text-[24px] font-light font-poppins">{{ totalParticipants$ | async }}</p>
       <p class="uppercase text-[10px] tracking-wider text-white/60">Participants</p>
     </div>
   </div>
@@ -89,6 +89,7 @@
     <!-- Data loaded -->
     <ng-container *ngIf="!(loading$ | async)">
       <ng-container *ngIf="filteredSports$ | async as sports">
+        <ng-container *ngIf="countsMap$ | async as counts">
         <table *ngIf="sports.length > 0" class="w-full text-sm [&_td:nth-child(even)]:bg-white/5 [&_th:nth-child(even)]:bg-white/5">
           <thead class="bg-white/10">
             <tr class="border-b border-white/5">
@@ -107,13 +108,13 @@
             >
               <td class="py-3 px-4">{{sport.emoji}} {{sport.name}}</td>
               <td class="py-3 px-4">
-                0
+                {{ counts[sport.id]?.entities ?? 0 }}
               </td>
               <td class="py-3 px-4">
-                0
+                {{ counts[sport.id]?.organizations ?? 0 }}
               </td>
               <td class="py-3 px-4">
-                0
+                {{ counts[sport.id]?.participants ?? 0 }}
               </td>
               <td class="py-3 px-4">
                 <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
@@ -136,6 +137,7 @@
             </tr>
           </tbody>
         </table>
+        </ng-container>
 
         <!-- Empty state -->
         <div *ngIf="sports.length === 0" class="py-12 text-center text-white/50">
