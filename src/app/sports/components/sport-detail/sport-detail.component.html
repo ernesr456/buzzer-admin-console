@@ -52,6 +52,20 @@
       </div>
 
       <div class="px-5 py-5 sm:px-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <div class="p-4 rounded-lg text-center border border-white/10">
+            <p class="!text-[24px] font-light font-poppins">{{ totalEntities$ | async }}</p>
+            <p class="uppercase text-[10px] tracking-wider text-white/60">Entities</p>
+          </div>
+          <div class="p-4 rounded-lg text-center border border-white/10">
+            <p class="!text-[24px] font-light font-poppins">{{ totalCompetitions$ | async }}</p>
+            <p class="uppercase text-[10px] tracking-wider text-white/60">Organizations</p>
+          </div>
+          <div class="p-4 rounded-lg text-center border border-white/10">
+            <p class="!text-[24px] font-light font-poppins">{{ totalParticipants$ | async }}</p>
+            <p class="uppercase text-[10px] tracking-wider text-white/60">Participants</p>
+          </div>
+        </div>
          <app-entity-table/>
       </div>
     </div>

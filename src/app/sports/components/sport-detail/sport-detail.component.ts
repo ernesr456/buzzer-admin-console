@@ -32,6 +32,7 @@ export class SportDetailComponent implements OnInit, OnDestroy {
   sportId!: string;
   totalCompetitions$!: Observable<number>;
   totalParticipants$!: Observable<number>;
+  totalEntities$!: Observable<number>;
 
   ngOnInit(): void {
     this.sportsService.getSport();
@@ -56,6 +57,10 @@ export class SportDetailComponent implements OnInit, OnDestroy {
     const counts$ = this.route.paramMap.pipe(
       map(pm => pm.get('sportId') || ''),
       switchMap(id => this.sportsService.getCountsForSport$(id))
+    );
+
+    this.totalEntities$ = counts$.pipe(
+      map(c => c?.entities ?? 0)
     );
 
     this.totalCompetitions$ = counts$.pipe(
