@@ -75,6 +75,10 @@ export class SportListComponent implements OnInit {
   totalOrganisations$ = new BehaviorSubject<number>(0);
   totalParticipants$ = new BehaviorSubject<number>(0);
 
+  // Bulk import loading state
+  private importLoadingSubject = new BehaviorSubject<boolean>(false);
+  importLoading$ = this.importLoadingSubject.asObservable();
+
   ngOnInit(): void {
     this.loadingSubject.next(true);
 
@@ -289,6 +293,9 @@ export class SportListComponent implements OnInit {
       return;
     }
 
+    // set loading
+    this.importLoadingSubject.next(true);
+
     try {
       const content = await file.text();
       const result = this.parseBulkImportData(content);
@@ -330,12 +337,16 @@ export class SportListComponent implements OnInit {
           `Imported ${flatSports.length} sport(s).`,
           'Import completed'
         );
+        // optionally refresh list if needed
+        this.refreshData();
       }
     } catch (error) {
       this.toast.error('Unable to read the selected file. Please try again.', 'Import failed');
       console.error('Bulk import failed', error);
     } finally {
       input.value = '';
+      // clear loading
+      this.importLoadingSubject.next(false);
     }
   }
 

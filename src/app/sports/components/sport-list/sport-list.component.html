@@ -48,10 +48,12 @@
       <button
         type="button"
         (click)="bulkImportInput.click()"
+        [disabled]="importLoading$ | async"
         class="flex items-center border border-[#FFB414]/40 gap-2 px-4 py-2 font-medium font-[10px] rounded-md hover:bg-[#FFB414]/10 transition w-full sm:w-fit"
       >
-        <span class="material-symbols-outlined text-xl">upload_file</span>
-        Bulk Import
+        <span *ngIf="!(importLoading$ | async)" class="material-symbols-outlined text-xl">upload_file</span>
+        <span *ngIf="importLoading$ | async" class="material-symbols-outlined text-xl animate-spin">autorenew</span>
+        <span>{{ (importLoading$ | async) ? 'Importing...' : 'Bulk Import' }}</span>
       </button>
       <button
         type="button"
