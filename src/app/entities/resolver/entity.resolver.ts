@@ -12,21 +12,14 @@ export const entityResolver: ResolveFn<EntityModel | undefined> = (
 ): Observable<EntityModel | undefined> => {
   const entityService = inject(EntityService);
   const router = inject(Router);
-  const sportId = route.paramMap.get('sportId');
   const entityId = route.paramMap.get('entityId');
-  if (!sportId || !entityId) {
+  if (!entityId) {
     router.navigate(['/sports']);
     return of(undefined);
   }
-    console.log(entityId)
-
-  return entityService.getEntityById(sportId,entityId).pipe(
+  return entityService.getEntityById(entityId).pipe(
     take(1),
-    map(entities => {
-      console.log(entities);
-
-      const entity = entities?.[0];
-      console.log(entity);
+    map(entity => {
       if (!entity) {
         router.navigate(['/sports']);
         return undefined;
