@@ -70,7 +70,7 @@ export class SportListComponent implements OnInit {
   totalSports$ = this.sportsData$.pipe(map(s => s.length));
 
   // Counts
-  countsMap$ = new BehaviorSubject<Record<string, { entities: number; organizations: number; participants: number }>>({});
+  countsMap$ = new BehaviorSubject<Partial<Record<string, { entities: number; organizations: number; participants: number }>>>({});
   totalEntities$ = new BehaviorSubject<number>(0);
   totalOrganisations$ = new BehaviorSubject<number>(0);
   totalParticipants$ = new BehaviorSubject<number>(0);
