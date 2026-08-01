@@ -12,7 +12,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { BehaviorSubject, Subject, takeUntil } from 'rxjs';
 
 import { OrganizationModel } from '../../model/organization.model';
 import { OrganizationService } from '../../services/organization.service';
@@ -48,6 +48,10 @@ export class OrganizationTableComponent implements OnInit, OnDestroy {
 
   organizations: OrganizationModel[] = [];
   isLoading = false;
+
+    // Search
+    private searchSubject = new BehaviorSubject<string>('');
+    searchQuery$ = this.searchSubject.asObservable();
 
   get tableRows() {
     return this.organizations
@@ -173,5 +177,9 @@ export class OrganizationTableComponent implements OnInit, OnDestroy {
     if (!sportId || !entityId) return;
     this.router.navigate(['/sports', sportId, entityId, organization.id]);
     this.viewOrganization.emit(organization.id);
+  }
+
+  onSearch(query: string): void {
+    this.searchSubject.next(query);
   }
 }
