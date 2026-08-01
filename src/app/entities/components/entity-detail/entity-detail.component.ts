@@ -39,15 +39,15 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
       this.entityId = params['entityId'];
 
       if (this.sportId && this.entityId) {
-        this.entity$ = this.entityService.getEntityById(this.sportId, this.entityId).pipe(
-          map(entity => {
-            if (!entity) {
-              this.router.navigate(['/sports', this.sportId]);
-              return undefined;
-            }
-            return entity;
-          })
-        );
+        // this.entity$ = this.entityService.getEntityById(this.sportId, this.entityId).pipe(
+        //   map(entity => {
+        //     if (!entity) {
+        //       this.router.navigate(['/sports', this.sportId]);
+        //       return undefined;
+        //     }
+        //     return entity;
+        //   })
+        // );
       } else {
         this.entity$ = new Observable(observer => observer.next(undefined));
       }
@@ -82,18 +82,20 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
       width: '400px',
       panelClass: 'dark-dialog',
       data: {
-        title: 'Delete Governing Body',
+        title: 'Delete Entity',
         message: `Are you sure you want to delete <strong>${entity.name}</strong>? This action cannot be undone.`,
         confirmText: 'Delete',
         confirmColor: 'warn',
       } as CustomDialogData,
     });
 
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((confirmed) => {
+    dialogRef.afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.entityService.deleteEntity(this.sportId, entity.id);
-        this.toast.success(`Entity "${entity.name}" deleted successfully.`, 'Deleted');
-        this.router.navigate(['/sports', this.sportId]);
+        this.entityService.deletesEntity(entity).subscribe({
+          next: () =>  this.toast.success(`Entity "${entity.name}" deleted.`, 'Deleted'),
+          error: (err) => this.toast.error('Failed to delete entity', 'Error')
+        });
+        // this.loadEntities();
       }
     });
   }
