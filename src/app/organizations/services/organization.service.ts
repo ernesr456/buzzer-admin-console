@@ -28,7 +28,7 @@ export class OrganizationService {
   }
   
   getOrganizationByEntityId(entityId: string): Observable<OrganizationModel[]> {
-    return this.http.get<OrganizationModel[]>(`${this.apiUrl}?organisationId=${entityId}`, {
+    return this.http.get<OrganizationModel[]>(`${this.apiUrl}?governingBodyId=${entityId}`, {
       headers: this.authService.getAuthHeaders()
     }).pipe(
       tap((entities) => this.organizationSubject$.next(entities)),
