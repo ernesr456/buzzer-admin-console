@@ -22,7 +22,9 @@ export class SportAddDialogComponent {
   private toast = inject(ToastService);
 
   sportForm = this.fb.group({
-    name: [this.data?.name ?? '', [Validators.required, Validators.minLength(2)]]
+    name: [this.data?.name ?? '', [Validators.required, Validators.minLength(2)]],
+    emoji: [this.data?.emoji ?? '', [Validators.required, Validators.minLength(2)]],
+    color: [this.data?.color ?? '', [Validators.required, Validators.minLength(2)]]
   });
 
   isEdit = !!this.data;

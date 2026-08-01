@@ -20,9 +20,7 @@ export class SportsService {
       }))
     )
   );
-
   
-
   totalSports$ = this.rawSportsSubject.pipe(map(list => list.length));
   totalEntities$ = this.rawSportsSubject.pipe(map(() => 0));
   totalOrganisations$ = this.rawSportsSubject.pipe(map(() => 0));
@@ -107,6 +105,8 @@ export class SportsService {
   private normalizeSport(sport: any): SportModel {
     return {
       id: sport.id,
+      emoji: sport.emoji,
+      color: sport.color,
       name: sport.name,
       createdAt: new Date(sport.createdAt),
       updatedAt: sport.updatedAt ? new Date(sport.updatedAt) : undefined,
@@ -150,6 +150,8 @@ export class SportsService {
       const newSport: SportModel = {
         id: sport.id,
         name: sport.name,
+        emoji: sport.emoji,
+        color: sport.color,
         createdAt: sport.createdAt || new Date(),
         updatedAt: sport.updatedAt || new Date(),
         entities: []

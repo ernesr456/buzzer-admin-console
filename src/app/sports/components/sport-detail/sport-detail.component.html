@@ -20,6 +20,10 @@
         </button>
       </div>
 
+      <h2 class="font-bold text-white headline-small !text-xl l-100 pr-10">
+        <span>{{ sport.emoji }}</span> {{ sport.name }}
+      </h2>
+
       <div class="flex flex-wrap justify-between w-full items-center gap-x-6 gap-y-2 !text-sm text-[#8b95b0] label-large mt-3">
         <div class="grid">
           <span>
@@ -29,6 +33,10 @@
           <span>
             <span class="text-[#b0b8cc]">Updated:</span>
             {{ sport.updatedAt | date:'MMM d, y, a, \'at\' HH:mm' }}
+          </span>
+          <span>
+            <span class="text-[#b0b8cc]">Color:</span>
+            {{sport.color}}
           </span>
         </div>
       </div>

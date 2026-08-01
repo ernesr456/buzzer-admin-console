@@ -5,6 +5,7 @@
 <form [formGroup]="sportForm" (ngSubmit)="submit()">
   <mat-dialog-content class="!p-6">
     <div class="space-y-4">
+      <!-- Name -->
       <div>
         <label for="name" class="block text-sm font-medium text-white/80">Sport Name</label>
         <input
@@ -16,6 +17,36 @@
         />
         @if (f['name'].invalid && f['name'].touched) {
           <p class="text-sm text-[#EC193C] mt-1">Name is required (min 2 characters).</p>
+        }
+      </div>
+
+      <!-- Emoji -->
+      <div>
+        <label for="emoji" class="block text-sm font-medium text-white/80">Emoji</label>
+        <input
+          id="emoji"
+          type="text"
+          formControlName="emoji"
+          placeholder="e.g. ⚽"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+        />
+        @if (f['emoji'].invalid && f['emoji'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Emoji is required (min 2 characters).</p>
+        }
+      </div>
+
+      <!-- Color -->
+      <div>
+        <label for="color" class="block text-sm font-medium text-white/80">Color</label>
+        <input
+          id="color"
+          type="text"
+          formControlName="color"
+          placeholder="e.g. #FFB414"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+        />
+        @if (f['color'].invalid && f['color'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Color is required (min 2 characters).</p>
         }
       </div>
     </div>
