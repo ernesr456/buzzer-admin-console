@@ -53,8 +53,8 @@ export class EntityService {
       })
     );
   }
-  getEntityById(entityId: string): Observable<EntityModel> {
-    return this.http.get<EntityModel>(`${this.apiUrl}/${entityId}`, {
+  getEntityById(sportId: string,entityId: string): Observable<EntityModel> {
+    return this.http.get<EntityModel>(`${this.apiUrl}?sportId=${sportId}/${entityId}`, {
       headers: this.authService.getAuthHeaders()
     }).pipe(
       tap(entity => {
