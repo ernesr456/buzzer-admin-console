@@ -2,12 +2,15 @@ import { Component, OnInit, inject, ChangeDetectionStrategy, OnDestroy } from '@
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, BehaviorSubject, combineLatest, Subject, switchMap, finalize, takeUntil, of, catchError, tap, map } from 'rxjs';
+import { Observable, BehaviorSubject, combineLatest, Subject, finalize, takeUntil, of, catchError, tap, map } from 'rxjs';
 import { EntityModel } from '../../model/entity.model';
 import { EntityService } from '../../services/entity.service';
 import { EntityAddDialogComponent } from '../entity-add-dialog/entity-add-dialog.component';
 import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
 import { ToastService } from '../../../common/services/toast/toast.service';
+import { OrganizationService } from '../../../organizations/services/organization.service';
+import { ParticipantService } from '../../../participants/services/participant.service';
+import { lastValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-entity-table',
@@ -24,12 +27,18 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private destroy$ = new Subject<void>();
+  private organizationService = inject(OrganizationService);
+  private participantService = inject(ParticipantService);
 
   sportId!: string;
 
   // Local source of truth for entities
   private entitiesSubject = new BehaviorSubject<EntityModel[]>([]);
   entities$ = this.entitiesSubject.asObservable();
+
+  // Counts per entity
+  private entityCountsSubject = new BehaviorSubject<Record<string, { organizations: number; participants: number }>>({});
+  entityCounts$ = this.entityCountsSubject.asObservable();
 
   // Search
   private searchSubject = new BehaviorSubject<string>('');
@@ -83,11 +92,12 @@ export class EntityTableComponent implements OnInit, OnDestroy {
           return of([]);
         })
       )
-      .subscribe(entities => {
+      .subscribe(async entities => {
         // If the service returns a single entity, wrap it; otherwise assume array
         const list = Array.isArray(entities) ? entities : (entities ? [entities] : []);
-        // Optionally enrich each entity with computed counts if needed
+        // Update entities and compute counts
         this.entitiesSubject.next(list);
+        this.computeCountsForEntities(list).catch(err => console.error('Failed to compute entity counts', err));
       });
   }
 
@@ -152,5 +162,32 @@ export class EntityTableComponent implements OnInit, OnDestroy {
 
   navigateToDetail(entity: EntityModel): void {
     this.router.navigate(['/sports', entity.sportId, entity.id]);
+  }
+
+  private async computeCountsForEntities(entities: EntityModel[]): Promise<void> {
+    const counts: Record<string, { organizations: number; participants: number }> = {};
+
+    for (const ent of entities) {
+      try {
+        const orgsResp: any = await lastValueFrom(this.organizationService.getOrganizationByEntityId(ent.id));
+        const orgs = Array.isArray(orgsResp) ? orgsResp : (orgsResp ? [orgsResp] : []);
+        let participantCount = 0;
+        for (const org of orgs) {
+          try {
+            const partsResp: any = await lastValueFrom(this.participantService.getParticipantsByOrganizationId(org.id));
+            const parts = Array.isArray(partsResp) ? partsResp : (partsResp ? [partsResp] : []);
+            participantCount += parts.length;
+          } catch (pErr) {
+            console.error('Failed to load participants for org', org.id, pErr);
+          }
+        }
+        counts[ent.id] = { organizations: orgs.length, participants: participantCount };
+      } catch (e) {
+        console.error('Failed to load organizations for entity', ent.id, e);
+        counts[ent.id] = { organizations: 0, participants: 0 };
+      }
+    }
+
+    this.entityCountsSubject.next(counts);
   }
 }

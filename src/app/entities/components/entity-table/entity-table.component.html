@@ -35,6 +35,8 @@
         <tr class="border-b border-white/5">
           <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Main Entities</th>
           <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Country</th>
+          <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Competition</th>
+          <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Participants</th>
           <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Actions</th>
         </tr>
       </thead>
@@ -50,6 +52,8 @@
                   <span class="text-white font-medium">{{ row.name }}</span>
                 </td>
                 <td class="py-3 px-4">{{ row.country || '—' }}</td>
+                <td class="py-3 px-4">{{ (entityCounts$ | async)?.[row.id]?.organizations ?? 0 }}</td>
+                <td class="py-3 px-4">{{ (entityCounts$ | async)?.[row.id]?.participants ?? 0 }}</td>
                 <td class="py-3 px-4">
                   <button
                     (click)="$event.stopPropagation(); openEditDialog(row)"
