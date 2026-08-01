@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { Observable, Subject, switchMap, takeUntil, of } from 'rxjs';
+import { Observable, Subject, takeUntil, combineLatest, map } from 'rxjs';
 import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 import { OrganizationAddDialogComponent, OrganizationDialogData } from '../organization-add-dialog/organization-add-dialog.component';
 import { OrganizationModel } from '../../model/organization.model';
@@ -11,7 +11,7 @@ import { ParticipantTableComponent } from '../../../participants/components/part
 import { ParticipantModel } from '../../../participants/model/participant.model';
 import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
 import { ToastService } from '../../../common/services/toast/toast.service';
-import { ParticipantService } from '../../../participants/services.service';
+import { ParticipantService } from '../../../participants/services/participant.service';
 
 @Component({
   selector: 'app-organization-detail',
@@ -42,33 +42,35 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private toast: ToastService
   ) {
-    this.organization$ = of(undefined);
-    this.participants$ = of([]);
+    this.organization$ = new Observable<OrganizationModel | undefined>();
+    this.participants$ = new Observable<ParticipantModel[]>();
   }
 
   ngOnInit(): void {
-    this.organization$ = this.route.params.pipe(
-      takeUntil(this.destroy$),
-      switchMap(params => {
-        this.sportId = params['sportId'];
-        this.entityId = params['entityId'];
-        this.orgId = params['orgId'];
-        if (this.entityId && this.orgId) {
-          return this.orgService.getOrganizationById(this.entityId, this.orgId).pipe(
-            switchMap(org => {
-              if (!org) {
-                this.toast.error('Organization not found', 'Error');
-                this.router.navigate(['/sports', this.sportId, this.entityId]);
-                return of(undefined);
-              }
-              this.participants$ = this.participantService.getParticipantsForOrganization(this.orgId);
-              return of(org);
-            })
-          );
-        } else {
-          return of(undefined);
-        }
-      })
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      this.sportId = params['sportId'];
+      this.entityId = params['entityId'];
+      this.orgId = params['orgId'];
+
+      if (this.entityId && this.orgId) {
+        this.orgService.getOrganizationByEntityId(this.entityId).subscribe({
+          error: () => this.toast.error('Failed to load organization', 'Error')
+        });
+      } else {
+        this.toast.error('Missing entity or organization ID', 'Error');
+        this.router.navigate(['/sports']);
+      }
+    });
+
+    this.organization$ = combineLatest([
+      this.route.params,
+      this.orgService.organizationSubject$
+    ]).pipe(
+      map(([params, orgs]) => {
+        const orgId = params['orgId'];
+        return orgs.find(org => org.id === orgId);
+      }),
+      takeUntil(this.destroy$)
     );
   }
 
@@ -77,12 +79,14 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private refreshOrganization(): void {
-    this.orgService.refreshOrganization(this.entityId, this.orgId);
+  refreshOrganization(): void {
+    if (this.entityId) {
+      this.orgService.getOrganizationByEntityId(this.entityId).subscribe();
+    }
   }
 
   onImageError(organization: OrganizationModel): void {
-    // handle error if needed
+    organization.logo = 'assets/default-crest.png';
   }
 
   openEditDialog(organization: OrganizationModel): void {
@@ -119,25 +123,17 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(confirmed => {
       if (confirmed) {
-        this.orgService.deleteOrganization(this.entityId, organization.id);
-        this.toast.success(`Organization "${organization.name}" deleted successfully.`, 'Deleted');
-        this.router.navigate(['/sports', this.sportId, this.entityId]);
+        this.orgService.deletesOrganization(organization).subscribe({
+          next: () => {
+            this.toast.success(`Organization "${organization.name}" deleted successfully.`, 'Deleted');
+            this.router.navigate(['/sports', this.sportId, this.entityId]);
+          },
+          error: (err) => {
+            console.error('Delete failed:', err);
+            this.toast.error('Failed to delete organization.', 'Error');
+          }
+        });
       }
     });
-  }
-
-  onParticipantAdded(newParticipant: ParticipantModel): void {
-    this.toast.success(`Participant "${newParticipant.name}" added successfully.`, 'Added');
-    this.refreshOrganization();
-  }
-
-  onParticipantEdited(updatedParticipant: ParticipantModel): void {
-    this.toast.success(`Participant "${updatedParticipant.name}" updated successfully.`, 'Updated');
-    this.refreshOrganization();
-  }
-
-  onParticipantDeleted(participantId: string): void {
-    this.toast.success('Participant deleted successfully.', 'Deleted');
-    this.refreshOrganization();
   }
 }
