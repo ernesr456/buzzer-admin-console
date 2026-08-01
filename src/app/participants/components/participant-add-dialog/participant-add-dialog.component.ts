@@ -1,11 +1,9 @@
-// src/app/participants/components/participant-add-dialog/participant-add-dialog.component.ts
-
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ParticipantModel } from '../../model/participant.model';
-import { ParticipantService } from '../../services.service';
+import { ParticipantService } from '../../services/participant.service';
 
 export interface ParticipantDialogData {
   organizationId: string;
@@ -28,7 +26,7 @@ export class ParticipantAddDialogComponent {
 
   participantForm = this.fb.group({
     name: [this.data.participant?.name ?? '', [Validators.required, Validators.minLength(2)]],
-    logo: [this.data.participant?.logo ?? ''],
+    role: [this.data.participant?.role ?? '', Validators.required],
   });
 
   isEdit = !!this.data.participant;
@@ -44,21 +42,30 @@ export class ParticipantAddDialogComponent {
       return;
     }
 
-    const { name, logo } = this.participantForm.value;
+    const { name, role } = this.participantForm.value;
 
     if (this.isEdit && this.data.participant) {
-      const updated = this.participantService.updateParticipant(
-        this.orgId,
-        this.data.participant.id,
-        { name: name!, logo: logo || undefined }
-      );
-      this.dialogRef.close(updated);
-    } else {
-      const newParticipant = this.participantService.createParticipant(this.orgId, {
+      const updatedParticipant: ParticipantModel = {
+        ...this.data.participant,
         name: name!,
-        logo: logo || undefined,
+        role: role!,
+      };
+      this.participantService.updateParticipant(
+        this.data.organizationId,
+        this.data.participant.id,
+        updatedParticipant
+      ).subscribe({
+        next: (res) => this.dialogRef.close(res),
+        error: () => this.dialogRef.close(undefined)
       });
-      this.dialogRef.close(newParticipant);
+    } else {
+      this.participantService.addParticipant(this.orgId, {
+        name: name!,
+        role: role!,
+      }).subscribe({
+        next: (res) => this.dialogRef.close(res),
+        error: () => this.dialogRef.close(undefined)
+      });
     }
   }
 

@@ -16,7 +16,7 @@ export class ParticipantService {
     private http: HttpClient,
   ) {}
 
-  createParticipant(organizationId: string, participant: Partial<ParticipantModel>): Observable<ParticipantModel> {
+  addParticipant(organizationId: string, participant: Partial<ParticipantModel>): Observable<ParticipantModel> {
     return this.http.post<ParticipantModel>(`${this.apiUrl}?organizationId=${organizationId}`, participant, { headers: this.authService.getAuthHeaders() }).pipe(
       tap((newParticipant) => {
         const current = this.participantSubject$.getValue();
@@ -68,13 +68,13 @@ export class ParticipantService {
     );
   }
 
-  deleteParticipant(organizationId: string, id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, {
+  deleteParticipant(participant:ParticipantModel): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${participant.id}`, {
       headers: this.authService.getAuthHeaders()
     }).pipe(
       tap(() => {
         const current = this.participantSubject$.getValue();
-        const filtered = current.filter(p => p.id !== id);
+        const filtered = current.filter(p => p.id !== participant.id);
         this.participantSubject$.next(filtered);
       }),
       catchError(this.authService.handleError.bind(this.authService))
