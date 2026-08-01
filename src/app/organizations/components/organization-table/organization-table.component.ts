@@ -73,7 +73,6 @@ export class OrganizationTableComponent implements OnInit, OnDestroy {
     this.organizationService.organizationSubject$
       .pipe(takeUntil(this.destroy$))
       .subscribe(orgs => {
-        console.log('Subject emitted:', orgs);
         this.organizations = orgs;
         this.cdr.markForCheck(); // Force view update
       });
@@ -94,7 +93,6 @@ export class OrganizationTableComponent implements OnInit, OnDestroy {
       next: () => {
         this.isLoading = false;
         this.cdr.markForCheck();
-        console.log('Data loaded, isLoading = false');
       },
       error: (err) => {
         console.error('Failed to load organizations:', err);

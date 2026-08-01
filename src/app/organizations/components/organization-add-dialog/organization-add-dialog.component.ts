@@ -74,7 +74,6 @@ export class OrganizationAddDialogComponent {
 
     const { name, type, country } = this.organizationForm.value;
     this.loading = true;
-    console.log(this.loading);
     const manualUrl = this.manualUrlControl.value?.trim() || null;
     if (manualUrl) {
       this.saveOrganization(name!, type!, country!, manualUrl);
