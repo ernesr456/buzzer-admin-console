@@ -86,7 +86,7 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
   }
 
   onImageError(organization: OrganizationModel): void {
-    organization.logo = 'assets/default-crest.png';
+    organization.crestUrl = 'assets/default-crest.png';
   }
 
   openEditDialog(organization: OrganizationModel): void {

@@ -1,23 +1,25 @@
 
 
-<div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+<div class="flex flex-col items-center justify-between gap-4 mb-4">
   <h1 class="text-2xl self-start">Main Organization</h1>
-  <div class="flex items-center gap-2 flex-1 min-w-[200px]">
-    <span class="material-symbols-outlined text-white/50">search</span>
-    <input
-      type="text"
-      placeholder="Search organizations..."
-      (input)="onSearch($any($event.target).value)"
-      class="w-full bg-[#131515] border border-white/10 rounded-md px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
-    />
+  <div class="flex gap-3 flex-wrap items-center w-full">
+    <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+      <span class="material-symbols-outlined text-white/50">search</span>
+      <input
+        type="text"
+        placeholder="Search organizations..."
+        (input)="onSearch($any($event.target).value)"
+        class="w-full bg-[#131515] border border-white/10 rounded-md px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+      />
+    </div>
+    <button
+      (click)="openAddDialog()"
+      class="flex items-center border border-white/10 gap-2 px-4 py-2 font-medium rounded-md hover:opacity-90 transition w-full md:w-fit"
+    >
+      <span class="material-symbols-outlined">add</span>
+      Add organization
+    </button>
   </div>
-  <button
-    (click)="openAddDialog()"
-    class="flex items-center border border-white/10 gap-2 px-4 py-2 font-medium rounded-md hover:opacity-90 transition w-full md:w-fit"
-  >
-    <span class="material-symbols-outlined">add</span>
-    Add organization
-  </button>
 </div>
 
 <div class="overflow-x-auto">
@@ -58,7 +60,7 @@
             <span class="text-white font-medium">{{ row.name }}</span>
           </td>
             <td class="py-3 px-4">{{ row.country }}</td>
-            <td class="py-3 px-4">{{ row.participantCount }}</td>
+            <td class="py-3 px-4">0</td>
             <td class="py-3 px-4">
               <button
                 (click)="$event.stopPropagation(); openEditDialog(row)"
