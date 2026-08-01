@@ -64,7 +64,7 @@ export class SportsService {
     });
   }
 
-  updatesSport(id: string, updateSport: SportModel): Observable<SportModel> {
+  updateSport(id: string, updateSport: SportModel): Observable<SportModel> {
     return this.http.patch<SportModel>(`${this.apiUrl}/${id}`, updateSport, {
       headers: this.authService.getAuthHeaders()
     }).pipe(
@@ -142,45 +142,6 @@ export class SportsService {
       catchError(() => of(undefined))
     );
   }
-
-  // Accepts an object with an optional name (only name is sent to API)
-  updateSport(id: string, updates: { name?: string }): void {
-    const payload: any = {};
-    if (updates.name) payload.name = updates.name;
-
-    // If no name change, nothing to do
-    if (!payload.name) {
-      return;
-    }
-
-    this.http
-      .patch<SportModel>(`${this.apiUrl}/${id}`, payload)
-      .pipe(map(updated => this.normalizeSport(updated)))
-      .subscribe(updatedSport => {
-        const current = this.rawSportsSubject.value;
-        const index = current.findIndex(s => s.id+"" === id);
-        if (index !== -1) {
-          updatedSport.entities = [];
-          const updatedList = [...current];
-          updatedList[index] = updatedSport;
-          this.updateCache(updatedList);
-        }
-      });
-  }
-
-  deleteSport(id: string): void {
-    this.http.delete(`${this.apiUrl}/${id}`).subscribe(() => {
-      const current = this.rawSportsSubject.value;
-      const filtered = current.filter(s => s.id+"" !== id);
-      this.updateCache(filtered);
-    });
-  }
-
-  resetToSeed(): void {
-    this.loadSports().subscribe();
-  }
-
-  // Bulk import – only name is used; emoji/color are ignored
   addFullSports(newSports: SportModel[]): void {
     const current = this.rawSportsSubject.value;
     const merged: SportModel[] = [...current];
@@ -196,10 +157,5 @@ export class SportsService {
       merged.push(newSport);
     }
     this.updateCache(merged);
-  }
-
-  private generateId(): string {
-    return Math.random().toString(36).substring(2, 15) +
-           Math.random().toString(36).substring(2, 15);
   }
 }
