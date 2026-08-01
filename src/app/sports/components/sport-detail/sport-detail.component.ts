@@ -1,122 +1,129 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SportsService } from '../../services/sports.service';
-import { Sport } from '../../models/sport.model';
+import { Observable, combineLatest, Subject } from 'rxjs';
+import { map, takeUntil, switchMap } from 'rxjs/operators';
+import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
+import { SportsService } from '../../services/sports/sports.service';
+import { SportModel } from '../../models/sport.model';
+import { SportAddDialogComponent } from '../sport-add-dialog/sport-add-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { ToastService } from '../../../common/services/toast/toast.service';
+import { EntityTableComponent } from '../../../entities/components/entity-table/entity-table.component';
+import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
 
 @Component({
   selector: 'app-sport-detail',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, CustomBreadcrumbsComponent, EntityTableComponent],
   templateUrl: './sport-detail.component.html',
   styleUrls: ['./sport-detail.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SportDetailComponent implements OnInit {
+export class SportDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private sportsService = inject(SportsService);
-  private fb = inject(FormBuilder);
+  private dialog = inject(MatDialog);
+  private toast = inject(ToastService);
+  private router = inject(Router);
+  private destroy$ = new Subject<void>();
 
-  sport = signal<Sport | null>(null);
-  isEditing = signal(false);
-
-  sportForm!: FormGroup;
-
-  // Editable fields (copy of sport data)
-  editName = '';
-  editEmoji = '';
-  editColor = '#FFB414';
-  editGoverningBodies = 0;
-  editOrganisations = 0;
-  editParticipants = 0;
+  sport$!: Observable<SportModel | undefined>;
+  sportId!: string;
+  totalCompetitions$!: Observable<number>;
+  totalParticipants$!: Observable<number>;
+  totalEntities$!: Observable<number>;
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      const found = this.sportsService.getSportById(id);
-      if (found) {
-        this.sport.set(found);
-        this.initForm(found); // <-- build the form
-      } else {
-        this.router.navigate(['/sports']);
-      }
-    }
-  }
+    this.sportsService.getSport();
 
-  private initForm(sport: Sport): void {
-    this.sportForm = this.fb.group({
-      name: [sport.name, [Validators.required, Validators.minLength(2)]],
-      emoji: [sport.emoji, Validators.required],
-      color: [sport.color, Validators.required],
-      governingBodies: [sport.governingBodies, [Validators.required, Validators.min(0)]],
-      organisations: [sport.organisations, [Validators.required, Validators.min(0)]],
-      participants: [sport.participants, [Validators.required, Validators.min(0)]],
+    this.sport$ = combineLatest([
+      this.route.paramMap,
+      this.sportsService.sportSubject$
+    ]).pipe(
+      map(([params, sports]) => {
+        const id = params.get('sportId');
+        if (!id) {
+          this.router.navigate(['/sports']);
+          return undefined;
+        }
+        this.sportId = id;
+        return sports.find(sport => sport.id === id);
+      }),
+      takeUntil(this.destroy$)
+    );
+
+    // Prefer cached counts from SportsService when available
+    const counts$ = this.route.paramMap.pipe(
+      map(pm => pm.get('sportId') || ''),
+      switchMap(id => this.sportsService.getCountsForSport$(id))
+    );
+
+    this.totalEntities$ = counts$.pipe(
+      map(c => c?.entities ?? 0)
+    );
+
+    this.totalCompetitions$ = counts$.pipe(
+      map(c => c?.organizations ?? 0)
+    );
+
+    this.totalParticipants$ = counts$.pipe(
+      map(c => c?.participants ?? 0)
+    );
+
+    // Ensure counts are computed when visiting detail directly
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(pm => {
+      const id = pm.get('sportId');
+      if (id) {
+        // compute and cache counts for this sport
+        this.sportsService.computeAndCacheCounts(id).catch(() => {});
+      }
     });
   }
 
-
-  private populateEditFields(sport: Sport): void {
-    this.editName = sport.name;
-    this.editEmoji = sport.emoji;
-    this.editColor = sport.color;
-    this.editGoverningBodies = sport.governingBodies;
-    this.editOrganisations = sport.organisations;
-    this.editParticipants = sport.participants;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  toggleEdit(): void {
-    if (this.isEditing()) {
-      // Cancelling edit: reset form to original sport data
-      const current = this.sport();
-      if (current) {
-        this.sportForm.patchValue({
-          name: current.name,
-          emoji: current.emoji,
-          color: current.color,
-          governingBodies: current.governingBodies,
-          organisations: current.organisations,
-          participants: current.participants,
+  refreshSport(): void {
+    this.sportsService.getSport();
+  }
+
+  openEditDialog(sport: SportModel): void {
+    const dialogRef = this.dialog.open(SportAddDialogComponent, {
+      width: '450px',
+      panelClass: 'dark-dialog',
+      data: sport,
+    });
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) {
+        this.refreshSport(); // reload updated list from server
+      }
+    });
+  }
+
+  deleteSport(sport: SportModel): void {
+    const dialogRef = this.dialog.open(CustomDialogComponent, {
+      width: '400px',
+      panelClass: 'dark-dialog',
+      data: {
+        title: 'Delete Sport',
+        message: `Are you sure you want to delete <strong>${sport.name}</strong>? This action cannot be undone.`,
+        confirmText: 'Delete',
+        confirmColor: 'warn',
+      } as CustomDialogData,
+    });
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(confirmed => {
+      if (confirmed) {
+        this.sportsService.deletesSport(sport.id + '').subscribe({
+          next: () => {
+            this.toast.success(`Sport "${sport.name}" deleted successfully.`, 'Deleted');
+            this.router.navigate(['/sports']);
+          },
+          error: () => this.toast.error('Delete failed.', 'Error')
         });
       }
-    }
-    this.isEditing.set(!this.isEditing());
-  }
-
-  get f() {
-    return this.sportForm.controls;
-  }
-
-  saveChanges(): void {
-    if (this.sportForm.invalid) {
-      // Mark all fields as touched to display errors
-      this.sportForm.markAllAsTouched();
-      return;
-    }
-
-    const current = this.sport();
-    if (!current) return;
-
-    const updated = this.sportForm.value; // all fields are valid
-    this.sportsService.updateSport(current.id, updated);
-    // Update the local signal with new values
-    this.sport.set({
-      ...current,
-      ...updated,
     });
-    this.isEditing.set(false);
-  }
-
-  deleteSport(): void {
-    const current = this.sport();
-    if (!current) return;
-    if (confirm(`Delete sport "${current.name}"?`)) {
-      this.sportsService.deleteSport(current.id);
-      this.router.navigate(['/sports']);
-    }
-  }
-
-  goBack(): void {
-    this.router.navigate(['/sports']);
   }
 }

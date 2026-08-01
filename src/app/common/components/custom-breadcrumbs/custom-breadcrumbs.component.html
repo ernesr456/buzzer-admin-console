@@ -1,0 +1,29 @@
+<!-- custom-breadcrumbs.component.html -->
+<nav aria-label="Breadcrumb">
+  <ol class="inline-flex items-center rounded-[8px] overflow-hidden bg-transparent">
+    <li
+      *ngFor="let crumb of breadcrumbs; let i = index; let last = last"
+      class="inline-flex items-stretch"
+    >
+      <!-- Divider line between crumbs (except before first) -->
+      <span *ngIf="i > 0" class="w-px my-2 bg-white/4"></span>
+
+      <!-- Link crumb (not last) -->
+      <a
+        *ngIf="!last"
+        [routerLink]="crumb.url"
+        class="px-7 py-3 text-white text-sm font-medium flex items-center bg-white/5 "
+      >
+        {{ crumb.label }}
+      </a>
+
+      <!-- Active crumb (last) -->
+      <span
+        *ngIf="last"
+        class="px-6 py-3 text-white text-sm font-semibold flex items-center bg-white/10 "
+      >
+        {{ crumb.label }}
+      </span>
+    </li>
+  </ol>
+</nav>

@@ -1,0 +1,78 @@
+[
+  {
+    "id": "sport-football-001",
+    "name": "Football",
+    "emoji": "⚽",
+    "color": "#1E90FF",
+    "createdAt": "2026-08-01T00:00:00.000Z",
+    "updatedAt": "2026-08-01T00:00:00.000Z",
+    "entities": [
+      {
+        "id": "entity-fa-001",
+        "name": "Football Association",
+        "country": "England",
+        "onboardedAt": "2026-07-01T00:00:00.000Z",
+        "createdAt": "2026-07-01T00:00:00.000Z",
+        "updatedAt": "2026-07-01T00:00:00.000Z",
+        "organizations": [
+          {
+            "id": "org-engfa-001",
+            "name": "England Football Association",
+            "type": "Association",
+            "crestUrl": "https://example.com/crest/engfa.png",
+            "country": "England",
+            "governingBodyId": "gb-fifa-001",
+            "onboardedAt": "2026-07-15T00:00:00.000Z",
+            "createdAt": "2026-07-15T00:00:00.000Z",
+            "updatedAt": "2026-07-15T00:00:00.000Z",
+            "participants": [
+              { "id": "p-001", "name": "Alice Smith", "role": "Admin" },
+              { "id": "p-002", "name": "Bob Jones", "role": "Moderator" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sport-basketball-001",
+    "name": "Basketball",
+    "emoji": "🏀",
+    "color": "#FF4500",
+    "createdAt": "2026-08-01T00:00:00.000Z",
+    "updatedAt": "2026-08-01T00:00:00.000Z",
+    "entities": [
+      {
+        "id": "entity-fiba-001",
+        "name": "FIBA Region A",
+        "country": "USA",
+        "onboardedAt": "2026-06-01T00:00:00.000Z",
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-15T00:00:00.000Z",
+        "organizations": [
+          {
+            "id": "org-regA-001",
+            "name": "Region A Basketball Org",
+            "type": "League",
+            "crestUrl": "https://example.com/crest/regA.png",
+            "country": "USA",
+            "governingBodyId": "gb-fiba-001",
+            "createdAt": "2026-06-10T00:00:00.000Z",
+            "updatedAt": "2026-06-10T00:00:00.000Z",
+            "participants": [
+              { "id": "p-101", "name": "Carol Lee", "role": "Owner" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "entity-fiba-002",
+        "name": "FIBA Region B",
+        "country": "Canada",
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "organizations": []
+      }
+    ]
+  }
+]

@@ -1,124 +1,139 @@
-# BuzzerAdminConsole
+# Buzzer Admin Console
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.2.
+Buzzer Admin Console is an Angular-based administrative portal for managing sports, governing bodies, organizations, and participants. The application provides a nested data model for sports administration and supports features such as authentication, seed/reset workflows, search, detail views, and bulk import of sports data.
 
 ---
 
-## Prerequisites & Setup
+## Project Summary
 
-Before you start, ensure you have Node.js (LTS) installed. Clone the repository and install dependencies:
+A single-page Angular application built using standalone components and RxJS patterns to manage a hierarchical sports catalogue. The application connects to a live REST API backend (`https://buzzer-game-moderation-backend.vercel.app`) to persist and retrieve all data. No local database or in-browser storage (LocalStorage) is used. The UI uses Tailwind CSS and Angular Material for styling and components.
+
+---
+
+## Quick Start (recommended)
+
+1. Clone the repository:
 
 ```bash
+git clone https://github.com/ernesr456/buzzer-admin-console.git
+cd buzzer-admin-console
+```
+
+2. Install dependencies. If you encounter peer-dependency errors during install, use the legacy peer deps option shown below (this is common with mixed Angular/third-party versions):
+
+```bash
+# Normal install
 npm install
+
+# OR, if you see peer dependency errors
+npm install --legacy-peer-deps
 ```
 
-After installation, Git hooks (Husky) are automatically enabled via the `prepare` script. These hooks enforce linting and commit message rules before every commit and push.
+> Note: Using `--legacy-peer-deps` tells npm to ignore peer dependency conflicts and proceed. Prefer to resolve peer conflicts for long-term stability; use this flag only when necessary.
+
+3. Start the development server:
+
+```bash
+npm start
+```
+
+Open http://localhost:4200/ in your browser.
 
 ---
 
-## Development server
+## Prerequisites & Recommendations
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- Node.js: LTS (recommend v18+ or the version pinned in .nvmrc if present)
+- npm: latest stable for your Node.js version
+- If your environment uses Yarn or pnpm, the project is tested with npm; adapt commands accordingly.
 
 ---
 
-## Code scaffolding
+## Available npm Scripts
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- npm start — run dev server (ng serve)
+- npm run build — build for production (output in dist/)
+- npm test — run unit tests (Karma/Jasmine or configured test runner)
+- npm run lint — run linters
+- npm run format — apply Prettier (if configured)
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
+Run `npm run` to list all defined scripts in package.json.
 
 ---
 
-## Building
+## Features
 
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+- Authentication (login/register) with route guards
+- Sports list and detail views with nested routing for entities, organizations, participants
+- Bulk import JSON/CSV of sports and nested entities
+- Seed and reset sample catalogue via UI
+- Client-side caching and counts for quick statistics
 
 ---
 
-## Linting & Code Quality
+## Project Structure (high level)
 
-We use **ESLint** (via `ng lint`) to enforce consistent code style and catch errors early.
-
-To run the linter manually:
-
-```bash
-ng lint
-```
-
-To automatically fix fixable issues:
-
-```bash
-ng lint --fix
-```
-
-**Note:** The CI/CD pipeline (branch protection rules) requires `ng lint` to pass successfully before any pull request can be merged to `staging` or `main`.
+src/
+  app/
+    auth/              # login and register flows
+    common/            # shared UI, toast, breadcrumbs, layout
+    core/              # guards, interceptors, shared services
+    entities/          # entity-related models, components, resolver
+    organizations/     # organization-related models, components, resolver
+    participants/      # participant-related models and services
+    sports/            # sport list/detail, models, sample data, services
 
 ---
 
-## Git Workflow & Commit Convention
+## Bulk Import Details
 
-This repository follows the **Angular Conventional Commits** standard. Commit messages **must** follow this format:
+- Supported formats: JSON (preferred) and CSV (simple flat imports).
+- JSON can include nested entities -> organizations -> participants.
+- Example payload and sample file are located at: `src/app/sports/sample/sport-data.json`.
 
-```
-<type>(<scope>): <subject>
-```
+Import steps:
+1. Open Sports page
+2. Click "Bulk Import"
+3. Select the JSON/CSV file
+4. The UI shows an importing indicator; after import finishes, the list refreshes
 
-Common types include:
-- `feat`: A new feature
-- `fix`: A bug fix
-- `chore`: Maintenance tasks (dependencies, configs, tooling)
-- `docs`: Documentation updates
-- `style`: Code style changes (formatting, no logic changes)
-- `refactor`: Code refactoring
-- `test`: Adding or updating tests
+Performance: Hierarchical imports are performed sequentially; large imports may take time. Consider splitting very large files.
 
-Example valid commit messages:
+## Troubleshooting
+
+- Peer dependency errors during install: use `npm install --legacy-peer-deps`.
+- If the development server fails to start, ensure the correct Node version and clear node_modules then reinstall:
+
 ```bash
-feat(auth): add login component using AWS Cognito
-fix(dashboard): resolve memory leak in charts
-chore(config): add rootDir to tsconfig.spec.json
+rm -rf node_modules package-lock.json
+npm install --legacy-peer-deps
 ```
 
-**Enforcement:**  
-- **Husky** prevents commits if linting fails.  
-- **commitlint** validates your commit message format. If your message doesn't match the standard above, the commit will be rejected.
+- Routing issues where child routes don't render: ensure route parents either have a <router-outlet> or are declared without a component so child routes can render (see `src/app/app.routes.ts`).
 
 ---
 
+## Testing & CI
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+- Unit tests: `npm test`
+- Add or update tests under `src/app/**/*.(spec).ts` when changing functionality
+- CI pipelines should run lint, tests, and build steps
 
 ---
 
-## Additional Resources
+## Contributing
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Fork the repo and create feature branches
+- Follow Conventional Commits for commit messages
+- Run lint and tests before opening a PR
+
+---
+
+## License & Authors
+
+- Author: ernesr456 (repository owner)
+- License: check LICENSE file in the repo (if present)
+
+---
+
+If any specific documentation section is missing or you'd like a README tailored to deployment (Docker, cloud hosting) or contributor onboarding, tell me which section to expand and it will be added.

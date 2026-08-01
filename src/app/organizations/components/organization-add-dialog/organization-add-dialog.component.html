@@ -1,0 +1,106 @@
+<!-- organization-add-dialog.component.html -->
+<h2 mat-dialog-title class="text-xl font-semibold text-white px-6 pt-6 pb-2">
+  {{ isEdit ? 'Edit Organization' : 'Add Organization' }}
+</h2>
+
+<form [formGroup]="organizationForm" (ngSubmit)="submit()">
+  <mat-dialog-content class="!p-6">
+    <div class="space-y-4">
+      <!-- Name -->
+      <div>
+        <label for="name" class="block text-sm font-medium text-white/80">Name *</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="e.g. UEFA Champions League"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+        />
+        @if (f['name'].invalid && f['name'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Name is required (min 2 characters).</p>
+        }
+      </div>
+
+      <!-- Type -->
+      <div>
+        <label for="type" class="block text-sm font-medium text-white/80">Type *</label>
+        <input
+          id="type"
+          type="text"
+          formControlName="type"
+          placeholder="e.g. League, Cup, Federation"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+        />
+        @if (f['type'].invalid && f['type'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Type is required.</p>
+        }
+      </div>
+
+      <!-- Country -->
+      <div>
+        <label for="country" class="block text-sm font-medium text-white/80">Country *</label>
+        <input
+          id="country"
+          type="text"
+          formControlName="country"
+          placeholder="e.g. England"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+        />
+        @if (f['country'].invalid && f['country'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Country is required.</p>
+        }
+      </div>
+
+      <!-- Logo -->
+      <div>
+        <label class="block text-sm font-medium text-white/80">Logo</label>
+        <div class="mt-1 flex items-center gap-3">
+          <input
+            id="logoInput"
+            type="file"
+            accept="image/*"
+            (change)="onFileSelected($event)"
+            class="w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#FFB414] file:text-[#131515] file:font-semibold hover:file:opacity-90"
+          />
+          @if (selectedFile || previewUrl) {
+            <button type="button" (click)="removeFile()" class="text-[#EC193C] hover:underline text-sm">Remove</button>
+          }
+        </div>
+        @if (previewUrl) {
+          <div class="mt-2">
+            <img [src]="previewUrl" alt="Logo preview" class="h-12 w-12 object-contain rounded-md border border-white/10" />
+          </div>
+        }
+        <!-- Manual URL fallback (shown on upload failure) -->
+        @if (showManualInput()) {
+          <div class="mt-2">
+            <label for="manualUrl" class="block text-sm text-white/60">Or enter image URL</label>
+            <input
+              id="manualUrl"
+              type="url"
+              [formControl]="manualUrlControl"
+              placeholder="https://example.com/logo.png"
+              class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+            />
+          </div>
+        }
+        @if (!isEdit && !selectedFile && !manualUrlControl.value && !previewUrl) {
+          <p class="text-sm text-[#EC193C] mt-1">A logo is required for new organizations.</p>
+        }
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="!px-6 !pb-6 !pt-2 gap-2">
+    <button mat-button type="button" (click)="cancel()" class="text-white/70 hover:text-white transition">Cancel</button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="organizationForm.invalid || loading"
+      class="!bg-[#FFB414] !text-[#131515] font-semibold px-4 py-2 rounded-md hover:opacity-90 transition"
+    >
+      {{ loading ? 'Saving...' : (isEdit ? 'Save' : 'Create') }}
+    </button>
+  </mat-dialog-actions>
+</form>

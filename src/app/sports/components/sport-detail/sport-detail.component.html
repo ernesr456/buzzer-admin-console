@@ -1,106 +1,73 @@
-@if (sport()) {
-  <form [formGroup]="sportForm"><div class="bg-[#1e2121] rounded-lg p-6">
-    <!-- Header -->
-    <div class="flex items-start justify-between">
-      <div class="flex items-center gap-4">
-        <span class="text-5xl" [style.color]="sport()!.color">{{ sport()!.emoji }}</span>
-        <div>
-          @if (!isEditing()) {
-            <h1 class="text-3xl font-bold">{{ sport()!.name }}</h1>
-          } @else {
-            <div>
-              <input
-                type="text"
-                formControlName="name"
-                placeholder="Sport name"
-                class="text-3xl font-bold bg-transparent border-b border-[#FFB414] outline-none"
-              />
-              @if (f['name'].invalid && f['name'].touched) {
-                <p class="text-sm text-[#EC193C] mt-1">
-                  @if (f['name'].errors?.['required']) { Name is required. }
-                  @if (f['name'].errors?.['minlength']) { Minimum 2 characters. }
-                </p>
-              }
-            </div>
-          }
+<div class="min-h-screen flex-col space-y-3">
+  <app-custom-breadcrumbs />
+
+  <div *ngIf="!(sport$ | async)" class="flex justify-center items-center h-64">
+    <div class="text-gray-400">Loading Sport…</div>
+  </div>
+
+  <ng-container *ngIf="sport$ | async as sport">
+    <div *ngIf="!sport" class="flex justify-center items-center h-64">
+      <div class="text-gray-400">Sport not found.</div>
+    </div>
+
+    <div *ngIf="sport" class="rounded-xl border border-[#3E3E3E] shadow-sm overflow-hidden relative">
+      <div class="relative p-6 border border-white/10 rounded-lg">
+        <div class="absolute top-3 right-3 p-2 space-x-2">
+          <button
+            (click)="openEditDialog(sport)"
+            class="rounded-lg hover:bg-[#1e2740] transition text-[#8b95b0] hover:text-white z-10 p-1"
+            aria-label="Edit"
+          >
+            <span class="material-symbols-outlined text-xl">edit</span>
+          </button>
+          <button
+            (click)="deleteSport(sport)"
+            class="rounded-lg hover:bg-[#1e2740] transition text-[#8b95b0] hover:text-white z-10 p-1"
+            aria-label="Delete"
+          >
+            <span class="material-symbols-outlined text-xl">delete</span>
+          </button>
+        </div>
+
+        <h2 class="font-bold text-white headline-small !text-xl l-100 pr-10">
+          <span>{{ sport.emoji }}</span> {{ sport.name }}
+        </h2>
+
+        <div class="flex flex-wrap justify-between w-full items-center gap-x-6 gap-y-2 !text-sm text-[#8b95b0] label-large mt-3">
+          <div class="grid">
+            <span>
+              <span class="text-[#b0b8cc]">Created:</span>
+              {{ sport.createdAt | date:'MMM d, y, a, \'at\' HH:mm' }}
+            </span>
+            <span>
+              <span class="text-[#b0b8cc]">Updated:</span>
+              {{ sport.updatedAt | date:'MMM d, y, a, \'at\' HH:mm' }}
+            </span>
+            <span>
+              <span class="text-[#b0b8cc]">Color:</span>
+              {{sport.color}}
+            </span>
+          </div>
         </div>
       </div>
-      <!-- Action buttons -->
-      <div class="flex gap-2">
-        @if (!isEditing()) {
-          <button (click)="toggleEdit()" class="...">Edit</button>
-          <button (click)="deleteSport()" class="...">Delete</button>
-        } @else {
-          <button (click)="saveChanges()" class="...">Save</button>
-          <button (click)="toggleEdit()" class="...">Cancel</button>
-        }
-      </div>
-    </div>
 
-    <!-- Stat cards with form controls -->
-    <div class="grid grid-cols-3 gap-4 mt-6">
-      <div class="bg-[#131515] p-3 rounded-lg text-center">
-        <p class="text-sm uppercase text-white/60">Governing Bodies</p>
-        @if (!isEditing()) {
-          <p class="text-2xl font-bold">{{ sport()!.governingBodies }}</p>
-        } @else {
-          <div>
-            <input
-              type="number"
-              formControlName="governingBodies"
-              min="0"
-              class="w-full text-center bg-transparent border-b border-[#FFB414] outline-none"
-            />
-            @if (f['governingBodies'].invalid && f['governingBodies'].touched) {
-              <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
-            }
+      <div class="px-5 py-5 sm:px-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <div class="p-4 rounded-lg text-center border border-white/10">
+            <p class="!text-[24px] font-light font-poppins">{{ totalEntities$ | async }}</p>
+            <p class="uppercase text-[10px] tracking-wider text-white/60">Entities</p>
           </div>
-        }
-      </div>
-      <!-- Similarly for organisations -->
-      <div class="bg-[#131515] p-3 rounded-lg text-center">
-        <p class="text-sm uppercase text-white/60">Organisations</p>
-        @if (!isEditing()) {
-          <p class="text-2xl font-bold">{{ sport()!.organisations }}</p>
-        } @else {
-          <div>
-            <input
-              type="number"
-              formControlName="organisations"
-              min="0"
-              class="w-full text-center bg-transparent border-b border-[#FFB414] outline-none"
-            />
-            @if (f['organisations'].invalid && f['organisations'].touched) {
-              <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
-            }
+          <div class="p-4 rounded-lg text-center border border-white/10">
+            <p class="!text-[24px] font-light font-poppins">{{ totalCompetitions$ | async }}</p>
+            <p class="uppercase text-[10px] tracking-wider text-white/60">Organizations</p>
           </div>
-        }
-      </div>
-      <!-- Similarly for participants -->
-      <div class="bg-[#131515] p-3 rounded-lg text-center">
-        <p class="text-sm uppercase text-white/60">Participants</p>
-        @if (!isEditing()) {
-          <p class="text-2xl font-bold">{{ sport()!.participants }}</p>
-        } @else {
-          <div>
-            <input
-              type="number"
-              formControlName="participants"
-              min="0"
-              class="w-full text-center bg-transparent border-b border-[#FFB414] outline-none"
-            />
-            @if (f['participants'].invalid && f['participants'].touched) {
-              <p class="text-sm text-[#EC193C] mt-1">Must be >= 0</p>
-            }
+          <div class="p-4 rounded-lg text-center border border-white/10">
+            <p class="!text-[24px] font-light font-poppins">{{ totalParticipants$ | async }}</p>
+            <p class="uppercase text-[10px] tracking-wider text-white/60">Participants</p>
           </div>
-        }
+        </div>
+         <app-entity-table/>
       </div>
     </div>
-
-    <!-- Placeholder for future drill-down -->
-    <div class="mt-6 text-white/50 text-sm">
-      <p>Governing Bodies, Organisations, and Participants will be listed here in the next tasks.</p>
-    </div>
-  </div>
-</form>
-}
+  </ng-container>
+</div>

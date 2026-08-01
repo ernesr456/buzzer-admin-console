@@ -1,0 +1,25 @@
+
+.breadcrumb-wrapper{ padding:8px 20px; }
+.breadcrumb{
+  display:inline-flex;
+  gap:0;
+  border-radius:20px;
+  overflow:hidden;
+  background:transparent;
+  align-items:center;
+}
+.breadcrumb .crumb{
+  padding:12px 28px;
+  color: #fff;
+  background: var(--white-3);
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+  font-weight:500;
+  text-decoration:none;
+  transition: background .18s ease;
+  border-left: 1px solid rgba(255,255,255,0.04);
+}
+.breadcrumb .crumb:first-child{ border-left: none; border-top-left-radius:16px; border-bottom-left-radius:16px; }
+.breadcrumb .crumb:last-child{ border-top-right-radius:16px; border-bottom-right-radius:16px; }
+.breadcrumb .crumb.active{ background: var(--white-10); }

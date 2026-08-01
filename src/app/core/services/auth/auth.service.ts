@@ -1,8 +1,8 @@
 // src/app/core/auth/services/auth.service.ts
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { catchError, Observable, tap, of } from 'rxjs';
+import { catchError, Observable, tap, of, throwError } from 'rxjs';
 import { environment } from '../../../../environment/environment';
 
 interface LoginResponse {
@@ -62,5 +62,21 @@ export class AuthService {
   return this.http.get<LoginResponse['user']>(`${environment.apiBaseUrl}/auth/me`).pipe(
     catchError(() => of(null))
     );
+  }
+
+  getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('buzzer_token');
+    return new HttpHeaders({
+      'Authorization': token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json'
+    });
+  }
+
+  handleError(error: HttpErrorResponse): Observable<never> {
+    if (error.status === 401) {
+      localStorage.removeItem('buzzer_token');
+      this.router.navigate(['/login']);
+    }
+    return throwError(() => error);
   }
 }
