@@ -65,6 +65,15 @@ export class SportDetailComponent implements OnInit, OnDestroy {
     this.totalParticipants$ = counts$.pipe(
       map(c => c?.participants ?? 0)
     );
+
+    // Ensure counts are computed when visiting detail directly
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(pm => {
+      const id = pm.get('sportId');
+      if (id) {
+        // compute and cache counts for this sport
+        this.sportsService.computeAndCacheCounts(id).catch(() => {});
+      }
+    });
   }
 
   ngOnDestroy(): void {
