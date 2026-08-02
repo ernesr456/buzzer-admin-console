@@ -3,17 +3,17 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Observable, Subject, takeUntil, combineLatest, map } from 'rxjs';
-import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
-import { OrganizationAddDialogComponent, OrganizationDialogData } from '../organization-add-dialog/organization-add-dialog.component';
-import { OrganizationModel } from '../../model/organization.model';
-import { OrganizationService } from '../../services/organization.service';
-import { ParticipantTableComponent } from '../../../participants/components/participant-table/participant-table.component';
-import { ParticipantModel } from '../../../participants/model/participant.model';
-import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
-import { ToastService } from '../../../common/services/toast/toast.service';
-import { ParticipantService } from '../../../participants/services/participant.service';
-import { SquadTableComponent } from '../../../squad/components/squad-table/squad-table.component';
-import { StaffTableComponent } from '../../../staff/components/staff-table/staff-table.component';
+import { CustomBreadcrumbsComponent } from '../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
+import { OrganizationAddDialogComponent, OrganizationDialogData } from '../components/organization-add-dialog/organization-add-dialog.component';
+import { OrganizationModel } from '../model/organization.model';
+import { OrganizationService } from '../services/organization.service';
+import { ParticipantTableComponent } from '../../participants/components/participant-table/participant-table.component';
+import { ParticipantModel } from '../../participants/model/participant.model';
+import { CustomDialogComponent, CustomDialogData } from '../../common/components/custom-dialog/custom-dialog.component';
+import { ToastService } from '../../common/services/toast/toast.service';
+import { ParticipantService } from '../../participants/services/participant.service';
+import { SquadTableComponent } from '../../squad/components/squad-table/squad-table.component';
+import { StaffTableComponent } from '../../staff/components/staff-table/staff-table.component';
 
 @Component({
   selector: 'app-organization-detail',
