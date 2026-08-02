@@ -1,14 +1,13 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { Observable, Subject, takeUntil, combineLatest, map } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { Subject, takeUntil, catchError, of } from 'rxjs';
 import { CustomBreadcrumbsComponent } from '../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 import { OrganizationAddDialogComponent, OrganizationDialogData } from '../components/organization-add-dialog/organization-add-dialog.component';
 import { OrganizationModel } from '../model/organization.model';
 import { OrganizationService } from '../services/organization.service';
 import { ParticipantTableComponent } from '../../participants/components/participant-table/participant-table.component';
-import { ParticipantModel } from '../../participants/model/participant.model';
 import { CustomDialogComponent, CustomDialogData } from '../../common/components/custom-dialog/custom-dialog.component';
 import { ToastService } from '../../common/services/toast/toast.service';
 import { ParticipantService } from '../../participants/services/participant.service';
@@ -21,7 +20,6 @@ import { StaffTableComponent } from '../../staff/components/staff-table/staff-ta
   imports: [
     CommonModule,
     CustomBreadcrumbsComponent,
-    MatDialogModule,
     ParticipantTableComponent,
     SquadTableComponent,
     StaffTableComponent,
@@ -31,51 +29,52 @@ import { StaffTableComponent } from '../../staff/components/staff-table/staff-ta
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrganizationDetailComponent implements OnInit, OnDestroy {
-  organization$: Observable<OrganizationModel | undefined>;
-  sportId!: string;
-  entityId!: string;
-  orgId!: string;
-  participants$!: Observable<ParticipantModel[]>;
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private orgService = inject(OrganizationService);
+  private participantService = inject(ParticipantService);
+  private dialog = inject(MatDialog);
+  private toast = inject(ToastService);
   private destroy$ = new Subject<void>();
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private orgService: OrganizationService,
-    private participantService: ParticipantService,
-    private dialog: MatDialog,
-    private toast: ToastService
-  ) {
-    this.organization$ = new Observable<OrganizationModel | undefined>();
-    this.participants$ = new Observable<ParticipantModel[]>();
-  }
+  // Signals
+  sportId = signal('');
+  entityId = signal('');
+  orgId = signal('');
+  organizations = signal<OrganizationModel[]>([]);
+  isLoading = signal(true);
+  error = signal<string | null>(null);
+
+  // Computed organization
+  organization = computed(() => {
+    const id = this.orgId();
+    return this.organizations().find(org => org.id === id) ?? null;
+  });
 
   ngOnInit(): void {
-    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      this.sportId = params['sportId'];
-      this.entityId = params['entityId'];
-      this.orgId = params['orgId'];
-
-      if (this.entityId && this.orgId) {
-        this.orgService.getOrganizationByEntityId(this.entityId).subscribe({
-          error: () => this.toast.error('Failed to load organization', 'Error')
-        });
-      } else {
-        this.toast.error('Missing entity or organization ID', 'Error');
-        this.router.navigate(['/sports']);
-      }
-    });
-
-    this.organization$ = combineLatest([
-      this.route.params,
-      this.orgService.organizationSubject$
-    ]).pipe(
-      map(([params, orgs]) => {
+    this.route.params
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const sportId = params['sportId'];
+        const entityId = params['entityId'];
         const orgId = params['orgId'];
-        return orgs.find(org => org.id === orgId);
-      }),
-      takeUntil(this.destroy$)
-    );
+        if (!entityId || !orgId) {
+          this.toast.error('Missing entity or organization ID', 'Error');
+          this.router.navigate(['/sports']);
+          return;
+        }
+        this.sportId.set(sportId);
+        this.entityId.set(entityId);
+        this.orgId.set(orgId);
+        this.loadOrganization();
+      });
+
+    // Keep organizations signal in sync with service
+    this.orgService.organizationSubject$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(orgs => {
+        this.organizations.set(orgs);
+      });
   }
 
   ngOnDestroy(): void {
@@ -83,10 +82,25 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private loadOrganization(): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+    this.orgService.getOrganizationByEntityId(this.entityId())
+      .pipe(
+        catchError((err) => {
+          console.error('Failed to load organizations:', err);
+          this.toast.error('Failed to load organization', 'Error');
+          this.error.set('Could not load organization. Please try again.');
+          return of([]);
+        })
+      )
+      .subscribe(() => {
+        this.isLoading.set(false);
+      });
+  }
+
   refreshOrganization(): void {
-    if (this.entityId) {
-      this.orgService.getOrganizationByEntityId(this.entityId).subscribe();
-    }
+    this.loadOrganization();
   }
 
   onImageError(organization: OrganizationModel): void {
@@ -95,7 +109,7 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
 
   openEditDialog(organization: OrganizationModel): void {
     const dialogData: OrganizationDialogData = {
-      entityId: this.entityId,
+      entityId: this.entityId(),
       organization: organization,
     };
 
@@ -105,12 +119,14 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
       disableClose: true,
     });
 
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result) {
-        this.toast.success('Organization updated successfully', 'Updated');
-        this.refreshOrganization();
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(result => {
+        if (result) {
+          this.toast.success('Organization updated successfully', 'Updated');
+          this.refreshOrganization();
+        }
+      });
   }
 
   deleteOrganization(organization: OrganizationModel): void {
@@ -125,19 +141,21 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
       } as CustomDialogData,
     });
 
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(confirmed => {
-      if (confirmed) {
-        this.orgService.deletesOrganization(organization).subscribe({
-          next: () => {
-            this.toast.success(`Organization "${organization.name}" deleted successfully.`, 'Deleted');
-            this.router.navigate(['/sports', this.sportId, this.entityId]);
-          },
-          error: (err) => {
-            console.error('Delete failed:', err);
-            this.toast.error('Failed to delete organization.', 'Error');
-          }
-        });
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(confirmed => {
+        if (confirmed) {
+          this.orgService.deletesOrganization(organization).subscribe({
+            next: () => {
+              this.toast.success(`Organization "${organization.name}" deleted successfully.`, 'Deleted');
+              this.router.navigate(['/sports', this.sportId(), this.entityId()]);
+            },
+            error: (err) => {
+              console.error('Delete failed:', err);
+              this.toast.error('Failed to delete organization.', 'Error');
+            }
+          });
+        }
+      });
   }
 }

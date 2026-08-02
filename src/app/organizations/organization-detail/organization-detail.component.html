@@ -1,46 +1,50 @@
 <div class="min-h-screen flex-col space-y-3">
   <app-custom-breadcrumbs />
 
-  <div *ngIf="!(organization$ | async)" class="flex justify-center items-center h-64">
-    <div class="text-gray-400">Loading organization…</div>
-  </div>
-
-  <ng-container *ngIf="organization$ | async as organization">
-    <div *ngIf="!organization" class="flex justify-center items-center h-64">
-      <div class="text-gray-400">organization not found.</div>
+  @if (isLoading()) {
+    <div class="flex justify-center items-center h-64">
+      <div class="text-gray-400">Loading organization…</div>
     </div>
-
-    <div *ngIf="organization" class="rounded-xl border border-[#3E3E3E] shadow-sm overflow-hidden relative">
+  } @else if (error()) {
+    <div class="flex justify-center items-center h-64">
+      <div class="text-red-400">{{ error() }}</div>
+    </div>
+  } @else if (!organization()) {
+    <div class="flex justify-center items-center h-64">
+      <div class="text-gray-400">Organization not found.</div>
+    </div>
+  } @else {
+    @let org = organization()!;
+    <div class="rounded-xl border border-[#3E3E3E] shadow-sm overflow-hidden relative">
       <div class="px-5 py-4 border-b border-[#3E3E3E] sm:px-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <div class="flex items-center gap-3">
               <div class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-[#2a2a2a] flex items-center justify-center">
-                <ng-container *ngIf="organization.crestUrl; else initials">
+                @if (org.crestUrl) {
                   <img
-                    [src]="organization.crestUrl"
-                    alt="{{ organization.name }}"
+                    [src]="org.crestUrl"
+                    alt="{{ org.name }}"
                     class="w-full h-full object-cover"
-                    (error)="onImageError(organization)"
+                    (error)="onImageError(org)"
                   />
-                </ng-container>
-                <ng-template #initials>
+                } @else {
                   <span class="text-lg font-medium text-white/80">
-                    {{ organization.name.charAt(0).toUpperCase() }}
+                    {{ org.name.charAt(0).toUpperCase() }}
                   </span>
-                </ng-template>
+                }
               </div>
-              <h1 class="text-xl font-bold text-white self-center">{{ organization.name }}</h1>
+              <h1 class="text-xl font-bold text-white self-center">{{ org.name }}</h1>
             </div>
             <div class="flex flex-wrap items-center gap-3 mt-1 text-xs text-gray-400">
               <span>
                 <span class="font-medium text-gray-300">Created:</span>
-                {{ organization.createdAt | date:'medium' }}
+                {{ org.createdAt | date:'medium' }}
               </span>
               <span class="w-px h-3 bg-[#3E3E3E]"></span>
               <span>
                 <span class="font-medium text-gray-300">Updated:</span>
-                {{ organization.updatedAt | date:'medium' }}
+                {{ org.updatedAt | date:'medium' }}
               </span>
               <span class="w-px h-3 bg-[#3E3E3E]"></span>
             </div>
@@ -50,14 +54,14 @@
           <button
             class="rounded-lg hover:bg-[#1e2740] transition text-[#8b95b0] hover:text-white z-10 p-1"
             aria-label="Edit"
-            (click)="openEditDialog(organization)"
+            (click)="openEditDialog(org)"
           >
             <span class="material-symbols-outlined text-xl">edit</span>
           </button>
           <button
             class="rounded-lg hover:bg-[#1e2740] transition text-[#8b95b0] hover:text-white z-10 p-1"
             aria-label="Delete"
-            (click)="deleteOrganization(organization)"
+            (click)="deleteOrganization(org)"
           >
             <span class="material-symbols-outlined text-xl">delete</span>
           </button>
@@ -70,5 +74,5 @@
         <app-staff-table/>
       </div>
     </div>
-  </ng-container>
+  }
 </div>

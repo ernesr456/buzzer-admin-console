@@ -33,15 +33,14 @@ export class OrganizationAddDialogComponent {
     country: [this.data.organization?.country ?? '', Validators.required],
   });
 
-  // Optional manual URL fallback (shown on upload failure)
   manualUrlControl = new FormControl('');
   showManualInput = signal(false);
+  loading = signal(false);
 
   isEdit = !!this.data.organization;
   entityId = this.data.entityId;
   selectedFile: File | null = null;
   previewUrl: string | null = this.data.organization?.crestUrl ?? null;
-  loading = false;
 
   get f() { return this.organizationForm.controls; }
 
@@ -71,9 +70,8 @@ export class OrganizationAddDialogComponent {
       return;
     }
 
-
     const { name, type, country } = this.organizationForm.value;
-    this.loading = true;
+    this.loading.set(true);
     const manualUrl = this.manualUrlControl.value?.trim() || null;
     if (manualUrl) {
       this.saveOrganization(name!, type!, country!, manualUrl);
@@ -87,15 +85,17 @@ export class OrganizationAddDialogComponent {
 
     if (!this.selectedFile) {
       alert('Please upload a logo image or enter a URL.');
+      this.loading.set(false);
       return;
     }
 
-    // Validate file
     if (!this.isValidImage(this.selectedFile)) {
+      this.loading.set(false);
       return;
     }
+
     this.uploadService.uploadImage(this.selectedFile, undefined, 'file')
-      .pipe(finalize(() => this.loading = false))
+      .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response) => {
           const crestUrl = response.url;

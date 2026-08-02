@@ -1,18 +1,8 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  OnInit,
-  OnDestroy,
-} from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, catchError, of } from 'rxjs';
 
 import { OrganizationModel } from '../../model/organization.model';
 import { OrganizationService } from '../../services/organization.service';
@@ -42,25 +32,20 @@ export class OrganizationTableComponent implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private cdr = inject(ChangeDetectorRef);
-
   private destroy$ = new Subject<void>();
 
-  organizations: OrganizationModel[] = [];
-  isLoading = false;
+  // Signals
+  organizations = signal<OrganizationModel[]>([]);
+  isLoading = signal(false);
+  search = signal('');
 
-    // Search
-    private searchSubject = new BehaviorSubject<string>('');
-    searchQuery$ = this.searchSubject.asObservable();
-
-  get tableRows() {
-    return this.organizations
-      .filter(org => org != null)
-      .map(org => ({
-        ...org,
-        participantCount: org.participants?.length ?? 0,
-      }));
-  }
+  // Computed filtered rows
+  filteredRows = computed(() => {
+    const q = this.search().trim().toLowerCase();
+    const list = this.organizations().filter(org => org != null);
+    if (!q) return list;
+    return list.filter(org => org.name.toLowerCase().includes(q));
+  });
 
   ngOnInit(): void {
     const entityId = this.entityId ?? this.route.snapshot.paramMap.get('entityId');
@@ -69,12 +54,11 @@ export class OrganizationTableComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Listen to the service's subject for real‑time updates
+    // Listen to service subject and update signal
     this.organizationService.organizationSubject$
       .pipe(takeUntil(this.destroy$))
       .subscribe(orgs => {
-        this.organizations = orgs;
-        this.cdr.markForCheck(); // Force view update
+        this.organizations.set(orgs);
       });
 
     this.loadOrganizations(entityId);
@@ -86,24 +70,22 @@ export class OrganizationTableComponent implements OnInit, OnDestroy {
   }
 
   private loadOrganizations(entityId: string): void {
-    this.isLoading = true;
-    this.cdr.markForCheck();
-
-    this.organizationService.getOrganizationByEntityId(entityId).subscribe({
-      next: () => {
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
+    this.isLoading.set(true);
+    this.organizationService.getOrganizationByEntityId(entityId).pipe(
+      catchError((err) => {
         console.error('Failed to load organizations:', err);
         this.toast.error('Could not load organizations. Please try again.', 'Error');
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      }
+        return of([]);
+      })
+    ).subscribe(() => {
+      this.isLoading.set(false);
     });
   }
 
-  // ----- Dialog methods (unchanged) -----
+  onSearch(query: string): void {
+    this.search.set(query);
+  }
+
   openAddDialog(): void {
     const entityId = this.entityId ?? this.route.snapshot.paramMap.get('entityId');
     if (!entityId) return;
@@ -175,9 +157,5 @@ export class OrganizationTableComponent implements OnInit, OnDestroy {
     if (!sportId || !entityId) return;
     this.router.navigate(['/sports', sportId, entityId, organization.id]);
     this.viewOrganization.emit(organization.id);
-  }
-
-  onSearch(query: string): void {
-    this.searchSubject.next(query);
   }
 }
