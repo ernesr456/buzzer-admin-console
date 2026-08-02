@@ -3,14 +3,14 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, combineLatest, Subject } from 'rxjs';
 import { map, takeUntil, switchMap } from 'rxjs/operators';
-import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
-import { SportsService } from '../../services/sports/sports.service';
-import { SportModel } from '../../models/sport.model';
-import { SportAddDialogComponent } from '../sport-add-dialog/sport-add-dialog.component';
+import { CustomBreadcrumbsComponent } from '../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
+import { SportsService } from '../services/sports/sports.service';
+import { SportModel } from '../models/sport.model';
+import { SportAddDialogComponent } from '../components/sport-add-dialog/sport-add-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { ToastService } from '../../../common/services/toast/toast.service';
-import { EntityTableComponent } from '../../../entities/components/entity-table/entity-table.component';
-import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
+import { ToastService } from '../../common/services/toast/toast.service';
+import { EntityTableComponent } from '../../entities/components/entity-table/entity-table.component';
+import { CustomDialogComponent, CustomDialogData } from '../../common/components/custom-dialog/custom-dialog.component';
 
 @Component({
   selector: 'app-sport-detail',

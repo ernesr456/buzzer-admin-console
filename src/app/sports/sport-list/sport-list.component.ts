@@ -5,19 +5,19 @@ import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, combineLatest, of, take } from 'rxjs';
 import { map, catchError, finalize } from 'rxjs/operators';
-import { SportsService } from '../../services/sports/sports.service';
-import { SportModel } from '../../models/sport.model';
-import { SportAddDialogComponent } from '../sport-add-dialog/sport-add-dialog.component';
-import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
-import { ToastService } from '../../../common/services/toast/toast.service';
-import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
+import { SportsService } from '../services/sports/sports.service';
+import { SportModel } from '../models/sport.model';
+import { SportAddDialogComponent } from '../components/sport-add-dialog/sport-add-dialog.component';
+import { CustomBreadcrumbsComponent } from '../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
+import { ToastService } from '../../common/services/toast/toast.service';
+import { CustomDialogComponent, CustomDialogData } from '../../common/components/custom-dialog/custom-dialog.component';
 import { lastValueFrom } from 'rxjs';
-import { EntityService } from '../../../entities/services/entity.service';
-import { OrganizationService } from '../../../organizations/services/organization.service';
-import { ParticipantService } from '../../../participants/services/participant.service';
-import { EntityModel } from '../../../entities/model/entity.model';
-import { OrganizationModel } from '../../../organizations/model/organization.model';
-import { ParticipantModel } from '../../../participants/model/participant.model';
+import { EntityService } from '../../entities/services/entity.service';
+import { OrganizationService } from '../../organizations/services/organization.service';
+import { ParticipantService } from '../../participants/services/participant.service';
+import { EntityModel } from '../../entities/model/entity.model';
+import { OrganizationModel } from '../../organizations/model/organization.model';
+import { ParticipantModel } from '../../participants/model/participant.model';
 
 @Component({
   selector: 'app-sport-list',
