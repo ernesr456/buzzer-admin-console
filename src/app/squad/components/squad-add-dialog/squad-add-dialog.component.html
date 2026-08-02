@@ -1,1 +1,72 @@
-<p>squad-add-dialog works!</p>
+<h2 mat-dialog-title class="text-xl font-semibold text-white px-6 pt-6 pb-2">
+  {{ isEdit ? 'Edit Squad Member' : 'Add Squad Member' }}
+</h2>
+
+<form [formGroup]="squadForm" (ngSubmit)="submit()">
+  <div class="px-6 pb-6">
+    <div class="space-y-4">
+      <!-- User Selection -->
+      <div>
+        <label for="userId" class="block text-sm font-medium text-white/80">User *</label>
+        <select
+          id="userId"
+          formControlName="userId"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414] appearance-none"
+          [disabled]="isLoadingUsers"
+        >
+          <option value="" disabled selected>
+            {{ isLoadingUsers ? 'Loading...' : 'Select a user' }}
+          </option>
+          <option *ngFor="let user of userList" [value]="user.id">
+            {{ user.name }}
+          </option>
+        </select>
+        @if (f['userId'].invalid && f['userId'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Please select a user.</p>
+        }
+      </div>
+
+      <!-- Position -->
+      <div>
+        <label for="position" class="block text-sm font-medium text-white/80">Position *</label>
+        <input
+          id="position"
+          type="text"
+          formControlName="position"
+          placeholder="e.g. Forward, Midfielder, Defender"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+        />
+        @if (f['position'].invalid && f['position'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Position is required.</p>
+        }
+      </div>
+
+      <!-- Agreement End -->
+      <div>
+        <label for="agreementEnd" class="block text-sm font-medium text-white/80">Agreement End *</label>
+        <input
+          id="agreementEnd"
+          type="date"
+          formControlName="agreementEnd"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+        />
+        @if (f['agreementEnd'].invalid && f['agreementEnd'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Date is required.</p>
+        }
+      </div>
+    </div>
+  </div>
+
+  <mat-dialog-actions align="end" class="!px-6 !pb-6 !pt-2 gap-2">
+    <button mat-button type="button" (click)="cancel()" class="text-white/70 hover:text-white transition">Cancel</button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="squadForm.invalid || loading || isLoadingUsers"
+      class="!bg-[#FFB414] !text-[#131515] font-semibold px-4 py-2 rounded-md hover:opacity-90 transition"
+    >
+      {{ loading ? 'Saving...' : (isEdit ? 'Save' : 'Create') }}
+    </button>
+  </mat-dialog-actions>
+</form>

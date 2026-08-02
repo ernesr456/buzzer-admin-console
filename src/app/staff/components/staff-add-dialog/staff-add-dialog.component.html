@@ -1,0 +1,124 @@
+<h2 mat-dialog-title class="text-xl font-semibold text-white px-6 pt-6 pb-2">
+  {{ isEdit ? 'Edit Staff Member' : 'Add Staff Member' }}
+</h2>
+
+<form [formGroup]="staffForm" (ngSubmit)="submit()">
+  <mat-dialog-content class="!p-6">
+    <div class="space-y-4">
+      <!-- Name -->
+      <div>
+        <label for="name" class="block text-sm font-medium text-white/80">Full Name *</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="e.g. Lionel Messi"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+        />
+        @if (f['name'].invalid && f['name'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Name is required (min 2 characters).</p>
+        }
+      </div>
+
+      <!-- Role Title -->
+      <div>
+        <label for="roleTitle" class="block text-sm font-medium text-white/80">Role *</label>
+        <input
+          id="roleTitle"
+          type="text"
+          formControlName="roleTitle"
+          placeholder="e.g. Forward, Midfielder"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+        />
+        @if (f['roleTitle'].invalid && f['roleTitle'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Role is required.</p>
+        }
+      </div>
+
+      <!-- Category (dropdown) -->
+      <div>
+        <label for="category" class="block text-sm font-medium text-white/80">Category *</label>
+        <select
+          id="category"
+          formControlName="category"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414] appearance-none"
+        >
+          <option value="" disabled selected>Select category</option>
+          <option value="club_president">Club President</option>
+          <option value="executive_management">Executive Management</option>
+          <option value="operations_administration">Operations & Administration</option>
+        </select>
+        @if (f['category'].invalid && f['category'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Category is required.</p>
+        }
+      </div>
+
+      <!-- Nationality -->
+      <div>
+        <label for="nationality" class="block text-sm font-medium text-white/80">Nationality *</label>
+        <input
+          id="nationality"
+          type="text"
+          formControlName="nationality"
+          placeholder="e.g. Argentine, Spanish"
+          class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+        />
+        @if (f['nationality'].invalid && f['nationality'].touched) {
+          <p class="text-sm text-[#EC193C] mt-1">Nationality is required.</p>
+        }
+      </div>
+
+      <!-- Photo -->
+      <div>
+        <label class="block text-sm font-medium text-white/80">Photo</label>
+        <div class="mt-1 flex items-center gap-3">
+          <input
+            id="photoInput"
+            type="file"
+            accept="image/*"
+            (change)="onFileSelected($event)"
+            class="w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#FFB414] file:text-[#131515] file:font-semibold hover:file:opacity-90 disabled:opacity-50"
+            [disabled]="loading"
+          />
+          @if (selectedFile || previewUrl) {
+            <button type="button" (click)="removeFile()" class="text-[#EC193C] hover:underline text-sm">Remove</button>
+          }
+        </div>
+        @if (previewUrl) {
+          <div class="mt-2">
+            <img [src]="previewUrl" alt="Photo preview" class="h-12 w-12 object-cover rounded-md border border-white/10" />
+          </div>
+        }
+        @if (showManualInput()) {
+          <div class="mt-2">
+            <label for="manualUrl" class="block text-sm text-white/60">Or enter image URL</label>
+            <input
+              id="manualUrl"
+              type="url"
+              [formControl]="manualUrlControl"
+              (input)="onManualUrlChange()"
+              placeholder="https://example.com/photo.jpg"
+              class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
+            />
+          </div>
+        }
+        @if (!isEdit && !selectedFile && !manualUrlControl.value && !previewUrl) {
+          <p class="text-sm text-[#EC193C] mt-1">A photo is required for new staff members.</p>
+        }
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="!px-6 !pb-6 !pt-2 gap-2">
+    <button mat-button type="button" (click)="cancel()" class="text-white/70 hover:text-white transition">Cancel</button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="staffForm.invalid || loading"
+      class="!bg-[#FFB414] !text-[#131515] font-semibold px-4 py-2 rounded-md hover:opacity-90 transition"
+    >
+      {{ loading ? 'Saving...' : (isEdit ? 'Save' : 'Create') }}
+    </button>
+  </mat-dialog-actions>
+</form>

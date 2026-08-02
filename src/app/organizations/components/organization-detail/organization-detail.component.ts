@@ -12,6 +12,8 @@ import { ParticipantModel } from '../../../participants/model/participant.model'
 import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
 import { ToastService } from '../../../common/services/toast/toast.service';
 import { ParticipantService } from '../../../participants/services/participant.service';
+import { SquadTableComponent } from '../../../squad/components/squad-table/squad-table.component';
+import { StaffTableComponent } from '../../../staff/components/staff-table/staff-table.component';
 
 @Component({
   selector: 'app-organization-detail',
@@ -21,6 +23,8 @@ import { ParticipantService } from '../../../participants/services/participant.s
     CustomBreadcrumbsComponent,
     MatDialogModule,
     ParticipantTableComponent,
+    SquadTableComponent,
+    StaffTableComponent,
   ],
   templateUrl: './organization-detail.component.html',
   styleUrls: ['./organization-detail.component.scss'],
