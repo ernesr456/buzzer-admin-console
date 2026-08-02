@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:buzzer-admin-console": "node dist/buzzer-admin-console/server/server.mjs"
+    "serve:ssr:buzzer-admin-console": "node dist/buzzer-admin-console/server/server.mjs",
+    "prepare": "husky install"
   },
   "commitlint": {
     "extends": [
