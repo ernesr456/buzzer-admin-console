@@ -12,14 +12,14 @@
           id="userId"
           formControlName="userId"
           class="mt-1 w-full px-3 py-2 bg-[#131515] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414] appearance-none"
-          [disabled]="isLoadingUsers"
+          [disabled]="isLoadingUsers()"
         >
           <option value="" disabled selected>
-            {{ isLoadingUsers ? 'Loading...' : 'Select a user' }}
+            {{ isLoadingUsers() ? 'Loading...' : 'Select a user' }}
           </option>
-          <option *ngFor="let user of userList" [value]="user.id">
-            {{ user.name }}
-          </option>
+          @for (user of userList(); track user.id) {
+            <option [value]="user.id">{{ user.name }}</option>
+          }
         </select>
         @if (f['userId'].invalid && f['userId'].touched) {
           <p class="text-sm text-[#EC193C] mt-1">Please select a user.</p>
@@ -63,10 +63,10 @@
       mat-raised-button
       color="primary"
       type="submit"
-      [disabled]="squadForm.invalid || loading || isLoadingUsers"
+      [disabled]="squadForm.invalid || loading() || isLoadingUsers()"
       class="!bg-[#FFB414] !text-[#131515] font-semibold px-4 py-2 rounded-md hover:opacity-90 transition"
     >
-      {{ loading ? 'Saving...' : (isEdit ? 'Save' : 'Create') }}
+      {{ loading() ? 'Saving...' : (isEdit ? 'Save' : 'Create') }}
     </button>
   </mat-dialog-actions>
 </form>

@@ -1,18 +1,8 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  OnInit,
-  OnDestroy,
-} from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, catchError, of } from 'rxjs';
 
 import { SquadModel } from '../../models/squad.model';
 import { SquadService } from '../../services/squad.service';
@@ -41,32 +31,38 @@ export class SquadTableComponent implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private cdr = inject(ChangeDetectorRef);
-
   private destroy$ = new Subject<void>();
-  private searchSubject = new BehaviorSubject<string>('');
-  searchQuery$ = this.searchSubject.asObservable();
 
-  squads: SquadModel[] = [];
-  isLoading = false;
+  // Signals
+  squads = signal<SquadModel[]>([]);
+  isLoading = signal(false);
+  search = signal('');
 
-  get tableRows() {
-    const query = this.searchSubject.getValue().toLowerCase().trim();
-    return this.squads
-      .filter(squad => squad && squad.displayName)
+  // Computed filtered rows with enriched data
+  filteredRows = computed(() => {
+    const query = this.search().toLowerCase().trim();
+    const list = this.squads().filter(squad => squad && squad.displayName);
+    if (!query) {
+      return list.map(squad => this.enrichRow(squad));
+    }
+    return list
       .filter(squad =>
         squad.displayName?.toLowerCase().includes(query) ||
         squad.position?.toLowerCase().includes(query)
       )
-      .map(squad => ({
-        id: squad.id,
-        displayName: squad.displayName,
-        age: squad.age,
-        position: squad.position,
-        photoUrl: squad.photoUrl,
-        agreementEnd: squad.agreementEnd,
-        squad: squad,
-      }));
+      .map(squad => this.enrichRow(squad));
+  });
+
+  private enrichRow(squad: SquadModel) {
+    return {
+      id: squad.id,
+      displayName: squad.displayName,
+      age: squad.age,
+      position: squad.position,
+      photoUrl: squad.photoUrl,
+      agreementEnd: squad.agreementEnd,
+      squad: squad,
+    };
   }
 
   ngOnInit(): void {
@@ -76,11 +72,11 @@ export class SquadTableComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Listen to service subject and update signal
     this.squadService.squadSubject$
       .pipe(takeUntil(this.destroy$))
       .subscribe(squads => {
-        this.squads = squads;
-        this.cdr.markForCheck();
+        this.squads.set(squads);
       });
 
     this.loadSquads(orgId);
@@ -92,21 +88,20 @@ export class SquadTableComponent implements OnInit, OnDestroy {
   }
 
   private loadSquads(orgId: string): void {
-    this.isLoading = true;
-    this.cdr.markForCheck();
-
-    this.squadService.getSquadByOrgId(orgId).subscribe({
-      next: () => {
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
+    this.isLoading.set(true);
+    this.squadService.getSquadByOrgId(orgId).pipe(
+      catchError((err) => {
         console.error('Failed to load squads:', err);
         this.toast.error('Could not load squad members. Please try again.', 'Error');
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      }
+        return of([]);
+      })
+    ).subscribe(() => {
+      this.isLoading.set(false);
     });
+  }
+
+  onSearch(query: string): void {
+    this.search.set(query);
   }
 
   openAddDialog(): void {
@@ -181,10 +176,6 @@ export class SquadTableComponent implements OnInit, OnDestroy {
     if (!orgId) return;
     this.router.navigate(['/organisations', orgId, 'squads', squad.id]);
     this.viewSquad.emit(squad.id);
-  }
-
-  onSearch(query: string): void {
-    this.searchSubject.next(query);
   }
 
   getDefaultAvatar(): string {

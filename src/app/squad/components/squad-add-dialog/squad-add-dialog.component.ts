@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -10,6 +10,7 @@ import { SquadModel } from '../../models/squad.model';
 import { SquadService } from '../../services/squad.service';
 import { UserService } from '../../../users/services/user.service';
 import { UserModel } from '../../../users/models/user.model';
+import { finalize } from 'rxjs';
 
 export interface SquadDialogData {
   orgId: string;
@@ -39,10 +40,11 @@ export class SquadAddDialogComponent implements OnInit {
   private squadService = inject(SquadService);
   private userService = inject(UserService);
 
-  userList: UserModel[] = [];
-  isLoadingUsers = false;
+  // Signals
+  userList = signal<UserModel[]>([]);
+  isLoadingUsers = signal(false);
+  loading = signal(false);
   isEdit = !!this.data.squad;
-  loading = false;
 
   squadForm = this.fb.group({
     userId: [this.data.squad?.userId ?? '', Validators.required],
@@ -50,26 +52,24 @@ export class SquadAddDialogComponent implements OnInit {
     agreementEnd: [this.data.squad?.agreementEnd ?? '', Validators.required],
   });
 
-  get f() {
-    return this.squadForm.controls;
-  }
+  get f() { return this.squadForm.controls; }
 
   ngOnInit(): void {
     this.loadUsers();
   }
 
   private loadUsers(): void {
-    this.isLoadingUsers = true;
-    this.userService.getUsers(this.data.orgId).subscribe({
-      next: (users) => {
-        this.userList = users;
-        this.isLoadingUsers = false;
-      },
-      error: (err) => {
-        console.error('Failed to load users:', err);
-        this.isLoadingUsers = false;
-      },
-    });
+    this.isLoadingUsers.set(true);
+    this.userService.getUsers(this.data.orgId)
+      .pipe(finalize(() => this.isLoadingUsers.set(false)))
+      .subscribe({
+        next: (users) => {
+          this.userList.set(users);
+        },
+        error: (err) => {
+          console.error('Failed to load users:', err);
+        },
+      });
   }
 
   submit(): void {
@@ -79,7 +79,7 @@ export class SquadAddDialogComponent implements OnInit {
     }
 
     const { userId, position, agreementEnd } = this.squadForm.value;
-    this.loading = true;
+    this.loading.set(true);
 
     const baseSquad: Partial<SquadModel> = {
       userId: userId!,
@@ -96,18 +96,15 @@ export class SquadAddDialogComponent implements OnInit {
         createdAt: this.data.squad.createdAt,
         updatedAt: new Date(),
       };
-      console.log(updatedSquad);
-      this.squadService.updatesSquad(updatedSquad).subscribe({
-        next: (result) => {
-          this.dialogRef.close(result);
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error('Update failed:', err);
-          alert('Failed to update squad member.');
-          this.loading = false;
-        },
-      });
+      this.squadService.updatesSquad(updatedSquad)
+        .pipe(finalize(() => this.loading.set(false)))
+        .subscribe({
+          next: (result) => this.dialogRef.close(result),
+          error: (err) => {
+            console.error('Update failed:', err);
+            alert('Failed to update squad member.');
+          },
+        });
     } else {
       const newSquad: SquadModel = {
         id: '',
@@ -118,17 +115,15 @@ export class SquadAddDialogComponent implements OnInit {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      this.squadService.addSquad(this.data.orgId, newSquad).subscribe({
-        next: (result) => {
-          this.dialogRef.close(result);
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error('Add failed:', err);
-          alert('Failed to create squad member.');
-          this.loading = false;
-        },
-      });
+      this.squadService.addSquad(this.data.orgId, newSquad)
+        .pipe(finalize(() => this.loading.set(false)))
+        .subscribe({
+          next: (result) => this.dialogRef.close(result),
+          error: (err) => {
+            console.error('Add failed:', err);
+            alert('Failed to create squad member.');
+          },
+        });
     }
   }
 
