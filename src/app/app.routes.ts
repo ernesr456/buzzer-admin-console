@@ -3,12 +3,12 @@ import { MainLayoutComponent } from './common/components/main-layout/main-layout
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { authGuard } from './core/guards/auth/auth.guard';
-import { SportListComponent } from './sports/components/sport-list/sport-list.component';
-import { SportDetailComponent } from './sports/components/sport-detail/sport-detail.component';
-import { EntityDetailComponent } from './entities/components/entity-detail/entity-detail.component';
+import { SportListComponent } from './sports/sport-list/sport-list.component';
+import { SportDetailComponent } from './sports/sport-detail/sport-detail.component';
+import { EntityDetailComponent } from './entities/entity-detail/entity-detail.component';
 import { sportResolver } from './sports/resolver/sport.resolver';
 import { entityResolver } from './entities/resolver/entity.resolver';
-import { OrganizationDetailComponent } from './organizations/components/organization-detail/organization-detail.component';
+import { OrganizationDetailComponent } from './organizations/organization-detail/organization-detail.component';
 import { organizationResolver } from './organizations/resolver/organization.resolver';
 
 export const routes: Routes = [
