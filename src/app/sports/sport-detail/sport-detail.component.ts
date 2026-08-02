@@ -65,7 +65,9 @@ export class SportDetailComponent implements OnInit {
   }
 
   refreshSport(): void {
-    this.sportsService.getSport();
+    this.sportsService.loadSports().subscribe(() => {
+      this.sportsService.computeAndCacheCounts(this.sportId()).catch(() => {});
+    });
   }
 
   openEditDialog(sport: SportModel): void {
