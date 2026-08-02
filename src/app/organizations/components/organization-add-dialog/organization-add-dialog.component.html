@@ -6,7 +6,6 @@
 <form [formGroup]="organizationForm" (ngSubmit)="submit()">
   <mat-dialog-content class="!p-6">
     <div class="space-y-4">
-      <!-- Name -->
       <div>
         <label for="name" class="block text-sm font-medium text-white/80">Name *</label>
         <input
@@ -21,7 +20,6 @@
         }
       </div>
 
-      <!-- Type -->
       <div>
         <label for="type" class="block text-sm font-medium text-white/80">Type *</label>
         <input
@@ -36,7 +34,6 @@
         }
       </div>
 
-      <!-- Country -->
       <div>
         <label for="country" class="block text-sm font-medium text-white/80">Country *</label>
         <input
@@ -51,7 +48,6 @@
         }
       </div>
 
-      <!-- Logo -->
       <div>
         <label class="block text-sm font-medium text-white/80">Logo</label>
         <div class="mt-1 flex items-center gap-3">
@@ -71,7 +67,6 @@
             <img [src]="previewUrl" alt="Logo preview" class="h-12 w-12 object-contain rounded-md border border-white/10" />
           </div>
         }
-        <!-- Manual URL fallback (shown on upload failure) -->
         @if (showManualInput()) {
           <div class="mt-2">
             <label for="manualUrl" class="block text-sm text-white/60">Or enter image URL</label>
