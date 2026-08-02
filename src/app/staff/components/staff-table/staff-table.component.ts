@@ -1,18 +1,8 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  OnInit,
-  OnDestroy,
-} from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, catchError, of } from 'rxjs';
 
 import { StaffModel } from '../../mode/staff.model';
 import { StaffService } from '../../services/staff.service';
@@ -31,7 +21,7 @@ import { ToastService } from '../../../common/services/toast/toast.service';
 export class StaffTableComponent implements OnInit, OnDestroy {
   @Input() orgId?: string;
   @Input() sportId?: string;
-  @Input() entityId?: string; // governing body ID (optional)
+  @Input() entityId?: string;
 
   @Output() editStaff = new EventEmitter<StaffModel>();
   @Output() addStaff = new EventEmitter<StaffModel>();
@@ -43,25 +33,20 @@ export class StaffTableComponent implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private cdr = inject(ChangeDetectorRef);
-
   private destroy$ = new Subject<void>();
 
-  staffMembers: StaffModel[] = [];
-  isLoading = false;
+  // Signals
+  staffMembers = signal<StaffModel[]>([]);
+  isLoading = signal(false);
+  search = signal('');
 
-  // Search
-  private searchSubject = new BehaviorSubject<string>('');
-  searchQuery$ = this.searchSubject.asObservable();
-
-  get tableRows() {
-    return this.staffMembers
-      .filter(staff => staff != null)
-      .map(staff => ({
-        ...staff,
-        // You can add computed fields here if needed
-      }));
-  }
+  // Computed filtered rows
+  filteredRows = computed(() => {
+    const q = this.search().trim().toLowerCase();
+    const list = this.staffMembers().filter(staff => staff != null);
+    if (!q) return list;
+    return list.filter(staff => staff.name.toLowerCase().includes(q));
+  });
 
   ngOnInit(): void {
     const orgId = this.orgId ?? this.route.snapshot.paramMap.get('orgId');
@@ -70,12 +55,11 @@ export class StaffTableComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Listen to the service's subject for real‑time updates
+    // Listen to service subject and update signal
     this.staffService.staffSubject$
       .pipe(takeUntil(this.destroy$))
       .subscribe(members => {
-        this.staffMembers = members;
-        this.cdr.markForCheck();
+        this.staffMembers.set(members);
       });
 
     this.loadStaff(orgId);
@@ -87,21 +71,20 @@ export class StaffTableComponent implements OnInit, OnDestroy {
   }
 
   private loadStaff(orgId: string): void {
-    this.isLoading = true;
-    this.cdr.markForCheck();
-
-    this.staffService.getStaffByOrgId(orgId).subscribe({
-      next: () => {
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
+    this.isLoading.set(true);
+    this.staffService.getStaffByOrgId(orgId).pipe(
+      catchError((err) => {
         console.error('Failed to load staff:', err);
         this.toast.error('Could not load staff members. Please try again.', 'Error');
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      },
+        return of([]);
+      })
+    ).subscribe(() => {
+      this.isLoading.set(false);
     });
+  }
+
+  onSearch(query: string): void {
+    this.search.set(query);
   }
 
   openAddDialog(): void {
@@ -170,17 +153,11 @@ export class StaffTableComponent implements OnInit, OnDestroy {
   }
 
   navigateToDetail(staff: StaffModel): void {
-    // Example: navigate to staff detail page.
-    // You can adjust the route as needed.
     const sportId = this.sportId ?? this.route.snapshot.paramMap.get('sportId');
     const entityId = this.entityId ?? this.route.snapshot.paramMap.get('entityId');
     const orgId = this.orgId ?? this.route.snapshot.paramMap.get('orgId');
     if (!sportId || !entityId || !orgId) return;
     this.router.navigate(['/sports', sportId, entityId, orgId, 'staff', staff.id]);
     this.viewStaff.emit(staff.id);
-  }
-
-  onSearch(query: string): void {
-    this.searchSubject.next(query);
   }
 }

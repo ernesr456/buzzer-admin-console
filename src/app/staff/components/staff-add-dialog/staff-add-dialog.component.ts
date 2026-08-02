@@ -36,16 +36,14 @@ export class StaffAddDialogComponent {
 
   manualUrlControl = new FormControl('');
   showManualInput = signal(false);
+  loading = signal(false);
 
   isEdit = !!this.data.staff;
   orgId = this.data.orgId;
   selectedFile: File | null = null;
   previewUrl: string | null = this.data.staff?.photoUrl ?? null;
-  loading = false;
 
-  get f() {
-    return this.staffForm.controls;
-  }
+  get f() { return this.staffForm.controls; }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -54,9 +52,7 @@ export class StaffAddDialogComponent {
       this.showManualInput.set(false);
       this.manualUrlControl.reset();
       const reader = new FileReader();
-      reader.onload = () => {
-        this.previewUrl = reader.result as string;
-      };
+      reader.onload = () => { this.previewUrl = reader.result as string; };
       reader.readAsDataURL(this.selectedFile);
     }
   }
@@ -88,7 +84,7 @@ export class StaffAddDialogComponent {
     }
 
     const { name, roleTitle, category, nationality } = this.staffForm.value;
-    this.loading = true;
+    this.loading.set(true);
 
     const manualUrl = this.manualUrlControl.value?.trim() || null;
 
@@ -99,12 +95,12 @@ export class StaffAddDialogComponent {
 
     if (this.selectedFile) {
       if (!this.isValidImage(this.selectedFile)) {
-        this.loading = false;
+        this.loading.set(false);
         return;
       }
       this.uploadService
         .uploadImage(this.selectedFile, undefined, 'file')
-        .pipe(finalize(() => (this.loading = false)))
+        .pipe(finalize(() => this.loading.set(false)))
         .subscribe({
           next: (response) => {
             const photoUrl = response.url || response.imageUrl || response.data?.url;
@@ -128,7 +124,7 @@ export class StaffAddDialogComponent {
       this.saveStaff(name!, roleTitle!, category!, nationality!, this.previewUrl);
     } else {
       alert('Please upload a photo or enter an image URL.');
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 
@@ -174,7 +170,7 @@ export class StaffAddDialogComponent {
         error: (err) => {
           console.error('Update failed:', err);
           alert('Failed to update staff member.');
-          this.loading = false;
+          this.loading.set(false);
         },
       });
     } else {
@@ -189,7 +185,7 @@ export class StaffAddDialogComponent {
         error: (err) => {
           console.error('Add failed:', err);
           alert('Failed to create staff member.');
-          this.loading = false;
+          this.loading.set(false);
         },
       });
     }
