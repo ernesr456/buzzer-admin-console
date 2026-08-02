@@ -11,14 +11,13 @@ export const organizationResolver: ResolveFn<OrganizationModel | undefined> = (
 ): Observable<OrganizationModel | undefined> => {
   const organizationService = inject(OrganizationService);
   const router = inject(Router);
-  const entityId = route.paramMap.get('entityId');
   const orgId = route.paramMap.get('orgId');
 
-  if (!entityId || !orgId) {
+  if (!orgId) {
     router.navigate(['/sports']);
     return of(undefined);
   }
-  return organizationService.getOrganizationsById(entityId,orgId).pipe(
+  return organizationService.getOrganizationsById(orgId).pipe(
     take(1),
     map(entity => {
       if (!entity) {
