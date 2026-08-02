@@ -4,14 +4,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable, Subject, switchMap, of, catchError, startWith, map, takeUntil, BehaviorSubject, finalize } from 'rxjs';
 
-import { CustomBreadcrumbsComponent } from '../../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
-import { EntityModel } from '../../model/entity.model';
-import { EntityService } from '../../services/entity.service';
-import { OrganizationModel } from '../../../organizations/model/organization.model';
-import { OrganizationTableComponent } from '../../../organizations/components/organization-table/organization-table.component';
-import { EntityAddDialogComponent } from '../entity-add-dialog/entity-add-dialog.component';
-import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
-import { ToastService } from '../../../common/services/toast/toast.service';
+import { CustomBreadcrumbsComponent } from '../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
+import { EntityModel } from '../model/entity.model';
+import { EntityService } from '../services/entity.service';
+import { OrganizationModel } from '../../organizations/model/organization.model';
+import { OrganizationTableComponent } from '../../organizations/components/organization-table/organization-table.component';
+import { EntityAddDialogComponent } from '../components/entity-add-dialog/entity-add-dialog.component';
+import { CustomDialogComponent, CustomDialogData } from '../../common/components/custom-dialog/custom-dialog.component';
+import { ToastService } from '../../common/services/toast/toast.service';
 
 // Define the possible states of the view
 interface EntityViewState {
