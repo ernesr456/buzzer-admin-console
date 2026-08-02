@@ -7,19 +7,19 @@
   <!-- Statistics Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div class="p-4 rounded-lg text-center border border-white/10">
-      <p class="!text-[24px] font-light font-poppins">{{ totalSports$ | async }}</p>
+      <p class="!text-[24px] font-light font-poppins">{{ totalSports() }}</p>
       <p class="uppercase text-[10px] tracking-wider text-white/60">Sports</p>
     </div>
     <div class="p-4 rounded-lg text-center border border-white/10">
-      <p class="!text-[24px] font-light font-poppins">{{ totalEntities$ | async }}</p>
+      <p class="!text-[24px] font-light font-poppins">{{ totalEntities() }}</p>
       <p class="uppercase text-[10px] tracking-wider text-white/60">Main Entities</p>
     </div>
     <div class="p-4 rounded-lg text-center border border-white/10">
-      <p class="!text-[24px] font-light font-poppins">{{ totalOrganisations$ | async }}</p>
+      <p class="!text-[24px] font-light font-poppins">{{ totalOrganisations() }}</p>
       <p class="uppercase text-[10px] tracking-wider text-white/60">Organizations</p>
     </div>
     <div class="p-4 rounded-lg text-center border border-white/10">
-      <p class="!text-[24px] font-light font-poppins">{{ totalParticipants$ | async }}</p>
+      <p class="!text-[24px] font-light font-poppins">{{ totalParticipants() }}</p>
       <p class="uppercase text-[10px] tracking-wider text-white/60">Participants</p>
     </div>
   </div>
@@ -32,11 +32,11 @@
         type="text"
         placeholder="Search sports..."
         (input)="onSearchInput($any($event.target).value)"
-        [value]="searchQuery$ | async"
+        [value]="search()"
         class="w-full pl-9 pr-10 py-2 bg-[#1e2121] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#FFB414]"
       />
       <button
-        *ngIf="(searchQuery$ | async)?.length"
+        *ngIf="search().length"
         (click)="clearSearch()"
         class="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
       >
@@ -48,12 +48,12 @@
       <button
         type="button"
         (click)="bulkImportInput.click()"
-        [disabled]="importLoading$ | async"
+        [disabled]="importLoading()"
         class="flex items-center border border-[#FFB414]/40 gap-2 px-4 py-2 font-medium font-[10px] rounded-md hover:bg-[#FFB414]/10 transition w-full sm:w-fit"
       >
-        <span *ngIf="!(importLoading$ | async)" class="material-symbols-outlined text-xl">upload_file</span>
-        <span *ngIf="importLoading$ | async" class="material-symbols-outlined text-xl animate-spin">autorenew</span>
-        <span>{{ (importLoading$ | async) ? 'Importing...' : 'Bulk Import' }}</span>
+        <span *ngIf="!importLoading()" class="material-symbols-outlined text-xl">upload_file</span>
+        <span *ngIf="importLoading()" class="material-symbols-outlined text-xl animate-spin">autorenew</span>
+        <span>{{ importLoading() ? 'Importing...' : 'Bulk Import' }}</span>
       </button>
       <button
         type="button"
@@ -69,7 +69,7 @@
   <!-- Table Container -->
   <div class="bg-[#1e2121] rounded-lg overflow-x-auto">
     <!-- SKELETON LOADER -->
-    <div *ngIf="loading$ | async" class="w-full p-4">
+    <div *ngIf="loading()" class="w-full p-4">
       <!-- Header skeleton -->
       <div class="flex border-b border-white/5 pb-3 mb-3">
         <div class="flex-1 h-12 bg-white/10 rounded animate-pulse mr-2"></div>
@@ -89,63 +89,59 @@
     </div>
 
     <!-- Data loaded -->
-    <ng-container *ngIf="!(loading$ | async)">
-      <ng-container *ngIf="filteredSports$ | async as sports">
-        <ng-container *ngIf="countsMap$ | async as counts">
-        <table *ngIf="sports.length > 0" class="w-full text-sm [&_td:nth-child(even)]:bg-white/5 [&_th:nth-child(even)]:bg-white/5">
-          <thead class="bg-white/10">
-            <tr class="border-b border-white/5">
-              <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Sport</th>
-              <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Governing Bodies</th>
-              <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Organizations</th>
-              <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Participants</th>
-              <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              *ngFor="let sport of sports; trackBy: trackByFn"
-              (click)="navigateToDetail(sport.id)"
-              class="border-b border-white/5 last:border-0 hover:bg-white/10 transition cursor-pointer"
-            >
-              <td class="py-3 px-4">{{sport.emoji}} {{sport.name}}</td>
-              <td class="py-3 px-4">
-                {{ counts[sport.id]?.entities ?? 0 }}
-              </td>
-              <td class="py-3 px-4">
-                {{ counts[sport.id]?.organizations ?? 0 }}
-              </td>
-              <td class="py-3 px-4">
-                {{ counts[sport.id]?.participants ?? 0 }}
-              </td>
-              <td class="py-3 px-4">
-                <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
-                  <button
-                    (click)="openEditDialog(sport)"
-                    class="p-1 rounded hover:bg-white/10 transition"
-                    aria-label="Edit sport"
-                  >
-                    <span class="material-symbols-outlined text-xl">edit</span>
-                  </button>
-                  <button
-                    (click)="deleteSport(sport)"
-                    class="p-1 rounded hover:bg-red-500/20 transition"
-                    aria-label="Delete sport"
-                  >
-                    <span class="material-symbols-outlined text-xl">delete</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        </ng-container>
+    <ng-container *ngIf="!loading()">
+      <table *ngIf="filteredSports().length > 0" class="w-full text-sm [&_td:nth-child(even)]:bg-white/5 [&_th:nth-child(even)]:bg-white/5">
+        <thead class="bg-white/10">
+          <tr class="border-b border-white/5">
+            <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Sport</th>
+            <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Governing Bodies</th>
+            <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Organizations</th>
+            <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Participants</th>
+            <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let sport of filteredSports(); trackBy: trackByFn"
+            (click)="navigateToDetail(sport.id)"
+            class="border-b border-white/5 last:border-0 hover:bg-white/10 transition cursor-pointer"
+          >
+            <td class="py-3 px-4">{{sport.emoji}} {{sport.name}}</td>
+            <td class="py-3 px-4">
+              {{ counts()[sport.id]?.entities ?? 0 }}
+            </td>
+            <td class="py-3 px-4">
+              {{ counts()[sport.id]?.organizations ?? 0 }}
+            </td>
+            <td class="py-3 px-4">
+              {{ counts()[sport.id]?.participants ?? 0 }}
+            </td>
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
+                <button
+                  (click)="openEditDialog(sport)"
+                  class="p-1 rounded hover:bg-white/10 transition"
+                  aria-label="Edit sport"
+                >
+                  <span class="material-symbols-outlined text-xl">edit</span>
+                </button>
+                <button
+                  (click)="deleteSport(sport)"
+                  class="p-1 rounded hover:bg-red-500/20 transition"
+                  aria-label="Delete sport"
+                >
+                  <span class="material-symbols-outlined text-xl">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-        <!-- Empty state -->
-        <div *ngIf="sports.length === 0" class="py-12 text-center text-white/50">
-          No sports found. Add one!
-        </div>
-      </ng-container>
+      <!-- Empty state -->
+      <div *ngIf="filteredSports().length === 0" class="py-12 text-center text-white/50">
+        No sports found. Add one!
+      </div>
     </ng-container>
   </div>
 </div>

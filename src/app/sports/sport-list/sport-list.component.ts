@@ -1,10 +1,10 @@
-import { Component, inject, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { BehaviorSubject, combineLatest, of, take } from 'rxjs';
-import { map, catchError, finalize } from 'rxjs/operators';
+import { map, catchError, finalize, take, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { SportsService } from '../services/sports/sports.service';
 import { SportModel } from '../models/sport.model';
 import { SportAddDialogComponent } from '../components/sport-add-dialog/sport-add-dialog.component';
@@ -36,67 +36,51 @@ export class SportListComponent implements OnInit {
   private organizationService = inject(OrganizationService);
   private participantService = inject(ParticipantService);
 
-  // Search
-  private searchSubject = new BehaviorSubject<string>('');
-  searchQuery$ = this.searchSubject.asObservable();
+  // Signals
+  search = signal('');
+  loading = signal(true);
+  importLoading = signal(false);
+  private destroy$ = new Subject<void>();
 
-  // Loading state
-  private loadingSubject = new BehaviorSubject<boolean>(true);
-  loading$ = this.loadingSubject.asObservable();
+  // Convert service observables into signals
+  public sportsSignal = signal<SportModel[]>([]);
+  public countsSignal = signal<Record<string, { entities: number; organizations: number; participants: number }>>({});
 
-  private sportsData$ = this.sportsService.sports$.pipe(
-    map(sports => (sports ?? []).map(sport => ({ ...sport, entities: [] })) as SportModel[]),
-    catchError((err) => {
-      console.error('Failed to load sports', err);
-      this.loadingSubject.next(false);
-      this.toast.error('Failed to load sports. Please refresh.', 'Error');
-      return of([]);
-    })
-  );
+  public filteredSports = computed(() => {
+    const all = (this.sportsSignal() ?? []) as SportModel[];
+    const q = (this.search() ?? '').trim().toLowerCase();
+    if (!q) return all;
+    return all.filter(s => (s.name ?? '').toLowerCase().includes(q));
+  });
 
-  // Filtered list based on search (only after data loads)
-  filteredSports$ = combineLatest([
-    this.sportsData$,
-    this.searchQuery$
-  ]).pipe(
-    map(([sports, query]) => {
-      const search = query?.trim().toLowerCase() || '';
-      if (!search) return sports;
-      return sports.filter(sport => sport.name.toLowerCase().includes(search));
-    })
-  );
-
-  // Statistics derived from the same data stream
-  totalSports$ = this.sportsData$.pipe(map(s => s.length));
-
-  // Counts
-  countsMap$ = new BehaviorSubject<Partial<Record<string, { entities: number; organizations: number; participants: number }>>>({});
-  totalEntities$ = new BehaviorSubject<number>(0);
-  totalOrganisations$ = new BehaviorSubject<number>(0);
-  totalParticipants$ = new BehaviorSubject<number>(0);
-
-  // Bulk import loading state
-  private importLoadingSubject = new BehaviorSubject<boolean>(false);
-  importLoading$ = this.importLoadingSubject.asObservable();
+  public totalSports = computed(() => (this.sportsSignal() ?? []).length);
+  public counts = computed(() => this.countsSignal());
+  public totalEntities = computed(() => Object.values(this.counts() || {}).reduce((acc, c) => acc + (c?.entities ?? 0), 0));
+  public totalOrganisations = computed(() => Object.values(this.counts() || {}).reduce((acc, c) => acc + (c?.organizations ?? 0), 0));
+  public totalParticipants = computed(() => Object.values(this.counts() || {}).reduce((acc, c) => acc + (c?.participants ?? 0), 0));
 
   ngOnInit(): void {
-    this.loadingSubject.next(true);
+    this.loading.set(true);
+
+    // mirror service observables into local signals
+    this.sportsService.sports$.pipe(takeUntil(this.destroy$)).subscribe(list => this.sportsSignal.set(list));
+    this.sportsService.counts$.pipe(takeUntil(this.destroy$)).subscribe(m => this.countsSignal.set(m));
 
     this.sportsService.loadSports().pipe(
       finalize(() => {
         // compute counts after sports loaded
         this.computeAllCounts().catch(() => {});
-        this.loadingSubject.next(false);
+        this.loading.set(false);
       })
     ).subscribe();
   }
 
   private refreshData(): void {
-    this.loadingSubject.next(false);
+    this.loading.set(true);
     this.sportsService.loadSports().pipe(
       finalize(() => {
         this.computeAllCounts().catch(() => {});
-        this.loadingSubject.next(false);
+        this.loading.set(false);
       })
     ).subscribe({
       error: (err) => {
@@ -113,8 +97,7 @@ export class SportListComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.sportsService.addSport(result);
-        this.refreshData();
+        this.sportsService.addSport(result).subscribe(() => this.refreshData());
       }
     });
   }
@@ -127,8 +110,7 @@ export class SportListComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.sportsService.updateSport(sport.id, result);
-        this.refreshData();
+        this.sportsService.updateSport(sport.id, result).subscribe(() => this.refreshData());
       }
     });
   }
@@ -156,7 +138,7 @@ export class SportListComponent implements OnInit {
             this.toast.success(`Sport "${sport.name}" deleted successfully.`, 'Deleted');
             if (this.router.url.includes('/sports/')) {
               this.router.navigate(['/sports']);
-            }else{
+            } else {
               this.refreshData();
             }
           },
@@ -170,11 +152,11 @@ export class SportListComponent implements OnInit {
   }
 
   onSearchInput(value: string): void {
-    this.searchSubject.next(value);
+    this.search.set(value);
   }
 
   clearSearch(): void {
-    this.searchSubject.next('');
+    this.search.set('');
   }
 
   parseBulkImportData(
@@ -294,7 +276,7 @@ export class SportListComponent implements OnInit {
     }
 
     // set loading
-    this.importLoadingSubject.next(true);
+    this.importLoading.set(true);
 
     try {
       const content = await file.text();
@@ -327,17 +309,10 @@ export class SportListComponent implements OnInit {
           input.value = '';
           return;
         }
-        // flatSports.forEach((sport) => {
-        //   this.sportsService.addSport({
-        //     name: sport.name,
-        //     createdAt: new Date(),
-        //   });
-        // });
         this.toast.success(
           `Imported ${flatSports.length} sport(s).`,
           'Import completed'
         );
-        // optionally refresh list if needed
         this.refreshData();
       }
     } catch (error) {
@@ -346,7 +321,7 @@ export class SportListComponent implements OnInit {
     } finally {
       input.value = '';
       // clear loading
-      this.importLoadingSubject.next(false);
+      this.importLoading.set(false);
     }
   }
 
@@ -439,29 +414,25 @@ export class SportListComponent implements OnInit {
     try {
       const sports = await lastValueFrom(this.sportsService.sports$.pipe(take(1)));
       const counts: Record<string, { entities: number; organizations: number; participants: number }> = {};
-      let totalEntities = 0;
-      let totalOrgs = 0;
-      let totalParticipants = 0;
 
       for (const sport of sports) {
         try {
           const c = await this.sportsService.computeAndCacheCounts(sport.id);
           counts[sport.id] = { entities: c.entities, organizations: c.organizations, participants: c.participants };
-          totalEntities += c.entities;
-          totalOrgs += c.organizations;
-          totalParticipants += c.participants;
         } catch (sErr) {
           console.error('Error computing counts for sport', sport.id, sErr);
           counts[sport.id] = { entities: 0, organizations: 0, participants: 0 };
         }
       }
 
-      this.countsMap$.next(counts);
-      this.totalEntities$.next(totalEntities);
-      this.totalOrganisations$.next(totalOrgs);
-      this.totalParticipants$.next(totalParticipants);
+      this.countsSignal.set(counts);
     } catch (err) {
       console.error('Failed to compute counts', err);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

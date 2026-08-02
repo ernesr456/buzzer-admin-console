@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, combineLatest, Subject } from 'rxjs';
-import { map, takeUntil, switchMap } from 'rxjs/operators';
-import { CustomBreadcrumbsComponent } from '../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { SportsService } from '../services/sports/sports.service';
 import { SportModel } from '../models/sport.model';
 import { SportAddDialogComponent } from '../components/sport-add-dialog/sport-add-dialog.component';
@@ -11,6 +10,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ToastService } from '../../common/services/toast/toast.service';
 import { EntityTableComponent } from '../../entities/components/entity-table/entity-table.component';
 import { CustomDialogComponent, CustomDialogData } from '../../common/components/custom-dialog/custom-dialog.component';
+import { CustomBreadcrumbsComponent } from '../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 
 @Component({
   selector: 'app-sport-detail',
@@ -20,65 +20,43 @@ import { CustomDialogComponent, CustomDialogData } from '../../common/components
   styleUrls: ['./sport-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SportDetailComponent implements OnInit, OnDestroy {
+export class SportDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private sportsService = inject(SportsService);
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
   private router = inject(Router);
-  private destroy$ = new Subject<void>();
 
-  sport$!: Observable<SportModel | undefined>;
-  sportId!: string;
-  totalCompetitions$!: Observable<number>;
-  totalParticipants$!: Observable<number>;
-  totalEntities$!: Observable<number>;
+  public sportId = signal('');
+  public sportsSignal = signal<SportModel[]>([]);
+  public sport = computed(() => this.sportsSignal().find((s: SportModel) => s.id === this.sportId()));
+
+  public countsSignal = signal<Record<string, { entities: number; organizations: number; participants: number }>>({});
+
+  public totalEntities = computed(() => this.countsSignal()[this.sportId()]?.entities ?? 0);
+  public totalCompetitions = computed(() => this.countsSignal()[this.sportId()]?.organizations ?? 0);
+  public totalParticipants = computed(() => this.countsSignal()[this.sportId()]?.participants ?? 0);
+
+  private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
     this.sportsService.getSport();
 
-    this.sport$ = combineLatest([
-      this.route.paramMap,
-      this.sportsService.sportSubject$
-    ]).pipe(
-      map(([params, sports]) => {
-        const id = params.get('sportId');
-        if (!id) {
-          this.router.navigate(['/sports']);
-          return undefined;
-        }
-        this.sportId = id;
-        return sports.find(sport => sport.id === id);
-      }),
-      takeUntil(this.destroy$)
-    );
-
-    // Prefer cached counts from SportsService when available
-    const counts$ = this.route.paramMap.pipe(
-      map(pm => pm.get('sportId') || ''),
-      switchMap(id => this.sportsService.getCountsForSport$(id))
-    );
-
-    this.totalEntities$ = counts$.pipe(
-      map(c => c?.entities ?? 0)
-    );
-
-    this.totalCompetitions$ = counts$.pipe(
-      map(c => c?.organizations ?? 0)
-    );
-
-    this.totalParticipants$ = counts$.pipe(
-      map(c => c?.participants ?? 0)
-    );
-
-    // Ensure counts are computed when visiting detail directly
+    // sync route param to sportId signal and compute counts when param changes
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(pm => {
-      const id = pm.get('sportId');
-      if (id) {
-        // compute and cache counts for this sport
-        this.sportsService.computeAndCacheCounts(id).catch(() => {});
+      const id = pm.get('sportId') || '';
+      if (!id) {
+        this.router.navigate(['/sports']);
+        return;
       }
+      this.sportId.set(id);
+      // compute and cache counts for this sport
+      this.sportsService.computeAndCacheCounts(id).catch(() => {});
     });
+
+    // mirror service observables into local signals for template consumption
+    this.sportsService.sports$.pipe(takeUntil(this.destroy$)).subscribe(list => this.sportsSignal.set(list));
+    this.sportsService.counts$.pipe(takeUntil(this.destroy$)).subscribe(m => this.countsSignal.set(m));
   }
 
   ngOnDestroy(): void {

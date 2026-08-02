@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, lastValueFrom } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
@@ -19,18 +19,15 @@ interface Counts {
 export class SportsService {
   private apiUrl = environment.apiBaseUrl + '/sports';
 
-  // Raw data from the API
-  private rawSportsSubject = new BehaviorSubject<SportModel[]>([]);
+  // internal signals
+  private _sports = signal<SportModel[]>([]);
+  private _counts = signal<Record<string, Counts>>({});
 
-  // Public observable (entities always empty)
+  // Raw data from the API (BehaviorSubjects kept for Observable API compatibility)
+  private rawSportsSubject = new BehaviorSubject<SportModel[]>([]);
   sports$ = this.rawSportsSubject.pipe(
-    map(sports =>
-      sports.map(sport => ({
-        ...sport,
-      }))
-    )
+    map(sports => sports.map(sport => ({ ...sport })))
   );
-  
   totalSports$ = this.rawSportsSubject.pipe(map(list => list.length));
 
   // counts cache
@@ -41,15 +38,21 @@ export class SportsService {
   private sportsMap = new Map<string, BehaviorSubject<SportModel>>();
   sportSubject$ = new BehaviorSubject<SportModel[]>([]);
 
-  constructor(
-    private http: HttpClient,
-    private authService: AuthService,
-    private entityService: EntityService,
-    private organizationService: OrganizationService,
-    private participantService: ParticipantService
-  ) {
+  // inject dependencies (use inject() per Developer Guide)
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
+  private entityService = inject(EntityService);
+  private organizationService = inject(OrganizationService);
+  private participantService = inject(ParticipantService);
+
+  // initialize: load sports at service construction
+  private _init = (() => {
+    // mirror signals into subjects initially
+    this._sports.set(this.rawSportsSubject.value);
+    this._counts.set(this.countsSubject.value);
+    // kick off initial load
     this.loadSports().subscribe();
-  }
+  })();
 
   addSport(sport: SportModel): Observable<SportModel> {
     return this.http.post<SportModel>(this.apiUrl, sport, { headers: this.authService.getAuthHeaders() }).pipe(
