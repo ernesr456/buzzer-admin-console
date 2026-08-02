@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, of, tap, throwError } from 'rxjs';
 import { ParticipantModel } from '../model/participant.model';
 import { AuthService } from '../../core/services/auth/auth.service';
@@ -7,14 +7,11 @@ import { HttpClient } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
 export class ParticipantService {
-  private participantsMap = new Map<string, BehaviorSubject<ParticipantModel[]>>();
   private apiUrl = environment.apiBaseUrl + '/participants';
   participantSubject$ = new BehaviorSubject<ParticipantModel[]>([]);
 
-  constructor(
-    private authService: AuthService,
-    private http: HttpClient,
-  ) {}
+  private authService = inject(AuthService);
+  private http = inject(HttpClient);
 
   addParticipant(organizationId: string, participant: Partial<ParticipantModel>): Observable<ParticipantModel> {
     return this.http.post<ParticipantModel>(`${this.apiUrl}?organizationId=${organizationId}`, participant, { headers: this.authService.getAuthHeaders() }).pipe(
@@ -68,7 +65,7 @@ export class ParticipantService {
     );
   }
 
-  deleteParticipant(participant:ParticipantModel): Observable<void> {
+  deleteParticipant(participant: ParticipantModel): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${participant.id}`, {
       headers: this.authService.getAuthHeaders()
     }).pipe(

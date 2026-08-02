@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ParticipantModel } from '../../model/participant.model';
 import { ParticipantService } from '../../services/participant.service';
+import { finalize } from 'rxjs';
 
 export interface ParticipantDialogData {
   organizationId: string;
@@ -29,12 +30,11 @@ export class ParticipantAddDialogComponent {
     role: [this.data.participant?.role ?? '', Validators.required],
   });
 
+  loading = signal(false);
   isEdit = !!this.data.participant;
   orgId = this.data.organizationId;
 
-  get f() {
-    return this.participantForm.controls;
-  }
+  get f() { return this.participantForm.controls; }
 
   submit(): void {
     if (this.participantForm.invalid) {
@@ -42,6 +42,7 @@ export class ParticipantAddDialogComponent {
       return;
     }
 
+    this.loading.set(true);
     const { name, role } = this.participantForm.value;
 
     if (this.isEdit && this.data.participant) {
@@ -54,7 +55,8 @@ export class ParticipantAddDialogComponent {
         this.data.organizationId,
         this.data.participant.id,
         updatedParticipant
-      ).subscribe({
+      ).pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
         next: (res) => this.dialogRef.close(res),
         error: () => this.dialogRef.close(undefined)
       });
@@ -62,8 +64,9 @@ export class ParticipantAddDialogComponent {
       this.participantService.addParticipant(this.orgId, {
         name: name!,
         role: role!,
-        organisationId:this.orgId
-      }).subscribe({
+        organisationId: this.orgId
+      }).pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
         next: (res) => this.dialogRef.close(res),
         error: () => this.dialogRef.close(undefined)
       });

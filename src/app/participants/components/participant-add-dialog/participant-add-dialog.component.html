@@ -43,10 +43,10 @@
       mat-raised-button
       color="primary"
       type="submit"
-      [disabled]="participantForm.invalid"
+      [disabled]="participantForm.invalid || loading()"
       class="!bg-[#FFB414] !text-[#131515] font-semibold px-4 py-2 rounded-md hover:opacity-90 transition"
     >
-      {{ isEdit ? 'Save' : 'Create' }}
+      {{ loading() ? 'Saving...' : (isEdit ? 'Save' : 'Create') }}
     </button>
   </mat-dialog-actions>
 </form>

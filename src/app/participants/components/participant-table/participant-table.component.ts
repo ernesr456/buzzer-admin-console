@@ -1,21 +1,10 @@
-// src/app/participants/components/participant-table/participant-table.component.ts
-
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  inject,
-  ChangeDetectionStrategy,
-  OnInit,
-  OnDestroy,
-} from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, takeUntil, catchError, of, finalize } from 'rxjs';
 import { ParticipantService } from '../../services/participant.service';
 import { ToastService } from '../../../common/services/toast/toast.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, catchError, combineLatest, finalize, map, Observable, of, Subject, takeUntil, tap } from 'rxjs';
 import { ParticipantModel } from '../../model/participant.model';
 import { ParticipantAddDialogComponent } from '../participant-add-dialog/participant-add-dialog.component';
 import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
@@ -23,12 +12,12 @@ import { CustomDialogComponent, CustomDialogData } from '../../../common/compone
 @Component({
   selector: 'app-participant-table',
   standalone: true,
-  imports: [CommonModule, MatDialogModule ],
+  imports: [CommonModule, MatDialogModule],
   templateUrl: './participant-table.component.html',
   styleUrls: ['./participant-table.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ParticipantTableComponent implements OnInit, OnDestroy{
+export class ParticipantTableComponent implements OnInit, OnDestroy {
   private dialog = inject(MatDialog);
   private participantService = inject(ParticipantService);
   private toast = inject(ToastService);
@@ -36,54 +25,38 @@ export class ParticipantTableComponent implements OnInit, OnDestroy{
   private route = inject(ActivatedRoute);
   private destroy$ = new Subject<void>();
 
-  // Local source of truth for participants
-  private participantsSubject = new BehaviorSubject<ParticipantModel[]>([]);
-  participants$ = this.participantsSubject.asObservable();
+  // Signals
+  organizationId = signal('');
+  participants = signal<ParticipantModel[]>([]);
+  search = signal('');
+  loading = signal(true);
 
-  // Search
-  private searchSubject = new BehaviorSubject<string>('');
-  searchQuery$ = this.searchSubject.asObservable();
+  // Computed filtered participants
+  filteredParticipants = computed(() => {
+    const q = this.search().trim().toLowerCase();
+    if (!q) return this.participants();
+    return this.participants().filter(p => p.name.toLowerCase().includes(q));
+  });
 
-  // Loading state
-  private loadingSubject = new BehaviorSubject<boolean>(true);
-  loading$ = this.loadingSubject.asObservable();
-
-  organizationId!: string;
-
-  filteredparticipant$: Observable<ParticipantModel[]> = combineLatest([
-    this.participants$,
-    this.searchQuery$
-  ]).pipe(
-    map(([participants, query]) => {
-      const search = query?.trim().toLowerCase() || '';
-      if (!search) return participants;
-      return participants.filter(participant =>
-        participant.name.toLowerCase().includes(search)
-      );
-    })
-  );
-  
   ngOnInit(): void {
     this.route.params
-      .pipe(
-        takeUntil(this.destroy$),
-        tap(params => {
-          this.organizationId = params['orgId'];
-          this.loadParticipants();
-        })
-      )
-      .subscribe();
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        this.organizationId.set(params['orgId']);
+        this.loadParticipants();
+      });
   }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   loadParticipants(): void {
-    this.loadingSubject.next(true);
-    this.participantService.getParticipantsByOrganizationId(this.organizationId)
+    this.loading.set(true);
+    this.participantService.getParticipantsByOrganizationId(this.organizationId())
       .pipe(
-        finalize(() => this.loadingSubject.next(false)),
+        finalize(() => this.loading.set(false)),
         catchError((err) => {
           console.error('Failed to load participants', err);
           this.toast.error('Failed to load participants. Please refresh.', 'Error');
@@ -92,39 +65,40 @@ export class ParticipantTableComponent implements OnInit, OnDestroy{
       )
       .subscribe(participants => {
         const list = Array.isArray(participants) ? participants : (participants ? [participants] : []);
-        this.participantsSubject.next(list);
+        this.participants.set(list);
       });
   }
+
   onSearch(query: string): void {
-    this.searchSubject.next(query);
+    this.search.set(query);
   }
 
   openAddDialog(): void {
     const dialogRef = this.dialog.open(ParticipantAddDialogComponent, {
       width: '400px',
-      data: { organizationId: this.organizationId },   // ✅ correct key
+      data: { organizationId: this.organizationId() },
     });
 
     dialogRef.afterClosed().subscribe((newParticipant: ParticipantModel | undefined) => {
       if (newParticipant) {
-        this.toast.success(`Entity "${newParticipant.name}" created.`, 'Success');
-        this.loadParticipants();  // refresh
+        this.toast.success(`Participant "${newParticipant.name}" created.`, 'Success');
+        this.loadParticipants();
       }
     });
   }
 
-  openEditDialog(entity: ParticipantModel): void {
+  openEditDialog(participant: ParticipantModel): void {
     const dialogRef = this.dialog.open(ParticipantAddDialogComponent, {
       width: '400px',
       data: {
-        organizationId: this.organizationId,
-        participant: entity,
+        organizationId: this.organizationId(),
+        participant,
       },
     });
 
-    dialogRef.afterClosed().subscribe((updatedEntity: ParticipantModel | undefined) => {
-      if (updatedEntity) {
-        this.toast.success(`Entity "${updatedEntity.name}" updated.`, 'Success');
+    dialogRef.afterClosed().subscribe((updatedParticipant: ParticipantModel | undefined) => {
+      if (updatedParticipant) {
+        this.toast.success(`Participant "${updatedParticipant.name}" updated.`, 'Success');
         this.loadParticipants();
       }
     });
@@ -135,7 +109,7 @@ export class ParticipantTableComponent implements OnInit, OnDestroy{
       width: '400px',
       panelClass: 'dark-dialog',
       data: {
-        title: 'Delete Entity',
+        title: 'Delete Participant',
         message: `Are you sure you want to delete <strong>${participant.name}</strong>? This action cannot be undone.`,
         confirmText: 'Delete',
         confirmColor: 'warn',
@@ -145,10 +119,12 @@ export class ParticipantTableComponent implements OnInit, OnDestroy{
     dialogRef.afterClosed().subscribe(confirmed => {
       if (confirmed) {
         this.participantService.deleteParticipant(participant).subscribe({
-          next: () =>  this.toast.success(`Entity "${participant.name}" deleted.`, 'Deleted'),
-          error: (err) => this.toast.error('Failed to delete entity', 'Error')
+          next: () => {
+            this.toast.success(`Participant "${participant.name}" deleted.`, 'Deleted');
+            this.loadParticipants();
+          },
+          error: (err) => this.toast.error('Failed to delete participant', 'Error')
         });
-        this.loadParticipants();
       }
     });
   }
