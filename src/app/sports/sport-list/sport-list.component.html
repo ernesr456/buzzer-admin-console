@@ -108,13 +108,13 @@
           >
             <td class="py-3 px-4">{{sport.emoji}} {{sport.name}}</td>
             <td class="py-3 px-4">
-              {{ counts()[sport.id]?.entities ?? 0 }}
+              {{ (counts()[sport.id] || { entities: 0, organizations: 0, participants: 0 }).entities }}
             </td>
             <td class="py-3 px-4">
-              {{ counts()[sport.id]?.organizations ?? 0 }}
+              {{ (counts()[sport.id] || { entities: 0, organizations: 0, participants: 0 }).organizations }}
             </td>
             <td class="py-3 px-4">
-              {{ counts()[sport.id]?.participants ?? 0 }}
+              {{ (counts()[sport.id] || { entities: 0, organizations: 0, participants: 0 }).participants }}
             </td>
             <td class="py-3 px-4">
               <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
