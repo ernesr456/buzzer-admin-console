@@ -1,0 +1,14 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/buzzer-admin-console",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://buzzer-game-moderation-backend.vercel.app/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
