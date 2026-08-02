@@ -10,13 +10,6 @@ export class UploadService {
   private apiUrl = environment.apiBaseUrl + '/uploads/image';
 
   constructor(private authService: AuthService, private http: HttpClient) {}
-
-  /**
-   * Upload image using multipart/form-data.
-   * @param file The file to upload.
-   * @param additionalData Optional extra fields (not used now).
-   * @param fieldName The form field name – must be 'file' per backend spec.
-   */
   uploadImage(
     file: File | Blob,
     additionalData?: Record<string, any>,
