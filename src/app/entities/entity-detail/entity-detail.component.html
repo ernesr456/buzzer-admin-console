@@ -1,37 +1,33 @@
 <div class="min-h-screen flex-col space-y-3">
   <app-custom-breadcrumbs />
 
-  <!-- Use the view state -->
-  <ng-container *ngIf="viewState$ | async as state">
-    <!-- Loading -->
-    <div *ngIf="state.loading" class="flex justify-center items-center h-64">
+  @if (loading()) {
+    <div class="flex justify-center items-center h-64">
       <div class="text-gray-400">Loading entity…</div>
     </div>
-
-    <!-- Error -->
-    <div *ngIf="!state.loading && state.error" class="flex justify-center items-center h-64">
-      <div class="text-red-400">{{ state.error }}</div>
+  } @else if (error()) {
+    <div class="flex justify-center items-center h-64">
+      <div class="text-red-400">{{ error() }}</div>
     </div>
-
-    <!-- Not found -->
-    <div *ngIf="!state.loading && !state.error && state.data === null" class="flex justify-center items-center h-64">
+  } @else if (!entity()) {
+    <div class="flex justify-center items-center h-64">
       <div class="text-gray-400">Entity not found.</div>
     </div>
-
-    <!-- Data present -->
-    <div *ngIf="!state.loading && !state.error && state.data" class="rounded-xl border border-[#3E3E3E] shadow-sm overflow-hidden relative">
+  } @else {
+    <!-- Use @let to capture the non-null entity -->
+    @let ent = entity()!;
+    <div class="rounded-xl border border-[#3E3E3E] shadow-sm overflow-hidden relative">
       <div class="relative p-6 border border-white/10 rounded-lg">
-        <!-- Edit / Delete buttons -->
         <div class="absolute top-3 right-3 p-2 space-x-2">
           <button
-            (click)="openEditDialog(state.data)"
+            (click)="openEditDialog(ent)"
             class="rounded-lg hover:bg-[#1e2740] transition text-[#8b95b0] hover:text-white z-10 p-1"
             aria-label="Edit"
           >
             <span class="material-symbols-outlined text-xl">edit</span>
           </button>
           <button
-            (click)="deleteEntity(state.data)"
+            (click)="deleteEntity(ent)"
             class="rounded-lg hover:bg-[#1e2740] transition text-[#8b95b0] hover:text-white z-10 p-1"
             aria-label="Delete"
           >
@@ -40,26 +36,25 @@
         </div>
 
         <h2 class="font-bold text-white headline-small !text-xl pr-10 flex items-center gap-2">
-          {{ state.data.name }}
+          {{ ent.name }}
         </h2>
-        <span>{{ state.data.country }}</span>
+        <span>{{ ent.country }}</span>
 
         <div class="flex flex-wrap justify-between w-full items-center gap-x-6 gap-y-2 !text-sm text-[#8b95b0] label-large mt-3">
           <span>
             <span class="text-[#b0b8cc]">Created:</span>
-            {{ state.data.createdAt | date:'MMM d, y, h:mm a' }}
+            {{ ent.createdAt | date:'MMM d, y, h:mm a' }}
           </span>
           <span>
             <span class="text-[#b0b8cc]">Updated:</span>
-            {{ state.data.updatedAt | date:'MMM d, y, h:mm a' }}
+            {{ ent.updatedAt | date:'MMM d, y, h:mm a' }}
           </span>
         </div>
       </div>
 
       <div class="px-5 py-5 sm:px-6">
-        <!-- Pass entity ID or data if needed -->
-        <app-organization-table [entityId]="state.data.id" />
+        <app-organization-table [entityId]="ent.id" />
       </div>
     </div>
-  </ng-container>
+  }
 </div>

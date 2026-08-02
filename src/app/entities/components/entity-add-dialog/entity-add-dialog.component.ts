@@ -1,13 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { ActivatedRoute } from '@angular/router'; // <-- import
+import { ActivatedRoute } from '@angular/router';
 import { EntityService } from '../../services/entity.service';
 import { EntityModel } from '../../model/entity.model';
+import { finalize } from 'rxjs';
 
 export interface EntityDialogData {
-  sportId?: string;          // now optional, route takes precedence
+  sportId?: string;
   entity?: EntityModel;
 }
 
@@ -24,9 +25,11 @@ export class EntityAddDialogComponent {
   private data = inject<EntityDialogData>(MAT_DIALOG_DATA);
   private fb = inject(FormBuilder);
   private entityService = inject(EntityService);
-  private route = inject(ActivatedRoute); // <-- inject route
+  private route = inject(ActivatedRoute);
 
-  // Get sportId from route param first, else from dialog data
+  // Loading state
+  loading = signal(false);
+
   sportId = this.route.snapshot.paramMap.get('sportId') ?? this.data.sportId ?? '';
 
   entityForm = this.fb.group({
@@ -46,12 +49,12 @@ export class EntityAddDialogComponent {
       return;
     }
 
-    // Guard against missing sportId
     if (!this.sportId) {
       console.error('No sportId available');
       return;
     }
 
+    this.loading.set(true);
     const { name, country } = this.entityForm.value;
 
     if (this.isEdit && this.data.entity) {
@@ -62,30 +65,30 @@ export class EntityAddDialogComponent {
         updatedAt: new Date(),
       };
 
-      this.entityService.updatesEntity(
-        this.data.entity.id,
-        this.sportId,
-        updatedEntity
-      ).subscribe({
-        next: (result) => this.dialogRef.close(result),
-        error: (err) => console.error('Update failed', err),
-      });
+      this.entityService.updatesEntity(this.data.entity.id, this.sportId, updatedEntity)
+        .pipe(finalize(() => this.loading.set(false)))
+        .subscribe({
+          next: (result) => this.dialogRef.close(result),
+          error: (err) => console.error('Update failed', err),
+        });
     } else {
       const newEntity: EntityModel = {
         id: '',
         name: name!,
         country: country!,
-        sportId:this.sportId,
+        sportId: this.sportId,
         organizations: [],
         createdAt: new Date(),
         updatedAt: new Date(),
         onboardedAt: new Date(),
       };
 
-      this.entityService.addEntity(this.sportId, newEntity).subscribe({
-        next: (result) => this.dialogRef.close(result),
-        error: (err) => console.error('Creation failed', err),
-      });
+      this.entityService.addEntity(this.sportId, newEntity)
+        .pipe(finalize(() => this.loading.set(false)))
+        .subscribe({
+          next: (result) => this.dialogRef.close(result),
+          error: (err) => console.error('Creation failed', err),
+        });
     }
   }
 

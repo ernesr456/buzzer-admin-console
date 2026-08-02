@@ -1,8 +1,8 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, BehaviorSubject, combineLatest, Subject, finalize, takeUntil, of, catchError, tap, map } from 'rxjs';
+import { Subject, takeUntil, finalize, catchError, of } from 'rxjs';
 import { EntityModel } from '../../model/entity.model';
 import { EntityService } from '../../services/entity.service';
 import { EntityAddDialogComponent } from '../entity-add-dialog/entity-add-dialog.component';
@@ -26,53 +26,33 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private destroy$ = new Subject<void>();
   private organizationService = inject(OrganizationService);
   private participantService = inject(ParticipantService);
+  private destroy$ = new Subject<void>();
 
-  sportId!: string;
+  // Signals for state
+  sportId = signal('');
+  entities = signal<EntityModel[]>([]);
+  counts = signal<Record<string, { organizations: number; participants: number }>>({});
+  search = signal('');
+  loading = signal(true);
 
-  // Local source of truth for entities
-  private entitiesSubject = new BehaviorSubject<EntityModel[]>([]);
-  entities$ = this.entitiesSubject.asObservable();
-
-  // Counts per entity
-  private entityCountsSubject = new BehaviorSubject<Record<string, { organizations: number; participants: number }>>({});
-  entityCounts$ = this.entityCountsSubject.asObservable();
-
-  // Search
-  private searchSubject = new BehaviorSubject<string>('');
-  searchQuery$ = this.searchSubject.asObservable();
-
-  // Loading state
-  private loadingSubject = new BehaviorSubject<boolean>(true);
-  loading$ = this.loadingSubject.asObservable();
-
-  // Filtered entities (combines data and search)
-  filteredEntities$: Observable<EntityModel[]> = combineLatest([
-    this.entities$,
-    this.searchQuery$
-  ]).pipe(
-    map(([entities, query]) => {
-      const search = query?.trim().toLowerCase() || '';
-      if (!search) return entities;
-      return entities.filter(entity =>
-        entity.name.toLowerCase().includes(search)
-      );
-    })
-  );
+  // Computed filtered entities
+  filteredEntities = computed(() => {
+    const q = this.search().trim().toLowerCase();
+    if (!q) return this.entities();
+    return this.entities().filter(entity =>
+      entity.name.toLowerCase().includes(q)
+    );
+  });
 
   ngOnInit(): void {
-    // Get sportId from route and load data
     this.route.params
-      .pipe(
-        takeUntil(this.destroy$),
-        tap(params => {
-          this.sportId = params['sportId'];
-          this.loadEntities();
-        })
-      )
-      .subscribe();
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        this.sportId.set(params['sportId']);
+        this.loadEntities();
+      });
   }
 
   ngOnDestroy(): void {
@@ -80,12 +60,11 @@ export class EntityTableComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // Load entities from the service and update the local subject
   loadEntities(): void {
-    this.loadingSubject.next(true);
-    this.entityService.getEntityBySportId(this.sportId)
+    this.loading.set(true);
+    this.entityService.getEntityBySportId(this.sportId())
       .pipe(
-        finalize(() => this.loadingSubject.next(false)),
+        finalize(() => this.loading.set(false)),
         catchError((err) => {
           console.error('Failed to load entities', err);
           this.toast.error('Failed to load entities. Please refresh.', 'Error');
@@ -93,29 +72,26 @@ export class EntityTableComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe(async entities => {
-        // If the service returns a single entity, wrap it; otherwise assume array
         const list = Array.isArray(entities) ? entities : (entities ? [entities] : []);
-        // Update entities and compute counts
-        this.entitiesSubject.next(list);
-        this.computeCountsForEntities(list).catch(err => console.error('Failed to compute entity counts', err));
+        this.entities.set(list);
+        await this.computeCountsForEntities(list);
       });
   }
 
-  // Search input handler
   onSearch(query: string): void {
-    this.searchSubject.next(query);
+    this.search.set(query);
   }
 
   openAddDialog(): void {
     const dialogRef = this.dialog.open(EntityAddDialogComponent, {
       width: '400px',
-      data: { sportId: this.sportId },
+      data: { sportId: this.sportId() },
     });
 
     dialogRef.afterClosed().subscribe((newEntity: EntityModel | undefined) => {
       if (newEntity) {
         this.toast.success(`Entity "${newEntity.name}" created.`, 'Success');
-        this.loadEntities(); // refresh the list
+        this.loadEntities();
       }
     });
   }
@@ -123,16 +99,13 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   openEditDialog(entity: EntityModel): void {
     const dialogRef = this.dialog.open(EntityAddDialogComponent, {
       width: '400px',
-      data: {
-        sportId: this.sportId,
-        entity: entity,
-      },
+      data: { sportId: this.sportId(), entity },
     });
 
     dialogRef.afterClosed().subscribe((updatedEntity: EntityModel | undefined) => {
       if (updatedEntity) {
         this.toast.success(`Entity "${updatedEntity.name}" updated.`, 'Success');
-        this.loadEntities(); // refresh
+        this.loadEntities();
       }
     });
   }
@@ -152,10 +125,12 @@ export class EntityTableComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(confirmed => {
       if (confirmed) {
         this.entityService.deletesEntity(entity).subscribe({
-          next: () =>  this.toast.success(`Entity "${entity.name}" deleted.`, 'Deleted'),
+          next: () => {
+            this.toast.success(`Entity "${entity.name}" deleted.`, 'Deleted');
+            this.loadEntities();
+          },
           error: (err) => this.toast.error('Failed to delete entity', 'Error')
         });
-        this.loadEntities(); // refresh
       }
     });
   }
@@ -166,7 +141,6 @@ export class EntityTableComponent implements OnInit, OnDestroy {
 
   private async computeCountsForEntities(entities: EntityModel[]): Promise<void> {
     const counts: Record<string, { organizations: number; participants: number }> = {};
-
     for (const ent of entities) {
       try {
         const orgsResp: any = await lastValueFrom(this.organizationService.getOrganizationByEntityId(ent.id));
@@ -187,7 +161,6 @@ export class EntityTableComponent implements OnInit, OnDestroy {
         counts[ent.id] = { organizations: 0, participants: 0 };
       }
     }
-
-    this.entityCountsSubject.next(counts);
+    this.counts.set(counts);
   }
 }

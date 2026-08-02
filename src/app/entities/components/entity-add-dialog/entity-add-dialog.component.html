@@ -5,7 +5,7 @@
 <form [formGroup]="entityForm" (ngSubmit)="submit()">
   <mat-dialog-content class="!p-6">
     <div class="space-y-4">
-      <!-- Name field (unchanged) -->
+      <!-- Name field -->
       <div>
         <label for="name" class="block text-sm font-medium text-white/80">Name</label>
         <input
@@ -20,7 +20,7 @@
         }
       </div>
 
-      <!-- Country field (replaces logo) -->
+      <!-- Country field -->
       <div>
         <label for="country" class="block text-sm font-medium text-white/80">Country</label>
         <input
@@ -45,10 +45,10 @@
       mat-raised-button
       color="primary"
       type="submit"
-      [disabled]="entityForm.invalid"
+      [disabled]="entityForm.invalid || loading()"
       class="!bg-[#FFB414] !text-[#131515] font-semibold px-4 py-2 rounded-md hover:opacity-90 transition"
     >
-      {{ isEdit ? 'Save' : 'Create' }}
+      {{ loading() ? 'Saving...' : (isEdit ? 'Save' : 'Create') }}
     </button>
   </mat-dialog-actions>
 </form>

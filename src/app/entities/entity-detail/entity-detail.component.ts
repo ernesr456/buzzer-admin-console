@@ -1,24 +1,15 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { Observable, Subject, switchMap, of, catchError, startWith, map, takeUntil, BehaviorSubject, finalize } from 'rxjs';
-
+import { Subject, takeUntil, finalize, catchError, of } from 'rxjs';
 import { CustomBreadcrumbsComponent } from '../../common/components/custom-breadcrumbs/custom-breadcrumbs.component';
 import { EntityModel } from '../model/entity.model';
 import { EntityService } from '../services/entity.service';
-import { OrganizationModel } from '../../organizations/model/organization.model';
 import { OrganizationTableComponent } from '../../organizations/components/organization-table/organization-table.component';
 import { EntityAddDialogComponent } from '../components/entity-add-dialog/entity-add-dialog.component';
 import { CustomDialogComponent, CustomDialogData } from '../../common/components/custom-dialog/custom-dialog.component';
 import { ToastService } from '../../common/services/toast/toast.service';
-
-// Define the possible states of the view
-interface EntityViewState {
-  loading: boolean;
-  error: string | null;
-  data: EntityModel | null; // null means not found or not loaded yet
-}
 
 @Component({
   selector: 'app-entity-detail',
@@ -36,55 +27,33 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   private destroy$ = new Subject<void>();
 
-  // Expose the view state as an observable
-  viewState$!: Observable<EntityViewState>;
+  // Signals
+  sportId = signal('');
+  entityId = signal('');
+  entities = signal<EntityModel[]>([]);
+  loading = signal(true);
+  error = signal<string | null>(null);
 
-  // We'll keep a separate subject to trigger refreshes
-  private refreshTrigger$ = new BehaviorSubject<void>(undefined);
+  // Computed entity (may be null if not found)
+  entity = computed(() => {
+    const id = this.entityId();
+    return this.entities().find(e => e.id === id) ?? null;
+  });
 
   ngOnInit(): void {
-    // Combine route params and refresh trigger
-    this.viewState$ = this.refreshTrigger$.pipe(
-      switchMap(() =>
-        this.route.params.pipe(
-          switchMap(params => {
-            const sportId = params['sportId'];
-            const entityId = params['entityId'];
-
-            if (!sportId || !entityId) {
-              this.router.navigate(['/sports']);
-              return of({ loading: false, error: null, data: null });
-            }
-
-            // Start loading
-            const initialState: EntityViewState = { loading: true, error: null, data: null };
-
-            // Fetch entities for this sport
-            return this.entityService.getEntityBySportId(sportId).pipe(
-              map(entities => {
-                const found = entities.find(e => e.id === entityId) || null;
-                return {
-                  loading: false,
-                  error: null,
-                  data: found,
-                } as EntityViewState;
-              }),
-              catchError(err => {
-                this.toast.error('Failed to load entity', 'Error');
-                return of({
-                  loading: false,
-                  error: 'Could not load entity. Please try again.',
-                  data: null,
-                } as EntityViewState);
-              }),
-              // Show loading while the HTTP request is in progress
-              startWith(initialState)
-            );
-          })
-        )
-      ),
-      takeUntil(this.destroy$)
-    );
+    this.route.params
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const sportId = params['sportId'];
+        const entityId = params['entityId'];
+        if (!sportId || !entityId) {
+          this.router.navigate(['/sports']);
+          return;
+        }
+        this.sportId.set(sportId);
+        this.entityId.set(entityId);
+        this.loadEntity();
+      });
   }
 
   ngOnDestroy(): void {
@@ -92,28 +61,43 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // Call this method to reload the entity (e.g., after edit/delete)
-  refreshEntity(): void {
-    this.refreshTrigger$.next();
+  private loadEntity(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.entityService.getEntityBySportId(this.sportId())
+      .pipe(
+        finalize(() => this.loading.set(false)),
+        catchError((err) => {
+          console.error('Failed to load entities', err);
+          this.toast.error('Failed to load entity data', 'Error');
+          this.error.set('Could not load entity. Please try again.');
+          return of([]);
+        })
+      )
+      .subscribe(entities => {
+        const list = Array.isArray(entities) ? entities : (entities ? [entities] : []);
+        this.entities.set(list);
+      });
   }
 
-  getTotalParticipants(organizations: OrganizationModel[]): number {
-    if (!organizations) return 0;
-    return organizations.reduce((sum, org) => sum + (org.participants?.length || 0), 0);
+  refreshEntity(): void {
+    this.loadEntity();
   }
 
   openEditDialog(entity: EntityModel): void {
     const dialogRef = this.dialog.open(EntityAddDialogComponent, {
       width: '400px',
-      data: { sportId: this.route.snapshot.params['sportId'], entity },
+      data: { sportId: this.sportId(), entity },
     });
 
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((updatedEntity) => {
-      if (updatedEntity) {
-        this.toast.success(`Entity "${updatedEntity.name}" updated successfully.`, 'Updated');
-        this.refreshEntity();
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((updatedEntity) => {
+        if (updatedEntity) {
+          this.toast.success(`Entity "${updatedEntity.name}" updated successfully.`, 'Updated');
+          this.refreshEntity();
+        }
+      });
   }
 
   deleteEntity(entity: EntityModel): void {
@@ -128,25 +112,27 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
       } as CustomDialogData,
     });
 
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(confirmed => {
-      if (confirmed) {
-        this.entityService.deletesEntity(entity).subscribe({
-          next: () => {
-            this.toast.success(`Entity "${entity.name}" deleted.`, 'Deleted');
-            this.router.navigate(['/sports', this.route.snapshot.params['sportId']]);
-          },
-          error: () => this.toast.error('Failed to delete entity', 'Error')
-        });
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(confirmed => {
+        if (confirmed) {
+          this.entityService.deletesEntity(entity).subscribe({
+            next: () => {
+              this.toast.success(`Entity "${entity.name}" deleted.`, 'Deleted');
+              this.router.navigate(['/sports', this.sportId()]);
+            },
+            error: () => this.toast.error('Failed to delete entity', 'Error')
+          });
+        }
+      });
   }
 
-  onOrganizationAdded(newOrg: OrganizationModel): void {
+  onOrganizationAdded(newOrg: any): void {
     this.toast.success(`Organization "${newOrg.name}" added successfully.`, 'Added');
     this.refreshEntity();
   }
 
-  onOrganizationEdited(updatedOrg: OrganizationModel): void {
+  onOrganizationEdited(updatedOrg: any): void {
     this.toast.success(`Organization "${updatedOrg.name}" updated successfully.`, 'Updated');
     this.refreshEntity();
   }

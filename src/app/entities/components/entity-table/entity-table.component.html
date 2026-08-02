@@ -2,7 +2,6 @@
   <h1 class="text-2xl self-start">Main Entities</h1>
 
   <div class="flex gap-3 flex-wrap items-center w-full">
-    <!-- Search with icon -->
     <div class="flex items-center gap-2 flex-1 min-w-[200px]">
       <span class="material-symbols-outlined text-white/50">search</span>
       <input
@@ -24,7 +23,7 @@
 </div>
 
 <!-- Loading spinner -->
-@if (loading$ | async) {
+@if (loading()) {
   <div class="flex justify-center py-8">
     <span class="material-symbols-outlined animate-spin text-[#FFB414] text-4xl">progress_activity</span>
   </div>
@@ -41,7 +40,7 @@
         </tr>
       </thead>
       <tbody>
-        @if (filteredEntities$ | async; as rows) {
+        @if (filteredEntities(); as rows) {
           @if (rows.length > 0) {
             @for (row of rows; track row.id) {
               <tr
@@ -52,8 +51,12 @@
                   <span class="text-white font-medium">{{ row.name }}</span>
                 </td>
                 <td class="py-3 px-4">{{ row.country || '—' }}</td>
-                <td class="py-3 px-4">{{ (entityCounts$ | async)?.[row.id]?.organizations ?? 0 }}</td>
-                <td class="py-3 px-4">{{ (entityCounts$ | async)?.[row.id]?.participants ?? 0 }}</td>
+                <td class="py-3 px-4">
+                  {{ (counts()[row.id] || { organizations: 0, participants: 0 }).organizations }}
+                </td>
+                <td class="py-3 px-4">
+                  {{ (counts()[row.id] || { organizations: 0, participants: 0 }).participants }}
+                </td>
                 <td class="py-3 px-4">
                   <button
                     (click)="$event.stopPropagation(); openEditDialog(row)"
