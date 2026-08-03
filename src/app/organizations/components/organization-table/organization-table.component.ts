@@ -1,3 +1,4 @@
+// organization-table.component.ts
 import {
   ChangeDetectionStrategy,
   Component,
@@ -17,8 +18,7 @@ import { OrganizationService } from '../../services/organization.service';
 import { OrganizationAddDialogComponent } from '../organization-add-dialog/organization-add-dialog.component';
 import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
 import { ToastService } from '../../../common/services/toast/toast.service';
-import { ParticipantService } from '../../../participants/services/participant.service';
-import { lastValueFrom } from 'rxjs';
+// Remove ParticipantService import
 
 @Component({
   selector: 'app-organization-table',
@@ -34,14 +34,14 @@ export class OrganizationTableComponent implements OnInit, OnDestroy {
 
   private dialog = inject(MatDialog);
   private organizationService = inject(OrganizationService);
-  private participantService = inject(ParticipantService);
+  // Remove private participantService
   private toast = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private destroy$ = new Subject<void>();
 
   organizations = signal<OrganizationModel[]>([]);
-  participantCounts = signal<Record<string, number>>({});
+  // Remove participantCounts signal
   isLoading = signal(false);
   search = signal('');
 
@@ -83,7 +83,7 @@ export class OrganizationTableComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((orgs) => {
         this.organizations.set(orgs);
-        this.computeParticipantCounts(orgs);
+        // No need to compute counts manually
       });
 
     this.loadOrganizations(entityId);
@@ -117,22 +117,7 @@ export class OrganizationTableComponent implements OnInit, OnDestroy {
     this.loadOrganizations(entityId);
   }
 
-  private async computeParticipantCounts(orgs: OrganizationModel[]): Promise<void> {
-    const counts: Record<string, number> = {};
-    for (const org of orgs) {
-      try {
-        const partsResp: any = await lastValueFrom(
-          this.participantService.getParticipantsByOrganizationId(org.id)
-        );
-        const parts = Array.isArray(partsResp) ? partsResp : partsResp ? [partsResp] : [];
-        counts[org.id] = parts.length;
-      } catch (err) {
-        console.error('Failed to load participants for org', org.id, err);
-        counts[org.id] = 0;
-      }
-    }
-    this.participantCounts.set(counts);
-  }
+  // Remove computeParticipantCounts method
 
   onSearch(query: string): void {
     this.search.set(query);

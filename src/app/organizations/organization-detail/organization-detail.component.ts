@@ -10,11 +10,8 @@ import { OrganizationService } from '../services/organization.service';
 import { ParticipantTableComponent } from '../../participants/components/participant-table/participant-table.component';
 import { CustomDialogComponent, CustomDialogData } from '../../common/components/custom-dialog/custom-dialog.component';
 import { ToastService } from '../../common/services/toast/toast.service';
-import { ParticipantService } from '../../participants/services/participant.service';
 import { SquadTableComponent } from '../../squad/components/squad-table/squad-table.component';
 import { StaffTableComponent } from '../../staff/components/staff-table/staff-table.component';
-import { SquadService } from '../../squad/services/squad.service';
-import { StaffService } from '../../staff/services/staff.service';
 
 @Component({
   selector: 'app-organization-detail',
@@ -34,35 +31,28 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private orgService = inject(OrganizationService);
-  private participantService = inject(ParticipantService);
-  private squadService = inject(SquadService);
-  private staffService = inject(StaffService);
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
   private destroy$ = new Subject<void>();
 
-  // Signals
   sportId = signal('');
   entityId = signal('');
   orgId = signal('');
   organizations = signal<OrganizationModel[]>([]);
-  participants = signal<any[]>([]);
-  squads = signal<any[]>([]);
-  staffMembers = signal<any[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);
 
-  // Computed organization
   organization = computed(() => {
     const id = this.orgId();
     return this.organizations().find(org => org.id === id) ?? null;
   });
 
-  // Computed counts
+  // ✅ CRITICAL: these three signals must be defined
+  totalParticipants = computed(() => this.organization()?.counts?.participants ?? 0);
+  totalMembers = computed(() => this.organization()?.counts?.squads ?? 0);
+  totalStaffs = computed(() => this.organization()?.counts?.staff ?? 0);
+
   totalOrganizations = computed(() => this.organizations().length);
-  totalParticipants = computed(() => this.participants().length);
-  totalMembers = computed(() => this.squads().length);
-  totalStaffs = computed(() => this.staffMembers().length);
 
   ngOnInit(): void {
     this.route.params
@@ -80,37 +70,12 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
         this.entityId.set(entityId);
         this.orgId.set(orgId);
         this.loadOrganization();
-        this.loadParticipants(orgId);
-        this.loadSquads(orgId);
-        this.loadStaff(orgId);
       });
 
-    // Keep organizations signal in sync with service
     this.orgService.organizationSubject$
       .pipe(takeUntil(this.destroy$))
       .subscribe(orgs => {
         this.organizations.set(orgs);
-      });
-
-    // Keep participants signal in sync with service
-    this.participantService.participantSubject$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(participants => {
-        this.participants.set(participants);
-      });
-
-    // Keep squads signal in sync with service
-    this.squadService.squadSubject$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(squads => {
-        this.squads.set(squads);
-      });
-
-    // Keep staff signal in sync with service
-    this.staffService.staffSubject$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(staff => {
-        this.staffMembers.set(staff);
       });
   }
 
@@ -136,46 +101,6 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
       });
   }
 
-  private loadParticipants(orgId: string): void {
-    this.participantService.getParticipantsByOrganizationId(orgId)
-      .pipe(
-        catchError((err) => {
-          console.error('Failed to load participants:', err);
-          return of([]);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe();
-  }
-
-  private loadSquads(orgId: string): void {
-    this.squadService.getSquadByOrgId(orgId)
-      .pipe(
-        catchError((err) => {
-          console.error('Failed to load squads:', err);
-          return of([]);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe((squads) => {
-        this.squads.set(squads);
-      });
-  }
-
-  private loadStaff(orgId: string): void {
-    this.staffService.getStaffByOrgId(orgId)
-      .pipe(
-        catchError((err) => {
-          console.error('Failed to load staff:', err);
-          return of([]);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe((staff) => {
-        this.staffMembers.set(staff);
-      });
-  }
-
   refreshOrganization(): void {
     this.loadOrganization();
   }
@@ -189,13 +114,11 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
       entityId: this.entityId(),
       organization: organization,
     };
-
     const dialogRef = this.dialog.open(OrganizationAddDialogComponent, {
       width: '500px',
       data: dialogData,
       disableClose: true,
     });
-
     dialogRef.afterClosed()
       .pipe(takeUntil(this.destroy$))
       .subscribe(result => {
@@ -217,7 +140,6 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
         confirmColor: 'warn',
       } as CustomDialogData,
     });
-
     dialogRef.afterClosed()
       .pipe(takeUntil(this.destroy$))
       .subscribe(confirmed => {

@@ -4,11 +4,16 @@ export interface OrganizationModel {
   id: string;
   name: string;
   type: string;
-  crestUrl:string;
+  crestUrl: string;
   country: string;
-  governingBodyId:string;
+  governingBodyId: string;
   participants: ParticipantModel[];
   createdAt: Date;
   updatedAt: Date;
   onboardedAt?: Date;
+  counts?: {
+    participants: number;
+    squads: number;
+    staff: number;
+  };
 }

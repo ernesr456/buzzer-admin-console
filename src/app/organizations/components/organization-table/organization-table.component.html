@@ -71,7 +71,7 @@
                 <span class="text-white font-medium">{{ row.name }}</span>
               </td>
               <td class="py-3 px-4">{{ row.country }}</td>
-              <td class="py-3 px-4">{{ participantCounts()[row.id] || 0 }}</td>
+              <td class="py-3 px-4">{{ row.counts?.participants ?? 0 }}</td>
               <td class="py-3 px-4">
                 <button
                   (click)="$event.stopPropagation(); openEditDialog(row)"
