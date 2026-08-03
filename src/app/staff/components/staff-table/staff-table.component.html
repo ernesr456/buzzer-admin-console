@@ -33,14 +33,36 @@
     </thead>
     <tbody>
       @if (isLoading()) {
+        <!-- Skeleton rows -->
         @for (_ of [1,2,3]; track $index) {
-          <tr>
-            <td colspan="5" class="py-3 px-4">
-              <div class="skeleton-line w-3/4 h-4"></div>
+          <tr class="animate-pulse border-b border-white/5 last:border-0">
+            <!-- Photo -->
+            <td class="py-3 px-4">
+              <div class="w-8 h-8 rounded-full bg-[#3E3E3E]"></div>
+            </td>
+            <!-- Name -->
+            <td class="py-3 px-4">
+              <div class="h-4 w-32 bg-[#3E3E3E] rounded"></div>
+            </td>
+            <!-- Role -->
+            <td class="py-3 px-4">
+              <div class="h-4 w-28 bg-[#3E3E3E] rounded"></div>
+            </td>
+            <!-- Nationality -->
+            <td class="py-3 px-4">
+              <div class="h-4 w-20 bg-[#3E3E3E] rounded"></div>
+            </td>
+            <!-- Actions -->
+            <td class="py-3 px-4">
+              <div class="flex gap-2">
+                <div class="w-8 h-8 bg-[#3E3E3E] rounded-lg"></div>
+                <div class="w-8 h-8 bg-[#3E3E3E] rounded-lg"></div>
+              </div>
             </td>
           </tr>
         }
       } @else {
+        <!-- Real data rows -->
         @if (filteredRows().length > 0) {
           @for (row of filteredRows(); track row.id) {
             <tr class="border-b border-white/5 last:border-0 hover:bg-white/10 transition">
