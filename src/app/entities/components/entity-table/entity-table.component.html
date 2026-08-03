@@ -93,10 +93,10 @@
               </td>
               <td class="py-3 px-4">{{ row.country || '—' }}</td>
               <td class="py-3 px-4">
-                {{ (counts()[row.id] || { organizations: 0, participants: 0 }).organizations }}
+                {{ row.counts?.organisations ?? 0 }}
               </td>
               <td class="py-3 px-4">
-                {{ (counts()[row.id] || { organizations: 0, participants: 0 }).participants }}
+                {{ row.counts?.participants ?? 0 }}
               </td>
               <td class="py-3 px-4">
                 <button

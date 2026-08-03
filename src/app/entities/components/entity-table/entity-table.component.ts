@@ -1,3 +1,4 @@
+// entity-table.component.ts
 import { Component, OnInit, inject, ChangeDetectionStrategy, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -8,9 +9,8 @@ import { EntityService } from '../../services/entity.service';
 import { EntityAddDialogComponent } from '../entity-add-dialog/entity-add-dialog.component';
 import { CustomDialogComponent, CustomDialogData } from '../../../common/components/custom-dialog/custom-dialog.component';
 import { ToastService } from '../../../common/services/toast/toast.service';
-import { OrganizationService } from '../../../organizations/services/organization.service';
-import { ParticipantService } from '../../../participants/services/participant.service';
-import { lastValueFrom } from 'rxjs';
+
+// Remove OrganizationService and ParticipantService imports
 
 @Component({
   selector: 'app-entity-table',
@@ -26,13 +26,10 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private organizationService = inject(OrganizationService);
-  private participantService = inject(ParticipantService);
   private destroy$ = new Subject<void>();
 
   sportId = signal('');
   entities = signal<EntityModel[]>([]);
-  counts = signal<Record<string, { organizations: number; participants: number }>>({});
   search = signal('');
   loading = signal(true);
 
@@ -89,11 +86,10 @@ export class EntityTableComponent implements OnInit, OnDestroy {
           return of([]);
         })
       )
-      .subscribe(async entities => {
+      .subscribe(entities => {
         const list = Array.isArray(entities) ? entities : (entities ? [entities] : []);
         this.entities.set(list);
         this.resetPagination();
-        await this.computeCountsForEntities(list);
       });
   }
 
@@ -179,30 +175,5 @@ export class EntityTableComponent implements OnInit, OnDestroy {
 
   navigateToDetail(entity: EntityModel): void {
     this.router.navigate(['/sports', entity.sportId, entity.id]);
-  }
-
-  private async computeCountsForEntities(entities: EntityModel[]): Promise<void> {
-    const counts: Record<string, { organizations: number; participants: number }> = {};
-    for (const ent of entities) {
-      try {
-        const orgsResp: any = await lastValueFrom(this.organizationService.getOrganizationByEntityId(ent.id));
-        const orgs = Array.isArray(orgsResp) ? orgsResp : (orgsResp ? [orgsResp] : []);
-        let participantCount = 0;
-        for (const org of orgs) {
-          try {
-            const partsResp: any = await lastValueFrom(this.participantService.getParticipantsByOrganizationId(org.id));
-            const parts = Array.isArray(partsResp) ? partsResp : (partsResp ? [partsResp] : []);
-            participantCount += parts.length;
-          } catch (pErr) {
-            console.error('Failed to load participants for org', org.id, pErr);
-          }
-        }
-        counts[ent.id] = { organizations: orgs.length, participants: participantCount };
-      } catch (e) {
-        console.error('Failed to load organizations for entity', ent.id, e);
-        counts[ent.id] = { organizations: 0, participants: 0 };
-      }
-    }
-    this.counts.set(counts);
   }
 }

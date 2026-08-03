@@ -7,6 +7,11 @@ export interface EntityModel {
   country:string;
   createdAt: Date;
   updatedAt?: Date;
+  counts?:{
+    governingBodies: number,
+    organisations: number,
+    participants: number,
+  }
   onboardedAt?: Date;
   organizations?: OrganizationModel[];
 }

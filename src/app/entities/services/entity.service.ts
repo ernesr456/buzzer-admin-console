@@ -40,6 +40,7 @@ export class EntityService {
     return this.http.get<EntityModel[]>(`${this.apiUrl}?sportId=${sportId}`, {
       headers: this.authService.getAuthHeaders()
     }).pipe(
+      map(entities => entities.map(e => this.normalizeEntity(e))),
       tap((entities) => this.entitySubject$.next(entities)),
       catchError((err) => {
         if (err.status === 401) {
@@ -48,17 +49,17 @@ export class EntityService {
           console.error('Error loading entities', err);
           this.entitySubject$.next([]);
         }
-        // Re-throw or return empty array to keep the observable alive
         return of([]);
       })
     );
   }
+
   getEntityById(entityId: string): Observable<EntityModel> {
     return this.http.get<EntityModel>(`${this.apiUrl}/${entityId}`, {
       headers: this.authService.getAuthHeaders()
     }).pipe(
-      tap(entity => {
-      }),
+      map(entity => this.normalizeEntity(entity)),
+      tap(entity => { /* optional */ }),
       catchError((err) => {
         if (err.status === 401) {
           this.authService.logout();
@@ -69,7 +70,18 @@ export class EntityService {
       })
     );
   }
-
+  private normalizeEntity(entity: any): EntityModel {
+    return {
+      ...entity,
+      counts: entity.counts ? {
+        governingBodies: entity.counts.governingBodies ?? 0,
+        organisations: entity.counts.organisations ?? 0,
+        participants: entity.counts.participants ?? 0,
+      } : undefined,
+      createdAt: entity.createdAt ? new Date(entity.createdAt) : new Date(),
+      updatedAt: entity.updatedAt ? new Date(entity.updatedAt) : undefined,
+    };
+  }
   updatesEntity(updateEntity: EntityModel): Observable<EntityModel> {
     return this.http.patch<EntityModel>(`${this.apiUrl}/${updateEntity.id}`, updateEntity, {
       headers: this.authService.getAuthHeaders()

@@ -1,3 +1,4 @@
+// entity-detail.component.ts
 import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,8 +11,7 @@ import { OrganizationTableComponent } from '../../organizations/components/organ
 import { EntityAddDialogComponent } from '../components/entity-add-dialog/entity-add-dialog.component';
 import { CustomDialogComponent, CustomDialogData } from '../../common/components/custom-dialog/custom-dialog.component';
 import { ToastService } from '../../common/services/toast/toast.service';
-import { OrganizationService } from '../../organizations/services/organization.service';
-import { ParticipantService } from '../../participants/services/participant.service';
+// Remove OrganizationService and ParticipantService imports
 
 @Component({
   selector: 'app-entity-detail',
@@ -25,30 +25,24 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private entityService = inject(EntityService);
-  private organizationService = inject(OrganizationService);
-  private participantService = inject(ParticipantService);
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
   private destroy$ = new Subject<void>();
 
-  // Signals
   sportId = signal('');
   entityId = signal('');
   entities = signal<EntityModel[]>([]);
-  organizations = signal<any[]>([]);
-  participants = signal<any[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
 
-  // Computed entity (may be null if not found)
   entity = computed(() => {
     const id = this.entityId();
     return this.entities().find(e => e.id === id) ?? null;
   });
 
-  // Computed counts
-  totalOrganizations = computed(() => this.organizations().length);
-  totalParticipants = computed(() => this.participants().length);
+  // Totals directly from the entity's counts
+  totalOrganizations = computed(() => this.entity()?.counts?.organisations ?? 0);
+  totalParticipants = computed(() => this.entity()?.counts?.participants ?? 0);
 
   ngOnInit(): void {
     this.route.params
@@ -63,21 +57,6 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
         this.sportId.set(sportId);
         this.entityId.set(entityId);
         this.loadEntity();
-        this.loadOrganizations(entityId);
-      });
-
-    // Keep organizations signal in sync with service
-    this.organizationService.organizationSubject$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(orgs => {
-        this.organizations.set(orgs);
-      });
-
-    // Keep participants signal in sync with service
-    this.participantService.participantSubject$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(participants => {
-        this.participants.set(participants);
       });
   }
 
@@ -103,18 +82,6 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
         const list = Array.isArray(entities) ? entities : (entities ? [entities] : []);
         this.entities.set(list);
       });
-  }
-
-  private loadOrganizations(entityId: string): void {
-    this.organizationService.getOrganizationByEntityId(entityId)
-      .pipe(
-        catchError((err) => {
-          console.error('Failed to load organizations:', err);
-          return of([]);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe();
   }
 
   refreshEntity(): void {
@@ -162,20 +129,5 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
           });
         }
       });
-  }
-
-  onOrganizationAdded(newOrg: any): void {
-    this.toast.success(`Organization "${newOrg.name}" added successfully.`, 'Added');
-    this.refreshEntity();
-  }
-
-  onOrganizationEdited(updatedOrg: any): void {
-    this.toast.success(`Organization "${updatedOrg.name}" updated successfully.`, 'Updated');
-    this.refreshEntity();
-  }
-
-  onOrganizationDeleted(orgId: string): void {
-    this.toast.success('Organization deleted successfully.', 'Deleted');
-    this.refreshEntity();
   }
 }
