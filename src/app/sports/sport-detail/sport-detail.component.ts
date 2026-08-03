@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject } from 'rxjs';
+import { Subject, catchError, of, finalize } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { SportsService } from '../services/sports/sports.service';
 import { SportModel } from '../models/sport.model';
@@ -20,7 +20,7 @@ import { CustomBreadcrumbsComponent } from '../../common/components/custom-bread
   styleUrls: ['./sport-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SportDetailComponent implements OnInit {
+export class SportDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private sportsService = inject(SportsService);
   private dialog = inject(MatDialog);
@@ -29,9 +29,12 @@ export class SportDetailComponent implements OnInit {
 
   public sportId = signal('');
   public sportsSignal = signal<SportModel[]>([]);
-  public sport = computed(() => this.sportsSignal().find((s: SportModel) => s.id === this.sportId()));
-
   public countsSignal = signal<Record<string, { entities: number; organizations: number; participants: number }>>({});
+
+  public loading = signal(true);
+  public error = signal<string | null>(null);
+
+  public sport = computed(() => this.sportsSignal().find((s: SportModel) => s.id === this.sportId()));
 
   public totalEntities = computed(() => this.countsSignal()[this.sportId()]?.entities ?? 0);
   public totalCompetitions = computed(() => this.countsSignal()[this.sportId()]?.organizations ?? 0);
@@ -40,9 +43,8 @@ export class SportDetailComponent implements OnInit {
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.sportsService.getSport();
+    this.loadSportDetail();
 
-    // sync route param to sportId signal and compute counts when param changes
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(pm => {
       const id = pm.get('sportId') || '';
       if (!id) {
@@ -50,13 +52,20 @@ export class SportDetailComponent implements OnInit {
         return;
       }
       this.sportId.set(id);
-      // compute and cache counts for this sport
       this.sportsService.computeAndCacheCounts(id).catch(() => {});
     });
 
-    // mirror service observables into local signals for template consumption
-    this.sportsService.sports$.pipe(takeUntil(this.destroy$)).subscribe(list => this.sportsSignal.set(list));
-    this.sportsService.counts$.pipe(takeUntil(this.destroy$)).subscribe(m => this.countsSignal.set(m));
+    this.sportsService.sports$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(list => {
+        this.sportsSignal.set(list);
+        this.loading.set(false);
+        this.error.set(null);
+      });
+
+    this.sportsService.counts$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(m => this.countsSignal.set(m));
   }
 
   ngOnDestroy(): void {
@@ -64,10 +73,34 @@ export class SportDetailComponent implements OnInit {
     this.destroy$.complete();
   }
 
+  private loadSportDetail(): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.sportsService.loadSports()
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(err => {
+          this.error.set('Failed to load sport data.');
+          this.loading.set(false);
+          return of(null);
+        }),
+        finalize(() => {})
+      )
+      .subscribe({
+        next: (list) => {
+          if (list) {
+            this.sportsSignal.set(list);
+          }
+          this.loading.set(false);
+        },
+        error: () => {}
+      });
+  }
+
   refreshSport(): void {
-    this.sportsService.loadSports().subscribe(() => {
-      this.sportsService.computeAndCacheCounts(this.sportId()).catch(() => {});
-    });
+    this.loadSportDetail();
+    this.sportsService.computeAndCacheCounts(this.sportId()).catch(() => {});
   }
 
   openEditDialog(sport: SportModel): void {
@@ -78,7 +111,7 @@ export class SportDetailComponent implements OnInit {
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
-        this.refreshSport(); // reload updated list from server
+        this.refreshSport();
       }
     });
   }

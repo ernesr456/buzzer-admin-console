@@ -1,27 +1,58 @@
 <div class="min-h-screen flex-col space-y-3">
   <app-custom-breadcrumbs />
 
-  <div *ngIf="!sport()" class="flex justify-center items-center h-64">
-    <div class="text-gray-400">Loading Sport…</div>
-  </div>
-
-  <ng-container *ngIf="sport() as sport">
-    <div *ngIf="!sport" class="flex justify-center items-center h-64">
+  @if (loading()) {
+    <div class="rounded-xl border border-[#3E3E3E] shadow-sm overflow-hidden relative animate-pulse">
+      <div class="relative p-6 border border-white/10 rounded-lg">
+        <div class="absolute top-3 right-3 p-2 space-x-2">
+          <div class="w-8 h-8 bg-[#3E3E3E] rounded-lg inline-block"></div>
+          <div class="w-8 h-8 bg-[#3E3E3E] rounded-lg inline-block"></div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="h-6 w-6 bg-[#3E3E3E] rounded"></div>
+          <div class="h-6 w-48 bg-[#3E3E3E] rounded"></div>
+        </div>
+        <div class="grid gap-1 mt-3">
+          <div class="h-3 w-40 bg-[#3E3E3E] rounded"></div>
+          <div class="h-3 w-40 bg-[#3E3E3E] rounded"></div>
+          <div class="h-3 w-32 bg-[#3E3E3E] rounded"></div>
+        </div>
+      </div>
+      <div class="px-5 py-5 sm:px-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          @for (_ of [1,2,3]; track $index) {
+            <div class="p-4 rounded-lg text-center border border-white/10">
+              <div class="h-6 w-12 bg-[#3E3E3E] rounded mx-auto"></div>
+              <div class="h-3 w-20 bg-[#3E3E3E] rounded mx-auto mt-2"></div>
+            </div>
+          }
+        </div>
+        <div class="h-32 bg-[#3E3E3E] rounded-lg"></div>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="flex justify-center items-center h-64">
+      <div class="text-red-400">{{ error() }}</div>
+    </div>
+  } @else if (!sport()) {
+    <div class="flex justify-center items-center h-64">
       <div class="text-gray-400">Sport not found.</div>
     </div>
+  } @else {
+    @let currentSport = sport()!;
 
-    <div *ngIf="sport" class="rounded-xl border border-[#3E3E3E] shadow-sm overflow-hidden relative">
+    <div class="rounded-xl border border-[#3E3E3E] shadow-sm overflow-hidden relative">
       <div class="relative p-6 border border-white/10 rounded-lg">
         <div class="absolute top-3 right-3 p-2 space-x-2">
           <button
-            (click)="openEditDialog(sport)"
+            (click)="openEditDialog(currentSport)"
             class="rounded-lg hover:bg-[#1e2740] transition text-[#8b95b0] hover:text-white z-10 p-1"
             aria-label="Edit"
           >
             <span class="material-symbols-outlined text-xl">edit</span>
           </button>
           <button
-            (click)="deleteSport(sport)"
+            (click)="deleteSport(currentSport)"
             class="rounded-lg hover:bg-[#1e2740] transition text-[#8b95b0] hover:text-white z-10 p-1"
             aria-label="Delete"
           >
@@ -29,23 +60,23 @@
           </button>
         </div>
 
-        <h2 class="font-bold text-white headline-small !text-xl l-100 pr-10">
-          <span>{{ sport.emoji }}</span> {{ sport.name }}
+        <h2 class="font-bold text-white headline-small !text-xl pr-10 flex items-center gap-2">
+          <span>{{ currentSport.emoji }}</span> {{ currentSport.name }}
         </h2>
 
         <div class="flex flex-wrap justify-between w-full items-center gap-x-6 gap-y-2 !text-sm text-[#8b95b0] label-large mt-3">
           <div class="grid">
             <span>
               <span class="text-[#b0b8cc]">Created:</span>
-              {{ sport.createdAt | date:'MMM d, y, a, \'at\' HH:mm' }}
+              {{ currentSport.createdAt | date:'MMM d, y, a, \'at\' HH:mm' }}
             </span>
             <span>
               <span class="text-[#b0b8cc]">Updated:</span>
-              {{ sport.updatedAt | date:'MMM d, y, a, \'at\' HH:mm' }}
+              {{ currentSport.updatedAt | date:'MMM d, y, a, \'at\' HH:mm' }}
             </span>
             <span>
               <span class="text-[#b0b8cc]">Color:</span>
-              {{sport.color}}
+              {{ currentSport.color }}
             </span>
           </div>
         </div>
@@ -66,8 +97,9 @@
             <p class="uppercase text-[10px] tracking-wider text-white/60">Participants</p>
           </div>
         </div>
-         <app-entity-table/>
+
+        <app-entity-table />
       </div>
     </div>
-  </ng-container>
+  }
 </div>
