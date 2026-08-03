@@ -115,6 +115,20 @@
       </div>
 
       <div class="px-5 py-5 sm:px-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <div class="p-4 rounded-lg text-center border border-white/10">
+            <p class="!text-[24px] font-light font-poppins">{{ totalParticipants() }}</p>
+            <p class="uppercase text-[10px] tracking-wider text-white/60">Total Participant</p>
+          </div>
+          <div class="p-4 rounded-lg text-center border border-white/10">
+            <p class="!text-[24px] font-light font-poppins">{{ totalMembers() }}</p>
+            <p class="uppercase text-[10px] tracking-wider text-white/60">Total Members</p>
+          </div>
+          <div class="p-4 rounded-lg text-center border border-white/10">
+            <p class="!text-[24px] font-light font-poppins">{{ totalStaffs() }}</p>
+            <p class="uppercase text-[10px] tracking-wider text-white/60">Total Staffs</p>
+          </div>
+        </div>
         <app-participant-table/>
         <app-squad-table/>
         <app-staff-table/>

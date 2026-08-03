@@ -13,6 +13,8 @@ import { ToastService } from '../../common/services/toast/toast.service';
 import { ParticipantService } from '../../participants/services/participant.service';
 import { SquadTableComponent } from '../../squad/components/squad-table/squad-table.component';
 import { StaffTableComponent } from '../../staff/components/staff-table/staff-table.component';
+import { SquadService } from '../../squad/services/squad.service';
+import { StaffService } from '../../staff/services/staff.service';
 
 @Component({
   selector: 'app-organization-detail',
@@ -33,6 +35,8 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private orgService = inject(OrganizationService);
   private participantService = inject(ParticipantService);
+  private squadService = inject(SquadService);
+  private staffService = inject(StaffService);
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
   private destroy$ = new Subject<void>();
@@ -42,6 +46,9 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
   entityId = signal('');
   orgId = signal('');
   organizations = signal<OrganizationModel[]>([]);
+  participants = signal<any[]>([]);
+  squads = signal<any[]>([]);
+  staffMembers = signal<any[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);
 
@@ -50,6 +57,12 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
     const id = this.orgId();
     return this.organizations().find(org => org.id === id) ?? null;
   });
+
+  // Computed counts
+  totalOrganizations = computed(() => this.organizations().length);
+  totalParticipants = computed(() => this.participants().length);
+  totalMembers = computed(() => this.squads().length);
+  totalStaffs = computed(() => this.staffMembers().length);
 
   ngOnInit(): void {
     this.route.params
@@ -67,6 +80,9 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
         this.entityId.set(entityId);
         this.orgId.set(orgId);
         this.loadOrganization();
+        this.loadParticipants(orgId);
+        this.loadSquads(orgId);
+        this.loadStaff(orgId);
       });
 
     // Keep organizations signal in sync with service
@@ -74,6 +90,27 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(orgs => {
         this.organizations.set(orgs);
+      });
+
+    // Keep participants signal in sync with service
+    this.participantService.participantSubject$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(participants => {
+        this.participants.set(participants);
+      });
+
+    // Keep squads signal in sync with service
+    this.squadService.squadSubject$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(squads => {
+        this.squads.set(squads);
+      });
+
+    // Keep staff signal in sync with service
+    this.staffService.staffSubject$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(staff => {
+        this.staffMembers.set(staff);
       });
   }
 
@@ -96,6 +133,46 @@ export class OrganizationDetailComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => {
         this.isLoading.set(false);
+      });
+  }
+
+  private loadParticipants(orgId: string): void {
+    this.participantService.getParticipantsByOrganizationId(orgId)
+      .pipe(
+        catchError((err) => {
+          console.error('Failed to load participants:', err);
+          return of([]);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe();
+  }
+
+  private loadSquads(orgId: string): void {
+    this.squadService.getSquadByOrgId(orgId)
+      .pipe(
+        catchError((err) => {
+          console.error('Failed to load squads:', err);
+          return of([]);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((squads) => {
+        this.squads.set(squads);
+      });
+  }
+
+  private loadStaff(orgId: string): void {
+    this.staffService.getStaffByOrgId(orgId)
+      .pipe(
+        catchError((err) => {
+          console.error('Failed to load staff:', err);
+          return of([]);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((staff) => {
+        this.staffMembers.set(staff);
       });
   }
 
