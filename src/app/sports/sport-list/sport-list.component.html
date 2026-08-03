@@ -21,26 +21,6 @@
       <p class="uppercase text-[10px] tracking-wider text-white/60">Participants</p>
     </div>
   </div>
-
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-fit">
-      <input #bulkImportInput type="file" accept=".json,.csv" class="hidden" (change)="handleBulkImport($event)" />
-      <button
-        type="button"
-        (click)="bulkImportInput.click()"
-        [disabled]="importLoading()"
-        class="flex items-center border border-[#FFB414]/40 gap-2 px-4 py-2 font-medium font-[10px] rounded-md hover:bg-[#FFB414]/10 transition w-full sm:w-fit"
-      >
-        @if (!importLoading()) {
-          <span class="material-symbols-outlined text-xl">upload_file</span>
-        } @else {
-          <span class="material-symbols-outlined text-xl animate-spin">autorenew</span>
-        }
-        <span>{{ importLoading() ? 'Importing...' : 'Bulk Import' }}</span>
-      </button>
-    </div>
-  </div>
-
   <app-sport-table
     [sports]="sportsSignal()"
     [counts]="counts()"
