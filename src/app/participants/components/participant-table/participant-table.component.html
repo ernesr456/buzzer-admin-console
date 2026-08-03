@@ -23,10 +23,40 @@
 </div>
 
 @if (loading()) {
-  <div class="flex justify-center py-8">
-    <span class="material-symbols-outlined animate-spin text-[#FFB414] text-4xl">progress_activity</span>
+  <!-- Skeleton Table -->
+  <div class="animate-pulse">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm [&_td:nth-child(even)]:bg-white/5 [&_th:nth-child(even)]:bg-white/5">
+        <thead class="bg-white/10">
+          <tr class="border-b border-white/5">
+            <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">
+              <div class="h-3 w-12 bg-[#3E3E3E] rounded"></div>
+            </th>
+            <th class="text-left py-3 px-4 font-semibold text-white/60 uppercase text-xs tracking-wider">
+              <div class="h-3 w-12 bg-[#3E3E3E] rounded"></div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (i of [1,2,3,4]; track i) {
+            <tr class="border-b border-white/5 last:border-0">
+              <td class="py-3 px-4">
+                <div class="h-4 w-32 bg-[#3E3E3E] rounded"></div>
+              </td>
+              <td class="py-3 px-4">
+                <div class="flex gap-2">
+                  <div class="w-8 h-8 bg-[#3E3E3E] rounded-lg"></div>
+                  <div class="w-8 h-8 bg-[#3E3E3E] rounded-lg"></div>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   </div>
 } @else {
+  <!-- Actual Data Table -->
   <div class="overflow-x-auto">
     <table class="w-full text-sm [&_td:nth-child(even)]:bg-white/5 [&_th:nth-child(even)]:bg-white/5">
       <thead class="bg-white/10">
