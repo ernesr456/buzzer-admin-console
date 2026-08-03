@@ -55,20 +55,19 @@ export class MenuService {
         isOpen: true,
         items: [
           { label: 'Sports Catalogue', icon: 'sports', route: '/sports' },
-          { label: 'Governing Bodies', icon: 'groups', route: '/entities' },
-          // Only users with role 'admin' can see this item
-          { label: 'Organizations', icon: 'business', route: '/organizations', roles: ['admin'] },
-          { label: 'Participants', icon: 'people', route: '/participants' },
+          // { label: 'Governing Bodies', icon: 'groups', route: '/entities' },
+          // { label: 'Organizations', icon: 'business', route: '/organizations', roles: ['admin'] },
+          // { label: 'Participants', icon: 'people', route: '/participants' },
         ],
       },
-      {
-        title: 'Teams',
-        isOpen: true,
-        items: [
-          { label: 'Squad', icon: 'group', route: '/squads' },
-          { label: 'Staff', icon: 'person', route: '/staffs' },
-        ],
-      },
+      // {
+      //   title: 'Teams',
+      //   isOpen: true,
+      //   items: [
+      //     { label: 'Squad', icon: 'group', route: '/squads' },
+      //     { label: 'Staff', icon: 'person', route: '/staffs' },
+      //   ],
+      // },
     ];
   }
 
