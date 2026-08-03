@@ -65,7 +65,7 @@ export class EntityAddDialogComponent {
         updatedAt: new Date(),
       };
 
-      this.entityService.updatesEntity(this.data.entity.id, this.sportId, updatedEntity)
+      this.entityService.updatesEntity(updatedEntity)
         .pipe(finalize(() => this.loading.set(false)))
         .subscribe({
           next: (result) => this.dialogRef.close(result),

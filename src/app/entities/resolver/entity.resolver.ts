@@ -13,12 +13,11 @@ export const entityResolver: ResolveFn<EntityModel | undefined> = (
   const entityService = inject(EntityService);
   const router = inject(Router);
   const entityId = route.paramMap.get('entityId');
-  const sportId = route.paramMap.get('sportId');
-  if (!entityId || !sportId) {
+  if (!entityId) {
     router.navigate(['/sports']);
     return of(undefined);
   }
-  return entityService.getEntityById(sportId,entityId).pipe(
+  return entityService.getEntityById(entityId).pipe(
     take(1),
     map(entity => {
       if (!entity) {

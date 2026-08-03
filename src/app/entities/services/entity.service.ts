@@ -53,7 +53,7 @@ export class EntityService {
       })
     );
   }
-  getEntityById(sportId: string,entityId: string): Observable<EntityModel> {
+  getEntityById(entityId: string): Observable<EntityModel> {
     return this.http.get<EntityModel>(`${this.apiUrl}/${entityId}`, {
       headers: this.authService.getAuthHeaders()
     }).pipe(
@@ -70,13 +70,13 @@ export class EntityService {
     );
   }
 
-  updatesEntity(id:string,sportId: string, updateEntity: EntityModel): Observable<EntityModel> {
+  updatesEntity(updateEntity: EntityModel): Observable<EntityModel> {
     return this.http.patch<EntityModel>(`${this.apiUrl}/${updateEntity.id}`, updateEntity, {
       headers: this.authService.getAuthHeaders()
     }).pipe(
       tap((modified) => {
         const current = this.entitySubject$.getValue();
-        const updated = current.map(s => s.id === id ? modified : s);
+        const updated = current.map(s => s.id === updateEntity.id ? modified : s);
         this.entitySubject$.next(updated);
       }),
       catchError(this.authService.handleError.bind(this.authService))

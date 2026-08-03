@@ -77,7 +77,7 @@ export class CustomBreadcrumbsComponent implements OnInit, OnDestroy {
       if (parts.length === 3) {
         const sportId = parts[1];
         const entityId = parts[2];
-        this.entityService.getEntityById(sportId, entityId).subscribe(ent => {
+        this.entityService.getEntityById(entityId).subscribe(ent => {
           if (ent && ent.name) {
             crumb.label = ent.name;
             this.cdr.markForCheck();
