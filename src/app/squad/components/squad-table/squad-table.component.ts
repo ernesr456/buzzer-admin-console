@@ -1,9 +1,19 @@
-import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil, catchError, of } from 'rxjs';
-
+import { Subject, catchError, of, takeUntil } from 'rxjs';
 import { SquadModel } from '../../models/squad.model';
 import { SquadService } from '../../services/squad.service';
 import { SquadAddDialogComponent } from '../squad-add-dialog/squad-add-dialog.component';
@@ -20,7 +30,6 @@ import { ToastService } from '../../../common/services/toast/toast.service';
 })
 export class SquadTableComponent implements OnInit, OnDestroy {
   @Input() orgId?: string;
-
   @Output() addSquad = new EventEmitter<SquadModel>();
   @Output() editSquad = new EventEmitter<SquadModel>();
   @Output() deleteSquadEvent = new EventEmitter<string>();
@@ -33,25 +42,44 @@ export class SquadTableComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private destroy$ = new Subject<void>();
 
-  // Signals
   squads = signal<SquadModel[]>([]);
   isLoading = signal(false);
   search = signal('');
 
-  // Computed filtered rows with enriched data
+  pageSize = signal(10);
+  currentPage = signal(0);
+  pageSizeOptions = [5, 10, 25, 100];
+
   filteredRows = computed(() => {
     const query = this.search().toLowerCase().trim();
-    const list = this.squads().filter(squad => squad && squad.displayName);
+    const list = this.squads().filter((squad) => squad && squad.displayName);
     if (!query) {
-      return list.map(squad => this.enrichRow(squad));
+      return list.map((squad) => this.enrichRow(squad));
     }
     return list
-      .filter(squad =>
-        squad.displayName?.toLowerCase().includes(query) ||
-        squad.position?.toLowerCase().includes(query)
+      .filter(
+        (squad) =>
+          squad.displayName?.toLowerCase().includes(query) ||
+          squad.position?.toLowerCase().includes(query)
       )
-      .map(squad => this.enrichRow(squad));
+      .map((squad) => this.enrichRow(squad));
   });
+
+  totalItems = computed(() => this.filteredRows().length);
+
+  paginatedRows = computed(() => {
+    const start = this.currentPage() * this.pageSize();
+    const end = Math.min(start + this.pageSize(), this.totalItems());
+    return this.filteredRows().slice(start, end);
+  });
+
+  pageStart = computed(() =>
+    this.totalItems() === 0 ? 0 : this.currentPage() * this.pageSize() + 1
+  );
+  pageEnd = computed(() =>
+    Math.min((this.currentPage() + 1) * this.pageSize(), this.totalItems())
+  );
+  totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
 
   private enrichRow(squad: SquadModel) {
     return {
@@ -72,10 +100,9 @@ export class SquadTableComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Listen to service subject and update signal
     this.squadService.squadSubject$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(squads => {
+      .subscribe((squads) => {
         this.squads.set(squads);
       });
 
@@ -89,19 +116,52 @@ export class SquadTableComponent implements OnInit, OnDestroy {
 
   private loadSquads(orgId: string): void {
     this.isLoading.set(true);
-    this.squadService.getSquadByOrgId(orgId).pipe(
-      catchError((err) => {
-        console.error('Failed to load squads:', err);
-        this.toast.error('Could not load squad members. Please try again.', 'Error');
-        return of([]);
-      })
-    ).subscribe(() => {
-      this.isLoading.set(false);
-    });
+    this.squadService
+      .getSquadByOrgId(orgId)
+      .pipe(
+        catchError((err) => {
+          console.error('Failed to load squads:', err);
+          this.toast.error('Could not load squad members. Please try again.', 'Error');
+          return of([]);
+        })
+      )
+      .subscribe(() => {
+        this.isLoading.set(false);
+        this.resetPagination();
+      });
   }
 
   onSearch(query: string): void {
     this.search.set(query);
+    this.currentPage.set(0);
+  }
+
+  onPageSizeChange(event: Event): void {
+    const value = parseInt((event.target as HTMLSelectElement).value, 10);
+    this.pageSize.set(value);
+    this.currentPage.set(0);
+  }
+
+  goToPage(page: number): void {
+    const maxPage = this.totalPages() - 1;
+    if (page < 0 || page > maxPage) return;
+    this.currentPage.set(page);
+  }
+
+  previousPage(): void {
+    if (this.currentPage() > 0) {
+      this.currentPage.set(this.currentPage() - 1);
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages() - 1) {
+      this.currentPage.set(this.currentPage() + 1);
+    }
+  }
+
+  private resetPagination(): void {
+    this.currentPage.set(0);
   }
 
   openAddDialog(): void {
@@ -155,17 +215,20 @@ export class SquadTableComponent implements OnInit, OnDestroy {
       } as CustomDialogData,
     });
 
-    dialogRef.afterClosed().subscribe(confirmed => {
+    dialogRef.afterClosed().subscribe((confirmed) => {
       if (confirmed) {
         this.squadService.deletesSquad(squad).subscribe({
           next: () => {
             this.deleteSquadEvent.emit(squad.id);
-            this.toast.success(`Squad member "${squad.displayName || ''}" deleted successfully.`, 'Deleted');
+            this.toast.success(
+              `Squad member "${squad.displayName || ''}" deleted successfully.`,
+              'Deleted'
+            );
           },
           error: (err) => {
             console.error('Delete failed:', err);
             this.toast.error('Failed to delete squad member. Please try again.', 'Error');
-          }
+          },
         });
       }
     });
@@ -179,12 +242,15 @@ export class SquadTableComponent implements OnInit, OnDestroy {
   }
 
   getDefaultAvatar(): string {
-    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-        <circle cx="16" cy="16" r="16" fill="#444"/>
-        <circle cx="16" cy="12" r="6" fill="#888"/>
-        <circle cx="16" cy="24" r="8" fill="#888"/>
-      </svg>
-    `);
+    return (
+      'data:image/svg+xml;charset=UTF-8,' +
+      encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="16" fill="#444"/>
+          <circle cx="16" cy="12" r="6" fill="#888"/>
+          <circle cx="16" cy="24" r="8" fill="#888"/>
+        </svg>
+      `)
+    );
   }
 }
