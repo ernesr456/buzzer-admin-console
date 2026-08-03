@@ -2,8 +2,32 @@
   <app-custom-breadcrumbs />
 
   @if (loading()) {
-    <div class="flex justify-center items-center h-64">
-      <div class="text-gray-400">Loading entity…</div>
+    <!-- Skeleton -->
+    <div class="rounded-xl border border-[#3E3E3E] shadow-sm overflow-hidden relative animate-pulse">
+      <div class="relative p-6 border border-white/10 rounded-lg">
+        <!-- Action buttons skeleton -->
+        <div class="absolute top-3 right-3 p-2 space-x-2">
+          <div class="w-8 h-8 bg-[#3E3E3E] rounded-lg inline-block"></div>
+          <div class="w-8 h-8 bg-[#3E3E3E] rounded-lg inline-block"></div>
+        </div>
+
+        <!-- Title skeleton -->
+        <div class="h-6 w-48 bg-[#3E3E3E] rounded pr-10"></div>
+
+        <!-- Country skeleton -->
+        <div class="h-4 w-24 bg-[#3E3E3E] rounded mt-1"></div>
+
+        <!-- Metadata skeleton -->
+        <div class="flex flex-wrap justify-between w-full items-center gap-x-6 gap-y-2 mt-3">
+          <div class="h-3 w-40 bg-[#3E3E3E] rounded"></div>
+          <div class="h-3 w-40 bg-[#3E3E3E] rounded"></div>
+        </div>
+      </div>
+
+      <!-- Table placeholder -->
+      <div class="px-5 py-5 sm:px-6">
+        <div class="h-32 bg-[#3E3E3E] rounded-lg"></div>
+      </div>
     </div>
   } @else if (error()) {
     <div class="flex justify-center items-center h-64">
