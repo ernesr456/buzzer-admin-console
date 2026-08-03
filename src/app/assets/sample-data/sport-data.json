@@ -1,77 +1,61 @@
 [
   {
-    "id": "sport-football-001",
-    "name": "Football",
-    "emoji": "⚽",
-    "color": "#1E90FF",
-    "createdAt": "2026-08-01T00:00:00.000Z",
-    "updatedAt": "2026-08-01T00:00:00.000Z",
-    "entities": [
-      {
-        "id": "entity-fa-001",
-        "name": "Football Association",
-        "country": "England",
-        "onboardedAt": "2026-07-01T00:00:00.000Z",
-        "createdAt": "2026-07-01T00:00:00.000Z",
-        "updatedAt": "2026-07-01T00:00:00.000Z",
-        "organizations": [
-          {
-            "id": "org-engfa-001",
-            "name": "England Football Association",
-            "type": "Association",
-            "crestUrl": "https://example.com/crest/engfa.png",
-            "country": "England",
-            "governingBodyId": "gb-fifa-001",
-            "onboardedAt": "2026-07-15T00:00:00.000Z",
-            "createdAt": "2026-07-15T00:00:00.000Z",
-            "updatedAt": "2026-07-15T00:00:00.000Z",
-            "participants": [
-              { "id": "p-001", "name": "Alice Smith", "role": "Admin" },
-              { "id": "p-002", "name": "Bob Jones", "role": "Moderator" }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "sport-basketball-001",
-    "name": "Basketball",
+    "name": "Chess",
     "emoji": "🏀",
-    "color": "#FF4500",
-    "createdAt": "2026-08-01T00:00:00.000Z",
-    "updatedAt": "2026-08-01T00:00:00.000Z",
+    "color": "#FF6B00",
     "entities": [
       {
-        "id": "entity-fiba-001",
-        "name": "FIBA Region A",
-        "country": "USA",
-        "onboardedAt": "2026-06-01T00:00:00.000Z",
-        "createdAt": "2026-06-01T00:00:00.000Z",
-        "updatedAt": "2026-06-15T00:00:00.000Z",
+        "name": "FIBA",
+        "country": "Switzerland",
+        "onboardedAt": "2023-01-15T10:00:00Z",
         "organizations": [
           {
-            "id": "org-regA-001",
-            "name": "Region A Basketball Org",
+            "name": "EuroLeague",
             "type": "League",
-            "crestUrl": "https://example.com/crest/regA.png",
-            "country": "USA",
-            "governingBodyId": "gb-fiba-001",
-            "createdAt": "2026-06-10T00:00:00.000Z",
-            "updatedAt": "2026-06-10T00:00:00.000Z",
+            "crestUrl": "https://logos-world.net/wp-content/uploads/2023/02/Euroleague-Logo.png",
+            "country": "Switzerland",
+            "onboardedAt": "2023-02-01T08:00:00Z",
             "participants": [
-              { "id": "p-101", "name": "Carol Lee", "role": "Owner" }
+              {
+                "name": "FC Barcelona Basketball",
+                "role": "Club",
+                "squads": [
+                  {
+                    "userId": "877c99c0-1c0c-4daa-a575-c5e9a37fe0d5",
+                    "position": "Point Guard",
+                    "agreementEnd": "2025-06-30"
+                  }
+                ],
+                "staff": [
+                  {
+                    "name": "Andre Costa",
+                    "roleTitle": "Head Coach",
+                    "category": "executive_management",
+                    "nationality": "Portuguese",
+                    "photoUrl": "https://ui-avatars.com/api/?name=Andre+Costa&background=FF6B00&color=fff&size=200",
+                    "role": "Manager"
+                  },
+                  {
+                    "name": "Diego Ramos",
+                    "roleTitle": "Assistant Coach",
+                    "category": "operations_administration",
+                    "nationality": "Spanish",
+                    "photoUrl": "https://ui-avatars.com/api/?name=Diego+Ramos&background=FF6B00&color=fff&size=200",
+                    "role": "Assistant"
+                  },
+                  {
+                    "name": "Luca Moretti",
+                    "roleTitle": "Performance Analyst",
+                    "category": "operations_administration",
+                    "nationality": "Italian",
+                    "photoUrl": "https://ui-avatars.com/api/?name=Luca+Moretti&background=FF6B00&color=fff&size=200",
+                    "role": "Analyst"
+                  }
+                ]
+              }
             ]
           }
         ]
-      },
-      {
-        "id": "entity-fiba-002",
-        "name": "FIBA Region B",
-        "country": "Canada",
-        "createdAt": "2026-05-01T00:00:00.000Z",
-        "updatedAt": "2026-05-01T00:00:00.000Z",
-        "organizations": []
       }
     ]
   }
