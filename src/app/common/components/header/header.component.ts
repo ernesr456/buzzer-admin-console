@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SidebarStateService } from '../../services/sidebar-state.service';
+import { SidebarStateService } from '../../services/sidebar/sidebar-state.service';
 import { Title } from '@angular/platform-browser';
 import { Router,NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs';
