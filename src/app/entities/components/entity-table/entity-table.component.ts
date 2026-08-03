@@ -30,14 +30,16 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   private participantService = inject(ParticipantService);
   private destroy$ = new Subject<void>();
 
-  // Signals for state
   sportId = signal('');
   entities = signal<EntityModel[]>([]);
   counts = signal<Record<string, { organizations: number; participants: number }>>({});
   search = signal('');
   loading = signal(true);
 
-  // Computed filtered entities
+  pageSize = signal(10);
+  currentPage = signal(0);
+  pageSizeOptions = [5, 10, 25, 100];
+
   filteredEntities = computed(() => {
     const q = this.search().trim().toLowerCase();
     if (!q) return this.entities();
@@ -45,6 +47,22 @@ export class EntityTableComponent implements OnInit, OnDestroy {
       entity.name.toLowerCase().includes(q)
     );
   });
+
+  totalItems = computed(() => this.filteredEntities().length);
+
+  paginatedEntities = computed(() => {
+    const start = this.currentPage() * this.pageSize();
+    const end = Math.min(start + this.pageSize(), this.totalItems());
+    return this.filteredEntities().slice(start, end);
+  });
+
+  pageStart = computed(() =>
+    this.totalItems() === 0 ? 0 : this.currentPage() * this.pageSize() + 1
+  );
+  pageEnd = computed(() =>
+    Math.min((this.currentPage() + 1) * this.pageSize(), this.totalItems())
+  );
+  totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
 
   ngOnInit(): void {
     this.route.params
@@ -74,12 +92,36 @@ export class EntityTableComponent implements OnInit, OnDestroy {
       .subscribe(async entities => {
         const list = Array.isArray(entities) ? entities : (entities ? [entities] : []);
         this.entities.set(list);
+        this.resetPagination();
         await this.computeCountsForEntities(list);
       });
   }
 
   onSearch(query: string): void {
     this.search.set(query);
+    this.currentPage.set(0);
+  }
+
+  onPageSizeChange(event: Event): void {
+    const value = parseInt((event.target as HTMLSelectElement).value, 10);
+    this.pageSize.set(value);
+    this.currentPage.set(0);
+  }
+
+  previousPage(): void {
+    if (this.currentPage() > 0) {
+      this.currentPage.set(this.currentPage() - 1);
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages() - 1) {
+      this.currentPage.set(this.currentPage() + 1);
+    }
+  }
+
+  private resetPagination(): void {
+    this.currentPage.set(0);
   }
 
   openAddDialog(): void {
