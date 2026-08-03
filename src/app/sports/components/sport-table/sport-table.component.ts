@@ -1,3 +1,4 @@
+// sport-table.component.ts
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,7 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { finalize, lastValueFrom } from 'rxjs';
+import { finalize } from 'rxjs';
 import { SportModel } from '../../models/sport.model';
 import { SportsService } from '../../services/sports/sports.service';
 import { SportAddDialogComponent } from '../sport-add-dialog/sport-add-dialog.component';
@@ -18,9 +19,6 @@ import { ToastService } from '../../../common/services/toast/toast.service';
 import { EntityModel } from '../../../entities/model/entity.model';
 import { OrganizationModel } from '../../../organizations/model/organization.model';
 import { ParticipantModel } from '../../../participants/model/participant.model';
-import { OrganizationService } from '../../../organizations/services/organization.service';
-import { ParticipantService } from '../../../participants/services/participant.service';
-import { EntityService } from '../../../entities/services/entity.service';
 
 @Component({
   selector: 'app-sport-table',
@@ -39,9 +37,6 @@ export class SportTableComponent {
   private sportsService = inject(SportsService);
   private toast = inject(ToastService);
   private router = inject(Router);
-  private entityService = inject(EntityService)
-  private organizationService = inject(OrganizationService);
-  private participantService = inject(ParticipantService);
 
   search = signal('');
   pageSize = signal(10);
@@ -162,10 +157,7 @@ export class SportTableComponent {
 
   private refreshData(): void {
     this.sportsService.loadSports().pipe(
-      finalize(() => {
-        // The parent's subscriptions will update the inputs automatically
-        // because the service subjects emit new values.
-      })
+      finalize(() => {})
     ).subscribe();
   }
 
@@ -181,170 +173,107 @@ export class SportTableComponent {
 
     try {
       const content = await file.text();
-      const result = this.parseBulkImportData(content);
+      const sports = this.parseBulkImportData(content);
 
-      if (result.type === 'full') {
-        const sports = result.data;
-        if (!sports.length) {
-          this.toast.error('No valid sport records found in the file.', 'Import failed');
-          input.value = '';
-          return;
-        }
-
-        try {
-          await this.importHierarchy(sports);
-          this.toast.success(
-            `Imported ${sports.length} sport(s) with nested entities, organizations and participants.`,
-            'Import completed'
-          );
-          this.refreshData();
-        } catch (err) {
-          console.error('Bulk import failed', err);
-          this.toast.error('Bulk import completed with errors. Check console for details.', 'Import finished');
-        }
-      } else {
-        const flatSports = result.data;
-        if (!flatSports.length) {
-          this.toast.error('No valid sport records found in the file.', 'Import failed');
-          input.value = '';
-          return;
-        }
-        this.toast.success(
-          `Imported ${flatSports.length} sport(s).`,
-          'Import completed'
-        );
-        this.refreshData();
+      if (!sports.length) {
+        this.toast.error('No valid sport records found in the file.', 'Import failed');
+        input.value = '';
+        return;
       }
+
+      this.sportsService.bulkImportSports(sports).subscribe({
+        next: (response) => {
+          this.importLoading.set(false);
+          const { imported, skipped, errors } = response;
+          const importedCount = imported?.sports?.length || 0;
+          const skippedCount = skipped?.length || 0;
+          const errorCount = errors?.length || 0;
+
+          let message = `Imported ${importedCount} sport(s)`;
+          if (skippedCount) message += `, ${skippedCount} skipped (duplicates)`;
+          if (errorCount) message += `, ${errorCount} error(s)`;
+          this.toast.success(message, 'Import completed');
+
+          if (errorCount > 0) {
+            console.warn('Bulk import errors:', errors);
+          }
+
+          this.refreshData();
+          input.value = '';
+        },
+        error: (err) => {
+          this.importLoading.set(false);
+          this.toast.error('Bulk import failed. Please check the file format and try again.', 'Error');
+          console.error('Bulk import error', err);
+          input.value = '';
+        }
+      });
     } catch (error) {
       this.toast.error('Unable to read the selected file. Please try again.', 'Import failed');
       console.error('Bulk import failed', error);
-    } finally {
       input.value = '';
       this.importLoading.set(false);
     }
   }
-  parseBulkImportData(content: string): { type: 'flat'; data: Array<{ name: string; emoji: string; color: string }> } | { type: 'full'; data: SportModel[] } {
+
+  parseBulkImportData(content: string): SportModel[] {
     const trimmedContent = content?.trim();
     if (!trimmedContent) {
-      return { type: 'flat', data: [] };
+      return [];
     }
 
     try {
       const parsed = JSON.parse(trimmedContent);
-      const records = Array.isArray(parsed)
-        ? parsed
-        : Array.isArray(parsed?.sports)
-        ? parsed.sports
-        : Array.isArray(parsed?.data)
-        ? parsed.data
-        : [parsed];
+      let records: any[] = [];
+
+      if (Array.isArray(parsed)) {
+        records = parsed;
+      } else if (parsed.sports && Array.isArray(parsed.sports)) {
+        records = parsed.sports;
+      } else if (parsed.data && Array.isArray(parsed.data)) {
+        records = parsed.data;
+      } else {
+        records = [parsed];
+      }
 
       if (!records.length) {
-        return { type: 'flat', data: [] };
+        return [];
       }
 
       const first = records[0];
       if (first && typeof first === 'object' && 'entities' in first) {
-        const fullSports = records.map((item: any) => this.normalizeSportDates(item));
-        return { type: 'full', data: fullSports };
+        return records.map((item: any) => this.normalizeSportDates(item));
       } else {
-        const flat = records
+        return records
           .filter((item: any) => item && typeof item === 'object')
-          .map((item: any) => ({
-            name: this.normalizeString(item.name),
-            emoji: this.normalizeString(item.emoji),
-            color: this.normalizeString(item.color),
-          }))
-          .filter((record: { name: string; emoji: string; color: string }) =>
-            record.name || record.emoji || record.color
-          );
-        return { type: 'flat', data: flat };
+          .map((item: any) => {
+            const sport: SportModel = {
+              id: item.id || '',
+              name: this.normalizeString(item.name),
+              emoji: this.normalizeString(item.emoji),
+              color: this.normalizeString(item.color),
+              createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
+              updatedAt: item.updatedAt ? new Date(item.updatedAt) : undefined,
+              entities: [],
+            };
+            return sport;
+          })
+          .filter((sport: SportModel) => sport.name || sport.emoji || sport.color);
       }
     } catch {
       const flat = this.parseCsvBulkImportData(trimmedContent);
-      return { type: 'flat', data: flat };
+      return flat.map(({ name, emoji, color }) => ({
+        id: '',
+        name,
+        emoji,
+        color,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        entities: [],
+      }));
     }
   }
-  private async importHierarchy(sports: SportModel[]): Promise<void> {
-    for (const sport of sports) {
-      try {
-        const sportPayload: SportModel = {
-          name: sport.name,
-          emoji: sport.emoji,
-          color: sport.color,
-          createdAt: sport.createdAt || new Date(),
-          updatedAt: sport.updatedAt,
-          id: sport.id,
-          entities: [],
-        };
-        const createdSport = await lastValueFrom(this.sportsService.addSport(sportPayload));
-        const entities = sport.entities || [];
-        for (const entity of entities) {
-          try {
-            const entityPayload: EntityModel = {
-              name: entity.name,
-              country: entity.country,
-              onboardedAt: entity.onboardedAt,
-              createdAt: entity.createdAt || new Date(),
-              updatedAt: entity.updatedAt,
-              id: entity.id,
-              sportId: createdSport.id,
-            };
 
-            const createdEntity = await lastValueFrom(
-              this.entityService.addEntity(createdSport.id, entityPayload)
-            );
-
-            const orgs = entity.organizations || [];
-            for (const org of orgs) {
-              try {
-                const orgPayload: OrganizationModel = {
-                  name: org.name,
-                  type: org.type || 'Association',
-                  crestUrl: org.crestUrl,
-                  country: org.country,
-                  governingBodyId: org.governingBodyId,
-                  onboardedAt: org.onboardedAt,
-                  createdAt: org.createdAt || new Date(),
-                  updatedAt: org.updatedAt || new Date(),
-                  id: org.id,
-                  participants: [],
-                };
-
-                const createdOrg = await lastValueFrom(
-                  this.organizationService.addOrganization(createdEntity.id, orgPayload)
-                );
-                const parts = org.participants || [];
-                for (const part of parts) {
-                  try {
-                    const partPayload: Partial<ParticipantModel> = {
-                      name: part.name,
-                      role: part.role,
-                      createdAt: part.createdAt || new Date(),
-                      updatedAt: part.updatedAt,
-                      id: part.id,
-                    };
-
-                    await lastValueFrom(
-                      this.participantService.addParticipant(createdOrg.id, partPayload)
-                    );
-                  } catch (pErr) {
-                    console.error('Failed to import participant', part, pErr);
-                  }
-                }
-              } catch (oErr) {
-                console.error('Failed to import organization', org, oErr);
-              }
-            }
-          } catch (eErr) {
-            console.error('Failed to import entity', entity, eErr);
-          }
-        }
-      } catch (sErr) {
-        console.error('Failed to import sport', sport, sErr);
-      }
-    }
-  }
   private normalizeSportDates(sport: any): SportModel {
     return {
       ...sport,
@@ -362,14 +291,22 @@ export class SportTableComponent {
           onboardedAt: org.onboardedAt ? new Date(org.onboardedAt) : undefined,
           participants: (org.participants || []).map((part: any) => ({
             ...part,
+            squads: (part.squads || []).map((squad: any) => ({
+              ...squad,
+            })),
+            staff: (part.staff || []).map((staff: any) => ({
+              ...staff,
+            })),
           })),
         })),
       })),
     };
   }
+
   private normalizeString(value: unknown): string {
     return typeof value === 'string' ? value.trim() : '';
   }
+
   private parseCsvBulkImportData(content: string): Array<{ name: string; emoji: string; color: string }> {
     const lines = content
       .split(/\r?\n/)

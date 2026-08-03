@@ -1,10 +1,11 @@
+// sports.service.ts
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, lastValueFrom } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { SportModel } from '../../models/sport.model';
 import { environment } from '../../../../environment/environment';
-import {AuthService} from '../../../core/services/auth/auth.service'
+import { AuthService } from '../../../core/services/auth/auth.service';
 import { EntityService } from '../../../entities/services/entity.service';
 import { OrganizationService } from '../../../organizations/services/organization.service';
 import { ParticipantService } from '../../../participants/services/participant.service';
@@ -19,18 +20,15 @@ interface Counts {
 export class SportsService {
   private apiUrl = environment.apiBaseUrl + '/sports';
 
-  // internal signals
   private _sports = signal<SportModel[]>([]);
   private _counts = signal<Record<string, Counts>>({});
 
-  // Raw data from the API (BehaviorSubjects kept for Observable API compatibility)
   private rawSportsSubject = new BehaviorSubject<SportModel[]>([]);
   sports$ = this.rawSportsSubject.pipe(
     map(sports => sports.map(sport => ({ ...sport })))
   );
   totalSports$ = this.rawSportsSubject.pipe(map(list => list.length));
 
-  // counts cache
   private countsCache = new Map<string, Counts>();
   private countsSubject = new BehaviorSubject<Record<string, Counts>>({});
   counts$ = this.countsSubject.asObservable();
@@ -38,19 +36,15 @@ export class SportsService {
   private sportsMap = new Map<string, BehaviorSubject<SportModel>>();
   sportSubject$ = new BehaviorSubject<SportModel[]>([]);
 
-  // inject dependencies (use inject() per Developer Guide)
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   private entityService = inject(EntityService);
   private organizationService = inject(OrganizationService);
   private participantService = inject(ParticipantService);
 
-  // initialize: load sports at service construction
   private _init = (() => {
-    // mirror signals into subjects initially
     this._sports.set(this.rawSportsSubject.value);
     this._counts.set(this.countsSubject.value);
-    // kick off initial load
     this.loadSports().subscribe();
   })();
 
@@ -64,7 +58,7 @@ export class SportsService {
     );
   }
 
- getSport(): void {
+  getSport(): void {
     this.http.get<SportModel[]>(this.apiUrl, {
       headers: this.authService.getAuthHeaders()
     }).subscribe({
@@ -141,7 +135,7 @@ export class SportsService {
     this.rawSportsSubject.next(sports);
     this.sportsMap.clear();
     for (const sport of sports) {
-      this.sportsMap.set(sport.id+"", new BehaviorSubject<SportModel>(sport));
+      this.sportsMap.set(sport.id + "", new BehaviorSubject<SportModel>(sport));
     }
   }
 
@@ -154,9 +148,9 @@ export class SportsService {
       map(sport => this.normalizeSport(sport)),
       tap(sport => {
         const current = this.rawSportsSubject.value;
-        const existing = current.find(s => s.id+"" === id);
+        const existing = current.find(s => s.id + "" === id);
         if (existing) {
-          const updated = current.map(s => (s.id+"" === id ? sport : s));
+          const updated = current.map(s => (s.id + "" === id ? sport : s));
           this.updateCache(updated);
         } else {
           this.updateCache([...current, sport]);
@@ -166,11 +160,7 @@ export class SportsService {
     );
   }
 
-  /**
-   * Compute counts for a sport and cache the result.
-   */
   async computeAndCacheCounts(sportId: string): Promise<Counts> {
-    // Return cached if present
     if (this.countsCache.has(sportId)) return this.countsCache.get(sportId)!;
 
     const counts: Counts = { entities: 0, organizations: 0, participants: 0 };
@@ -203,7 +193,6 @@ export class SportsService {
       console.error('Failed to get entities for sport', sportId, e);
     }
 
-    // cache and emit
     this.countsCache.set(sportId, counts);
     const snapshot = this.countsSubject.value;
     this.countsSubject.next({ ...snapshot, [sportId]: counts });
@@ -231,5 +220,55 @@ export class SportsService {
       merged.push(newSport);
     }
     this.updateCache(merged);
+  }
+
+  bulkImportSports(sports: SportModel[]): Observable<{ imported: any; skipped: any; errors: any }> {
+    const url = `${this.apiUrl}/bulk`;
+
+    const payload = {
+      sports: sports.map(sport => ({
+        name: sport.name,
+        emoji: sport.emoji,
+        color: sport.color,
+        entities: (sport.entities || []).map(entity => ({
+          name: entity.name,
+          country: entity.country,
+          onboardedAt: entity.onboardedAt,
+          organizations: (entity.organizations || []).map(org => ({
+            name: org.name,
+            type: org.type,
+            crestUrl: org.crestUrl,
+            country: org.country,
+            governingBodyId: org.governingBodyId,
+            onboardedAt: org.onboardedAt,
+            participants: (org.participants || []).map(part => ({
+              name: part.name,
+              role: part.role,
+              squads: (part.squads || []).map(squad => ({
+                userId: squad.userId,
+                position: squad.position,
+                agreementEnd: squad.agreementEnd,
+              })),
+              staff: (part.staff || []).map(staff => ({
+                name: staff.name,
+                roleTitle: staff.roleTitle,
+                category: staff.category,
+                nationality: staff.nationality,
+                photoUrl: staff.photoUrl,
+                role: staff.role,
+              })),
+            })),
+          })),
+        })),
+      }))
+    };
+
+    return this.http.post<{ imported: any; skipped: any; errors: any }>(
+      url,
+      payload,
+      { headers: this.authService.getAuthHeaders() }
+    ).pipe(
+      catchError(this.authService.handleError.bind(this.authService))
+    );
   }
 }
