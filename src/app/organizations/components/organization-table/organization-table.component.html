@@ -32,14 +32,35 @@
     </thead>
     <tbody>
       @if (isLoading()) {
+        <!-- Skeleton rows -->
         @for (_ of [1,2,3]; track $index) {
-          <tr>
-            <td colspan="3" class="py-3 px-4">
-              <div class="skeleton-line w-3/4 h-4"></div>
+          <tr class="animate-pulse border-b border-white/5 last:border-0">
+            <!-- Organization: crest + name -->
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-[#3E3E3E] flex-shrink-0"></div>
+                <div class="h-4 w-32 bg-[#3E3E3E] rounded"></div>
+              </div>
+            </td>
+            <!-- Country -->
+            <td class="py-3 px-4">
+              <div class="h-4 w-24 bg-[#3E3E3E] rounded"></div>
+            </td>
+            <!-- Participants -->
+            <td class="py-3 px-4">
+              <div class="h-4 w-12 bg-[#3E3E3E] rounded"></div>
+            </td>
+            <!-- Actions -->
+            <td class="py-3 px-4">
+              <div class="flex gap-2">
+                <div class="w-8 h-8 bg-[#3E3E3E] rounded-lg"></div>
+                <div class="w-8 h-8 bg-[#3E3E3E] rounded-lg"></div>
+              </div>
             </td>
           </tr>
         }
       } @else {
+        <!-- Real data rows -->
         @if (filteredRows().length > 0) {
           @for (row of filteredRows(); track row.id) {
             <tr
@@ -77,7 +98,7 @@
           }
         } @else {
           <tr>
-            <td colspan="3" class="py-6 text-center text-[#8b95b0]">
+            <td colspan="4" class="py-6 text-center text-[#8b95b0]">
               <span class="material-symbols-outlined text-2xl block mb-1">inbox</span>
               No organizations found for this governing body.
             </td>
