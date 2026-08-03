@@ -1,24 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { SidebarStateService } from '../services/sidebar-state.service';
+import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';   // ← add RouterLinkActive
+import { MenuGroup, MenuItem } from '../../common/models/menu.model';
+import { SidebarStateService } from '../services/sidebar/sidebar-state.service';
 import { AuthService } from '../../core/services/auth/auth.service';
-
-interface MenuItem {
-  label: string;
-  icon: string;
-  isActive?: boolean;
-}
-
-interface MenuGroup {
-  title: string;
-  items: MenuItem[];
-  isOpen?: boolean;
-}
+import { MenuService } from '../services/menu/menu.service';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink, RouterLinkActive],   // ← import RouterLinkActive
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,86 +17,43 @@ interface MenuGroup {
 export class SidebarComponent {
   public sidebarService = inject(SidebarStateService);
   private authService = inject(AuthService);
-  
+  private menuService = inject(MenuService);
+
+  // Base menu from service (role‑filtered)
+  readonly baseMenuGroups = this.menuService.menuGroups;
+
+  // Local open/close state
+  private openGroups = signal<Record<string, boolean>>({});
+
+  // Derived menu with open/closed merged
+  readonly menuGroups = computed(() => {
+    const groups = this.baseMenuGroups();
+    const openMap = this.openGroups();
+    return groups.map(group => ({
+      ...group,
+      isOpen: openMap[group.title] ?? group.isOpen ?? true,
+    }));
+  });
+
+  // User info
   readonly user = this.authService.currentUser;
   readonly userEmail = computed(() => this.user()?.email ?? '');
   readonly isCollapsed = this.sidebarService.collapsed;
-
-  menuGroups: MenuGroup[] = [
-    {
-      title: 'Sports',
-      isOpen: true,
-      items: [
-        { label: 'Sports Catalogue', icon: 'sports', isActive: true },
-        { label: 'Governing Bodies', icon: 'groups' },
-        { label: 'Organisations', icon: 'business' },
-        { label: 'Participants', icon: 'people' },
-      ],
-    },
-    {
-      title: 'Competitions',
-      isOpen: true,
-      items: [
-        { label: 'Games', icon: 'sports_soccer' },
-        { label: 'Tournaments', icon: 'emoji_events' },
-        { label: 'Scheduling', icon: 'event' },
-      ],
-    },
-    {
-      title: 'Teams',
-      isOpen: true,
-      items: [
-        { label: 'Clubs', icon: 'person_add' },
-        { label: 'Athletes', icon: 'trending_up' },
-        { label: 'Squad', icon: 'group' },
-        { label: 'Staff', icon: 'person' },
-      ],
-    },
-    {
-      title: 'Media',
-      isOpen: true,
-      items: [
-        { label: 'Events', icon: 'event' },
-        { label: 'Clips', icon: 'videocam' },
-      ],
-    },
-    {
-      title: 'Finance',
-      isOpen: true,
-      items: [
-        { label: 'Payments', icon: 'payments' },
-        { label: 'Payment Settings', icon: 'settings' },
-      ],
-    },
-    {
-      title: 'System',
-      isOpen: true,
-      items: [
-        { label: 'Users', icon: 'group' },
-        { label: 'Configurations', icon: 'settings' },
-        { label: 'Requests', icon: 'clear' },
-        { label: 'History', icon: 'history' },
-        { label: 'Sessions', icon: 'login' },
-        { label: 'OAuth', icon: 'lock' },
-        { label: 'Translations', icon: 'language' },
-        { label: 'Feature Access', icon: 'verified' },
-      ],
-    },
-  ];
-
   readonly userInitials = computed(() => {
     const email = this.user()?.email;
-    if (!email) return '?';
-    return email.charAt(0).toUpperCase();
+    return email ? email.charAt(0).toUpperCase() : '?';
   });
 
   toggleGroup(group: MenuGroup): void {
-    group.isOpen = !group.isOpen;
+    const current = this.openGroups()[group.title] ?? group.isOpen ?? true;
+    this.openGroups.update(map => ({
+      ...map,
+      [group.title]: !current,
+    }));
   }
 
-  setActive(group: MenuGroup, clickedItem: MenuItem): void {
-    this.menuGroups.forEach(g => g.items.forEach(item => item.isActive = false));
-    clickedItem.isActive = true;
+  // Only close mobile sidebar – no manual active state
+  onItemClick(): void {
     this.sidebarService.closeMobile();
   }
 

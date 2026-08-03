@@ -47,3 +47,12 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
 }
+
+.active-link {
+  background-color: rgba(255, 255, 255, 0.1); // subtle highlight
+  color: white !important;
+  // Optionally, override the icon opacity
+  .icon {
+    opacity: 1;
+  }
+}
