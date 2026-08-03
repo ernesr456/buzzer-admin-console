@@ -128,7 +128,12 @@ export class SportsService {
       name: sport.name,
       createdAt: new Date(sport.createdAt),
       updatedAt: sport.updatedAt ? new Date(sport.updatedAt) : undefined,
-      entities: []
+      entities: [],
+      counts: sport.counts ? {
+        governingBodies: sport.counts.governingBodies ?? 0,
+        organisations: sport.counts.organisations ?? 0,
+        participants: sport.counts.participants ?? 0,
+      } : undefined,
     };
   }
 

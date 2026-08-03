@@ -1,3 +1,4 @@
+// sport-detail.component.ts
 import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -29,22 +30,21 @@ export class SportDetailComponent implements OnInit, OnDestroy {
 
   public sportId = signal('');
   public sportsSignal = signal<SportModel[]>([]);
-  public countsSignal = signal<Record<string, { entities: number; organizations: number; participants: number }>>({});
 
   public loading = signal(true);
   public error = signal<string | null>(null);
 
   public sport = computed(() => this.sportsSignal().find((s: SportModel) => s.id === this.sportId()));
 
-  public totalEntities = computed(() => this.countsSignal()[this.sportId()]?.entities ?? 0);
-  public totalCompetitions = computed(() => this.countsSignal()[this.sportId()]?.organizations ?? 0);
-  public totalParticipants = computed(() => this.countsSignal()[this.sportId()]?.participants ?? 0);
+  // Totals derived directly from the sport's counts (from API)
+  public totalEntities = computed(() => this.sport()?.counts?.governingBodies ?? 0);
+  public totalCompetitions = computed(() => this.sport()?.counts?.organisations ?? 0);
+  public totalParticipants = computed(() => this.sport()?.counts?.participants ?? 0);
 
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.loadSportDetail();
-
+    // Watch for param changes
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(pm => {
       const id = pm.get('sportId') || '';
       if (!id) {
@@ -52,9 +52,10 @@ export class SportDetailComponent implements OnInit, OnDestroy {
         return;
       }
       this.sportId.set(id);
-      this.sportsService.computeAndCacheCounts(id).catch(() => {});
+      this.loadSportDetail();
     });
 
+    // Keep sportsSignal in sync with service
     this.sportsService.sports$
       .pipe(takeUntil(this.destroy$))
       .subscribe(list => {
@@ -62,10 +63,6 @@ export class SportDetailComponent implements OnInit, OnDestroy {
         this.loading.set(false);
         this.error.set(null);
       });
-
-    this.sportsService.counts$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(m => this.countsSignal.set(m));
   }
 
   ngOnDestroy(): void {
@@ -100,7 +97,6 @@ export class SportDetailComponent implements OnInit, OnDestroy {
 
   refreshSport(): void {
     this.loadSportDetail();
-    this.sportsService.computeAndCacheCounts(this.sportId()).catch(() => {});
   }
 
   openEditDialog(sport: SportModel): void {

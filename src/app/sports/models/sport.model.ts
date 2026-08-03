@@ -7,5 +7,10 @@ export interface SportModel {
   color: string;
   createdAt: Date;
   updatedAt?: Date;
+  counts?:{
+    governingBodies: number,
+    organisations: number,
+    participants: number,
+  }
   entities: EntityModel[];
 }
