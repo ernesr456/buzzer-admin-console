@@ -1,9 +1,19 @@
-import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil, catchError, of } from 'rxjs';
-
+import { Subject, catchError, of, takeUntil } from 'rxjs';
 import { StaffModel } from '../../mode/staff.model';
 import { StaffService } from '../../services/staff.service';
 import { StaffAddDialogComponent } from '../staff-add-dialog/staff-add-dialog.component';
@@ -35,18 +45,36 @@ export class StaffTableComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private destroy$ = new Subject<void>();
 
-  // Signals
   staffMembers = signal<StaffModel[]>([]);
   isLoading = signal(false);
   search = signal('');
 
-  // Computed filtered rows
+  pageSize = signal(10);
+  currentPage = signal(0);
+  pageSizeOptions = [5, 10, 25, 100];
+
   filteredRows = computed(() => {
     const q = this.search().trim().toLowerCase();
-    const list = this.staffMembers().filter(staff => staff != null);
+    const list = this.staffMembers().filter((staff) => staff != null);
     if (!q) return list;
-    return list.filter(staff => staff.name.toLowerCase().includes(q));
+    return list.filter((staff) => staff.name.toLowerCase().includes(q));
   });
+
+  totalItems = computed(() => this.filteredRows().length);
+
+  paginatedRows = computed(() => {
+    const start = this.currentPage() * this.pageSize();
+    const end = Math.min(start + this.pageSize(), this.totalItems());
+    return this.filteredRows().slice(start, end);
+  });
+
+  pageStart = computed(() =>
+    this.totalItems() === 0 ? 0 : this.currentPage() * this.pageSize() + 1
+  );
+  pageEnd = computed(() =>
+    Math.min((this.currentPage() + 1) * this.pageSize(), this.totalItems())
+  );
+  totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
 
   ngOnInit(): void {
     const orgId = this.orgId ?? this.route.snapshot.paramMap.get('orgId');
@@ -55,10 +83,9 @@ export class StaffTableComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Listen to service subject and update signal
     this.staffService.staffSubject$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(members => {
+      .subscribe((members) => {
         this.staffMembers.set(members);
       });
 
@@ -72,19 +99,52 @@ export class StaffTableComponent implements OnInit, OnDestroy {
 
   private loadStaff(orgId: string): void {
     this.isLoading.set(true);
-    this.staffService.getStaffByOrgId(orgId).pipe(
-      catchError((err) => {
-        console.error('Failed to load staff:', err);
-        this.toast.error('Could not load staff members. Please try again.', 'Error');
-        return of([]);
-      })
-    ).subscribe(() => {
-      this.isLoading.set(false);
-    });
+    this.staffService
+      .getStaffByOrgId(orgId)
+      .pipe(
+        catchError((err) => {
+          console.error('Failed to load staff:', err);
+          this.toast.error('Could not load staff members. Please try again.', 'Error');
+          return of([]);
+        })
+      )
+      .subscribe(() => {
+        this.isLoading.set(false);
+        this.resetPagination();
+      });
   }
 
   onSearch(query: string): void {
     this.search.set(query);
+    this.currentPage.set(0);
+  }
+
+  onPageSizeChange(event: Event): void {
+    const value = parseInt((event.target as HTMLSelectElement).value, 10);
+    this.pageSize.set(value);
+    this.currentPage.set(0);
+  }
+
+  goToPage(page: number): void {
+    const maxPage = this.totalPages() - 1;
+    if (page < 0 || page > maxPage) return;
+    this.currentPage.set(page);
+  }
+
+  previousPage(): void {
+    if (this.currentPage() > 0) {
+      this.currentPage.set(this.currentPage() - 1);
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages() - 1) {
+      this.currentPage.set(this.currentPage() + 1);
+    }
+  }
+
+  private resetPagination(): void {
+    this.currentPage.set(0);
   }
 
   openAddDialog(): void {
