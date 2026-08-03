@@ -1,8 +1,16 @@
-import { Component, inject, ChangeDetectionStrategy, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil, catchError, of, finalize } from 'rxjs';
+import { Subject, catchError, finalize, of, takeUntil } from 'rxjs';
 import { ParticipantService } from '../../services/participant.service';
 import { ToastService } from '../../../common/services/toast/toast.service';
 import { ParticipantModel } from '../../model/participant.model';
@@ -21,30 +29,45 @@ export class ParticipantTableComponent implements OnInit, OnDestroy {
   private dialog = inject(MatDialog);
   private participantService = inject(ParticipantService);
   private toast = inject(ToastService);
-  private router = inject(Router);
   private route = inject(ActivatedRoute);
   private destroy$ = new Subject<void>();
 
-  // Signals
   organizationId = signal('');
   participants = signal<ParticipantModel[]>([]);
   search = signal('');
   loading = signal(true);
 
-  // Computed filtered participants
+  pageSize = signal(10);
+  currentPage = signal(0);
+  pageSizeOptions = [5, 10, 25, 100];
+
   filteredParticipants = computed(() => {
     const q = this.search().trim().toLowerCase();
     if (!q) return this.participants();
-    return this.participants().filter(p => p.name.toLowerCase().includes(q));
+    return this.participants().filter((p) => p.name.toLowerCase().includes(q));
   });
 
+  totalItems = computed(() => this.filteredParticipants().length);
+
+  paginatedParticipants = computed(() => {
+    const start = this.currentPage() * this.pageSize();
+    const end = Math.min(start + this.pageSize(), this.totalItems());
+    return this.filteredParticipants().slice(start, end);
+  });
+
+  pageStart = computed(() =>
+    this.totalItems() === 0 ? 0 : this.currentPage() * this.pageSize() + 1
+  );
+  pageEnd = computed(() =>
+    Math.min((this.currentPage() + 1) * this.pageSize(), this.totalItems())
+  );
+  totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
+
   ngOnInit(): void {
-    this.route.params
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
-        this.organizationId.set(params['orgId']);
-        this.loadParticipants();
-      });
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      this.organizationId.set(params['orgId']);
+      this.loadParticipants();
+    });
   }
 
   ngOnDestroy(): void {
@@ -54,7 +77,8 @@ export class ParticipantTableComponent implements OnInit, OnDestroy {
 
   loadParticipants(): void {
     this.loading.set(true);
-    this.participantService.getParticipantsByOrganizationId(this.organizationId())
+    this.participantService
+      .getParticipantsByOrganizationId(this.organizationId())
       .pipe(
         finalize(() => this.loading.set(false)),
         catchError((err) => {
@@ -63,14 +87,44 @@ export class ParticipantTableComponent implements OnInit, OnDestroy {
           return of([]);
         })
       )
-      .subscribe(participants => {
-        const list = Array.isArray(participants) ? participants : (participants ? [participants] : []);
+      .subscribe((participants) => {
+        const list = Array.isArray(participants) ? participants : participants ? [participants] : [];
         this.participants.set(list);
+        this.resetPagination();
       });
   }
 
   onSearch(query: string): void {
     this.search.set(query);
+    this.currentPage.set(0);
+  }
+
+  onPageSizeChange(event: Event): void {
+    const value = parseInt((event.target as HTMLSelectElement).value, 10);
+    this.pageSize.set(value);
+    this.currentPage.set(0);
+  }
+
+  goToPage(page: number): void {
+    const maxPage = this.totalPages() - 1;
+    if (page < 0 || page > maxPage) return;
+    this.currentPage.set(page);
+  }
+
+  previousPage(): void {
+    if (this.currentPage() > 0) {
+      this.currentPage.set(this.currentPage() - 1);
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages() - 1) {
+      this.currentPage.set(this.currentPage() + 1);
+    }
+  }
+
+  private resetPagination(): void {
+    this.currentPage.set(0);
   }
 
   openAddDialog(): void {
@@ -116,14 +170,14 @@ export class ParticipantTableComponent implements OnInit, OnDestroy {
       } as CustomDialogData,
     });
 
-    dialogRef.afterClosed().subscribe(confirmed => {
+    dialogRef.afterClosed().subscribe((confirmed) => {
       if (confirmed) {
         this.participantService.deleteParticipant(participant).subscribe({
           next: () => {
             this.toast.success(`Participant "${participant.name}" deleted.`, 'Deleted');
             this.loadParticipants();
           },
-          error: (err) => this.toast.error('Failed to delete participant', 'Error')
+          error: () => this.toast.error('Failed to delete participant', 'Error'),
         });
       }
     });
